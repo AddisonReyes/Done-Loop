@@ -34,16 +34,16 @@ export function HabitTrackerSection({
   onDeleteHabit,
 }: HabitTrackerSectionProps) {
   return (
-    <section className="glass-panel float-in rounded-[28px] px-5 py-5 [animation-delay:240ms] sm:px-6">
+    <section className="glass-panel float-in rounded-[28px] px-5 py-6 [animation-delay:240ms] sm:px-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
             Daily rituals
           </p>
           <h2 className="mt-2 text-xl font-semibold text-white">
             Habit Tracker
           </h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-300">
             Check habits for today. They reset tomorrow.
           </p>
         </div>
@@ -52,7 +52,7 @@ export function HabitTrackerSection({
         </div>
       </div>
 
-      <div className="mt-5 flex gap-2">
+      <div className="mt-6 flex gap-2">
         <input
           value={newHabitTitle}
           onChange={(event) => onNewHabitTitleChange(event.target.value)}
@@ -71,7 +71,7 @@ export function HabitTrackerSection({
         </button>
       </div>
 
-      <ul className="mt-5 space-y-3">
+      <ul className="mt-6 space-y-3">
         {habits.length === 0 ? (
           <li className="rounded-[22px] border border-dashed border-white/10 bg-white/4 px-4 py-6 text-center text-sm text-zinc-400">
             Start with one tiny habit. The first check-in makes the page come
@@ -85,9 +85,9 @@ export function HabitTrackerSection({
           return (
             <li
               key={habit.id}
-              className={`group rounded-[22px] border px-3 py-3 transition-all ${
+              className={`group rounded-[22px] border px-3 py-3 transition-all duration-200 hover:-translate-y-0.5 ${
                 habit.done
-                  ? "border-purple-400/18 bg-purple-500/[0.07]"
+                  ? "border-purple-400/18 bg-purple-500/[0.07] hover:border-purple-400/24 hover:bg-purple-500/[0.09]"
                   : "border-white/8 bg-white/[0.02] hover:border-white/12 hover:bg-white/[0.04]"
               }`}
             >

@@ -16,14 +16,14 @@ export function TodoSection({
   onDeleteTodo,
 }: TodoSectionProps) {
   return (
-    <section className="glass-panel float-in rounded-[28px] px-5 py-5 [animation-delay:300ms] sm:px-6">
+    <section className="glass-panel float-in rounded-[28px] px-5 py-6 [animation-delay:300ms] sm:px-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
             Clear the queue
           </p>
           <h2 className="mt-2 text-xl font-semibold text-white">Todo</h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-300">
             Completing an item removes it instantly.
           </p>
         </div>
@@ -32,7 +32,7 @@ export function TodoSection({
         </div>
       </div>
 
-      <div className="mt-5 flex gap-2">
+      <div className="mt-6 flex gap-2">
         <input
           value={newTodoText}
           onChange={(event) => onNewTodoTextChange(event.target.value)}
@@ -51,7 +51,7 @@ export function TodoSection({
         </button>
       </div>
 
-      <ul className="mt-5 space-y-3">
+      <ul className="mt-6 space-y-3">
         {todos.length === 0 ? (
           <li className="rounded-[22px] border border-dashed border-white/10 bg-white/4 px-4 py-6 text-center text-sm text-zinc-400">
             Nothing pending. Use this space for the few tasks that must happen
@@ -62,7 +62,7 @@ export function TodoSection({
         {todos.map((todo, index) => (
           <li
             key={todo.id}
-            className="rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-4 transition-all hover:border-white/12 hover:bg-white/[0.05]"
+            className="rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/12 hover:bg-white/[0.05]"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/8 bg-white/6 text-xs font-semibold text-zinc-300">

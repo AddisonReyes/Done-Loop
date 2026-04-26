@@ -19,16 +19,16 @@ export function HabitHistorySection({
   onInspectDay,
 }: HabitHistorySectionProps) {
   return (
-    <section className="mt-6 glass-panel float-in rounded-[26px] px-5 py-5 [animation-delay:120ms] sm:px-6">
+    <section className="mt-6 glass-panel float-in rounded-[26px] px-5 py-6 [animation-delay:120ms] sm:px-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
             Monthly activity
           </p>
           <h2 className="mt-2 text-xl font-semibold text-white">
             Habit History
           </h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-300">
             {monthLabel}. Today stays highlighted inside the month view.
           </p>
         </div>
@@ -43,9 +43,9 @@ export function HabitHistorySection({
         </div>
       </div>
 
-      <div className="mt-5 rounded-[24px] border border-white/8 bg-black/18 px-4 py-4 sm:px-5">
+      <div className="mt-6 rounded-[24px] border border-white/8 bg-black/18 px-4 py-4 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
             <span>Activity</span>
             {[0, 1, 2, 3, 4].map((level) => (
               <div
@@ -54,7 +54,7 @@ export function HabitHistorySection({
               />
             ))}
           </div>
-          <div className="text-xs text-zinc-500">
+          <div className="text-xs text-zinc-400">
             {displayedDay
               ? displayedDay.isToday
                 ? `Today · ${levelLabel(displayedDay.level)}`
@@ -67,7 +67,7 @@ export function HabitHistorySection({
           <div className="mx-auto flex w-fit gap-3 px-1 pb-1">
             {historyWeeks.map((week, weekIndex) => (
               <div key={weekIndex} className="space-y-2">
-                <div className="pl-0.5 text-[11px] font-medium text-zinc-600">
+                <div className="pl-0.5 text-[11px] font-medium text-zinc-500">
                   {week[0]?.dayNumber}
                 </div>
                 <div className="flex gap-1">
@@ -80,7 +80,7 @@ export function HabitHistorySection({
                       onMouseLeave={() => onInspectDay(null)}
                       onBlur={() => onInspectDay(null)}
                       aria-label={`${day.label}: ${levelLabel(day.level)}`}
-                      className={`h-5 w-5 shrink-0 rounded-[6px] border transition-all duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-purple-400/35 ${levelClass(
+                      className={`h-5 w-5 shrink-0 rounded-[6px] border transition-all duration-200 hover:-translate-y-0.5 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400/35 ${levelClass(
                         day.level,
                       )} ${
                         day.isToday

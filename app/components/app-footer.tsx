@@ -1,9 +1,9 @@
 export function AppFooter() {
   return (
-    <footer className="border-t border-white/8 text-xs text-zinc-500">
-      <div className="mx-auto w-full max-w-6xl px-4 py-5">
+    <footer className="mt-8 border-t border-white/7 text-xs text-zinc-600">
+      <div className="mx-auto w-full max-w-6xl px-4 py-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+          <div className="text-zinc-600">
             Copyright (c) {new Date().getFullYear()} EasyToDo. All rights
             reserved.
           </div>
@@ -13,7 +13,7 @@ export function AppFooter() {
               href="https://addisonreyes.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-purple-300 transition-colors hover:text-purple-200"
+              className="font-medium text-purple-300/90 transition-colors hover:text-purple-200"
             >
               Made by Addison Reyes
             </a>
