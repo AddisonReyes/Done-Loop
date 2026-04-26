@@ -34,8 +34,8 @@ export function HabitTrackerSection({
   onDeleteHabit,
 }: HabitTrackerSectionProps) {
   return (
-    <section className="glass-panel float-in rounded-[28px] px-5 py-6 [animation-delay:240ms] sm:px-6">
-      <div className="flex items-start justify-between gap-3">
+    <section className="glass-panel float-in min-w-0 rounded-[28px] px-4 py-6 [animation-delay:240ms] sm:px-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
             Daily rituals
@@ -52,7 +52,7 @@ export function HabitTrackerSection({
         </div>
       </div>
 
-      <div className="mt-6 flex gap-2">
+      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
         <input
           value={newHabitTitle}
           onChange={(event) => onNewHabitTitleChange(event.target.value)}
@@ -65,7 +65,7 @@ export function HabitTrackerSection({
         <button
           type="button"
           onClick={onAddHabit}
-          className="h-11 shrink-0 rounded-xl bg-purple-600 px-4 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(147,51,234,0.16)] transition-all hover:-translate-y-0.5 hover:bg-purple-500 hover:shadow-[0_8px_18px_rgba(147,51,234,0.2)] focus:outline-none focus:ring-2 focus:ring-purple-500/55"
+          className="h-11 rounded-xl bg-purple-600 px-4 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(147,51,234,0.16)] transition-all hover:-translate-y-0.5 hover:bg-purple-500 hover:shadow-[0_8px_18px_rgba(147,51,234,0.2)] focus:outline-none focus:ring-2 focus:ring-purple-500/55 sm:shrink-0"
         >
           Add habit
         </button>
@@ -91,7 +91,7 @@ export function HabitTrackerSection({
                   : "border-white/8 bg-white/[0.02] hover:border-white/12 hover:bg-white/[0.04]"
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 {isEditing ? (
                   <div className="min-w-0 flex-1">
                     <input
@@ -139,7 +139,7 @@ export function HabitTrackerSection({
                   </button>
                 )}
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                   {isEditing ? (
                     <>
                       <button
@@ -158,10 +158,10 @@ export function HabitTrackerSection({
                       </button>
                     </>
                   ) : (
-                    <button
+                      <button
                       type="button"
                       onClick={() => onStartEditHabit(habit)}
-                      className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/55"
+                      className="flex-1 rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/55 sm:flex-none"
                     >
                       Edit
                     </button>
@@ -170,7 +170,7 @@ export function HabitTrackerSection({
                   <button
                     type="button"
                     onClick={() => onDeleteHabit(habit.id)}
-                    className="rounded-xl border border-white/8 bg-transparent px-3 py-2 text-xs font-medium text-zinc-500 transition-colors hover:border-red-400/20 hover:bg-red-500/[0.05] hover:text-red-200 focus:outline-none focus:ring-2 focus:ring-purple-500/55"
+                    className="flex-1 rounded-xl border border-white/8 bg-transparent px-3 py-2 text-xs font-medium text-zinc-500 transition-colors hover:border-red-400/20 hover:bg-red-500/[0.05] hover:text-red-200 focus:outline-none focus:ring-2 focus:ring-purple-500/55 sm:flex-none"
                   >
                     Delete
                   </button>

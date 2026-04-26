@@ -19,8 +19,8 @@ export function HabitHistorySection({
   onInspectDay,
 }: HabitHistorySectionProps) {
   return (
-    <section className="mt-6 glass-panel float-in rounded-[26px] px-5 py-6 [animation-delay:120ms] sm:px-6">
-      <div className="flex items-start justify-between gap-3">
+    <section className="mt-6 glass-panel float-in rounded-[26px] px-4 py-6 [animation-delay:120ms] sm:px-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
             Monthly activity
@@ -33,7 +33,7 @@ export function HabitHistorySection({
           </p>
         </div>
 
-        <div className="hidden flex-wrap items-center gap-2 sm:flex">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-xs text-zinc-300">
             {activeDays} active days
           </div>
@@ -43,8 +43,8 @@ export function HabitHistorySection({
         </div>
       </div>
 
-      <div className="mt-6 rounded-[24px] border border-white/8 bg-black/18 px-4 py-4 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-6 rounded-[24px] border border-white/8 bg-black/18 px-3 py-4 sm:px-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-xs text-zinc-400">
             <span>Activity</span>
             {[0, 1, 2, 3, 4].map((level) => (
@@ -54,7 +54,7 @@ export function HabitHistorySection({
               />
             ))}
           </div>
-          <div className="text-xs text-zinc-400">
+          <div className="text-xs text-zinc-400 sm:text-right">
             {displayedDay
               ? displayedDay.isToday
                 ? `Today · ${levelLabel(displayedDay.level)}`
@@ -64,7 +64,7 @@ export function HabitHistorySection({
         </div>
 
         <div className="mt-5 max-w-full overflow-x-auto py-2">
-          <div className="mx-auto flex w-fit gap-3 px-1 pb-1">
+          <div className="flex w-fit min-w-full gap-3 px-1 pb-1 sm:mx-auto sm:min-w-0">
             {historyWeeks.map((week, weekIndex) => (
               <div key={weekIndex} className="space-y-2">
                 <div className="pl-0.5 text-[11px] font-medium text-zinc-500">

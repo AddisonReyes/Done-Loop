@@ -64,7 +64,7 @@ export default function Home() {
           onInspectDay={setInspectedHistoryKey}
         />
 
-        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr] xl:[&>*]:min-w-0">
           <HabitTrackerSection
             habits={habits}
             completedHabits={completedHabits}

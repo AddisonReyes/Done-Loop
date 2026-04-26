@@ -2,7 +2,7 @@ export function AppFooter() {
   return (
     <footer className="mt-8 border-t border-white/7 text-xs text-zinc-600">
       <div className="mx-auto w-full max-w-6xl px-4 py-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <div className="text-zinc-600">
             Copyright (c) {new Date().getFullYear()} EasyToDo. All rights
             reserved.
