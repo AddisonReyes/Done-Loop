@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 import type { TodoPriority } from '@/features/todos/types';
 import { isDateKey } from '@/shared/utils/date';
 
@@ -16,10 +17,10 @@ type TodoFormProps = {
   onSubmit: () => void;
 };
 
-const priorities: { value: TodoPriority; label: string }[] = [
-  { value: 1, label: 'Importante' },
-  { value: 2, label: 'Relevante' },
-  { value: 3, label: 'Simple' },
+const priorities: { value: TodoPriority; labelKey: string }[] = [
+  { value: 1, labelKey: 'todos.priorities.1' },
+  { value: 2, labelKey: 'todos.priorities.2' },
+  { value: 3, labelKey: 'todos.priorities.3' },
 ];
 
 export function TodoForm({
@@ -32,14 +33,15 @@ export function TodoForm({
   onSubmit,
 }: TodoFormProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const disabled = title.trim().length === 0;
   const hasInvalidDueDate = dueDate.trim().length > 0 && !isDateKey(dueDate.trim());
 
   return (
     <View style={styles.container}>
       <TextInput
-        accessibilityLabel="Titulo de la tarea"
-        placeholder="Nueva tarea"
+        accessibilityLabel={t('todos.form.titleLabel')}
+        placeholder={t('todos.form.titlePlaceholder')}
         placeholderTextColor={theme.textSecondary}
         value={title}
         onChangeText={onTitleChange}
@@ -50,11 +52,11 @@ export function TodoForm({
       />
       {hasInvalidDueDate ? (
         <ThemedText type="small" themeColor="warning">
-          Usa el formato YYYY-MM-DD.
+          {t('todos.form.invalidDate')}
         </ThemedText>
       ) : null}
       <TextInput
-        accessibilityLabel="Fecha limite"
+        accessibilityLabel={t('todos.form.dueDateLabel')}
         placeholder="YYYY-MM-DD"
         placeholderTextColor={theme.textSecondary}
         value={dueDate}
@@ -81,7 +83,7 @@ export function TodoForm({
                 },
               ]}>
               <ThemedText type="smallBold" themeColor={selected ? 'accentStrong' : 'textSecondary'}>
-                {item.label}
+                {t(item.labelKey)}
               </ThemedText>
             </Pressable>
           );
@@ -100,7 +102,7 @@ export function TodoForm({
           },
         ]}>
         <ThemedText type="smallBold" style={styles.submitText}>
-          Crear tarea
+          {t('todos.form.create')}
         </ThemedText>
       </Pressable>
     </View>

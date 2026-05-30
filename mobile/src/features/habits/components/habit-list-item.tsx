@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 
 import type { Habit } from '../types';
 
@@ -32,6 +33,7 @@ export function HabitListItem({
   onDeactivate,
 }: HabitListItemProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View
@@ -62,7 +64,7 @@ export function HabitListItem({
       <View style={styles.body}>
         {editing ? (
           <TextInput
-            accessibilityLabel="Editar hábito"
+            accessibilityLabel={t('habits.editLabel')}
             value={editingName}
             onChangeText={onEditingNameChange}
             autoFocus
@@ -84,7 +86,7 @@ export function HabitListItem({
               {habit.name}
             </ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {completedToday ? 'Completado hoy' : 'Pendiente hoy'}
+              {completedToday ? t('habits.completedToday') : t('habits.pendingToday')}
             </ThemedText>
           </>
         )}
@@ -92,13 +94,13 @@ export function HabitListItem({
         <View style={styles.actions}>
           {editing ? (
             <>
-              <ActionButton label="Guardar" onPress={onSaveEdit} />
-              <ActionButton label="Cancelar" onPress={onCancelEdit} muted />
+              <ActionButton label={t('habits.save')} onPress={onSaveEdit} />
+              <ActionButton label={t('habits.cancel')} onPress={onCancelEdit} muted />
             </>
           ) : (
             <>
-              <ActionButton label="Editar" onPress={onStartEdit} />
-              <ActionButton label="Desactivar" onPress={onDeactivate} muted />
+              <ActionButton label={t('habits.edit')} onPress={onStartEdit} />
+              <ActionButton label={t('habits.deactivate')} onPress={onDeactivate} muted />
             </>
           )}
         </View>

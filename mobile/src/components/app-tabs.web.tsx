@@ -12,21 +12,24 @@ import { ThemedText } from './themed-text';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 
 export default function AppTabs() {
+  const { t } = useTranslation();
+
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="habits" href="/habits" asChild>
-            <TabButton>Hábitos</TabButton>
+            <TabButton>{t('tabs.habits')}</TabButton>
           </TabTrigger>
           <TabTrigger name="todos" href="/todos" asChild>
-            <TabButton>Tareas</TabButton>
+            <TabButton>{t('tabs.todos')}</TabButton>
           </TabTrigger>
           <TabTrigger name="settings" href="/settings" asChild>
-            <TabButton>Ajustes</TabButton>
+            <TabButton>{t('tabs.settings')}</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>

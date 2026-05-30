@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 import type { Todo } from '@/features/todos/types';
 
 type TodoListItemProps = {
@@ -21,10 +22,10 @@ type TodoListItemProps = {
   onCancelEdit: () => void;
 };
 
-const priorityLabels = {
-  1: 'Importante',
-  2: 'Relevante',
-  3: 'Sin importancia',
+const priorityLabelKeys = {
+  1: 'todos.priorities.1',
+  2: 'todos.priorities.2',
+  3: 'todos.priorities.3',
 } as const;
 
 export function TodoListItem({
@@ -43,6 +44,7 @@ export function TodoListItem({
   onCancelEdit,
 }: TodoListItemProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const deleted = todo.status === 'deleted';
   const completed = todo.status === 'completed';
 
@@ -59,7 +61,7 @@ export function TodoListItem({
       <View style={styles.header}>
         {editing ? (
           <TextInput
-            accessibilityLabel="Editar tarea"
+            accessibilityLabel={t('todos.editLabel')}
             autoFocus
             value={editingTitle}
             onChangeText={onEditingTitleChange}
@@ -76,26 +78,29 @@ export function TodoListItem({
           </ThemedText>
         )}
         <ThemedText type="small" themeColor="textSecondary">
-          {priorityLabels[todo.priority]} • {dateLabel}
+          {t(priorityLabelKeys[todo.priority])} • {dateLabel}
         </ThemedText>
       </View>
 
       <View style={styles.actions}>
         {deleted ? (
           <>
-            <Action label="Restaurar" onPress={onRestore} />
-            <Action label="Borrar final" muted onPress={onPermanentDelete} />
+            <Action label={t('todos.actions.restore')} onPress={onRestore} />
+            <Action label={t('todos.actions.permanentDelete')} muted onPress={onPermanentDelete} />
           </>
         ) : editing ? (
           <>
-            <Action label="Guardar" onPress={onSaveEdit} />
-            <Action label="Cancelar" muted onPress={onCancelEdit} />
+            <Action label={t('todos.actions.save')} onPress={onSaveEdit} />
+            <Action label={t('todos.actions.cancel')} muted onPress={onCancelEdit} />
           </>
         ) : (
           <>
-            <Action label={completed ? 'Reabrir' : 'Completar'} onPress={completed ? onReopen : onComplete} />
-            <Action label="Editar" muted onPress={onStartEdit} />
-            <Action label="Eliminar" muted onPress={onSoftDelete} />
+            <Action
+              label={completed ? t('todos.actions.reopen') : t('todos.actions.complete')}
+              onPress={completed ? onReopen : onComplete}
+            />
+            <Action label={t('todos.actions.edit')} muted onPress={onStartEdit} />
+            <Action label={t('todos.actions.delete')} muted onPress={onSoftDelete} />
           </>
         )}
       </View>

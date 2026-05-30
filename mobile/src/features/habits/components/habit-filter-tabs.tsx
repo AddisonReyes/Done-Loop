@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 
 import type { HabitFilter } from '../hooks/use-habits-mvp';
 
@@ -11,14 +12,15 @@ type HabitFilterTabsProps = {
   onChange: (filter: HabitFilter) => void;
 };
 
-const filters: { value: HabitFilter; label: string }[] = [
-  { value: 'all', label: 'Todos' },
-  { value: 'pendingToday', label: 'Pendientes' },
-  { value: 'completedToday', label: 'Listos' },
+const filters: { value: HabitFilter; labelKey: string }[] = [
+  { value: 'all', labelKey: 'habits.filters.all' },
+  { value: 'pendingToday', labelKey: 'habits.filters.pendingToday' },
+  { value: 'completedToday', labelKey: 'habits.filters.completedToday' },
 ];
 
 export function HabitFilterTabs({ value, onChange }: HabitFilterTabsProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surfaceSoft, borderColor: theme.border }]}>
@@ -40,7 +42,7 @@ export function HabitFilterTabs({ value, onChange }: HabitFilterTabsProps) {
               type="smallBold"
               themeColor={selected ? 'accentStrong' : 'textSecondary'}
               style={styles.buttonLabel}>
-              {filter.label}
+              {t(filter.labelKey)}
             </ThemedText>
           </Pressable>
         );

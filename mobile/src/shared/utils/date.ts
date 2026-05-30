@@ -36,20 +36,20 @@ export function getMonthDateKeys(date: Date): string[] {
   });
 }
 
-export function formatMonthLabel(date: Date): string {
-  return new Intl.DateTimeFormat('es', {
+export function formatMonthLabel(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     month: 'long',
     year: 'numeric',
   }).format(date);
 }
 
-export function formatShortDate(dateKey: string): string {
+export function formatShortDate(dateKey: string, locale: string): string {
   if (!isDateKey(dateKey)) {
     return dateKey;
   }
 
   const [year, month, day] = dateKey.split('-').map(Number);
-  return new Intl.DateTimeFormat('es', {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
   }).format(new Date(year, month - 1, day));

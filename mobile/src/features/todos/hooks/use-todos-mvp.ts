@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NotificationService } from '@/features/notifications/services/notification-service';
 import { TodoRepository } from '@/features/todos/repositories';
 import type { Todo, TodoPriority } from '@/features/todos/types';
+import { useTranslation } from '@/i18n';
 import { formatShortDate, isBeforeDateKey, isDateKey, toDateKey } from '@/shared/utils/date';
 
 type TodoSort = 'priority' | 'dueAt' | 'createdAt';
@@ -11,6 +12,7 @@ type TodoViewMode = 'list' | 'calendar';
 const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
 
 export function useTodosMvp() {
+  const { language, locale, t } = useTranslation();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [status, setStatus] = useState<'loading' | 'idle' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -37,10 +39,10 @@ export function useTodosMvp() {
       setTodos(await TodoRepository.listAll());
       setStatus('idle');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'No se pudieron cargar las tareas.');
+      setErrorMessage(error instanceof Error ? error.message : t('todos.loadError'));
       setStatus('error');
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -61,6 +63,7 @@ export function useTodosMvp() {
     const notificationId = await NotificationService.scheduleTodoReminderAsync({
       title: cleanTitle,
       dueAt: normalizedDueDate,
+      language,
     });
 
     await TodoRepository.create({
@@ -73,7 +76,7 @@ export function useTodosMvp() {
     setDueDate('');
     setPriority(2);
     await loadTodos();
-  }, [loadTodos, normalizedDueDate, priority, title]);
+  }, [language, loadTodos, normalizedDueDate, priority, title]);
 
   const startEditing = useCallback((todo: Todo) => {
     setEditingTodoId(todo.id);
@@ -175,30 +178,30 @@ export function useTodosMvp() {
         ? todo.dueAt
         : isDateKey(completedDateKey)
           ? completedDateKey
-          : 'Sin fecha';
+          : t('todos.calendarNoDate');
       groups.set(dateKey, [...(groups.get(dateKey) ?? []), todo]);
     }
 
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [activeTodos]);
+  }, [activeTodos, t]);
 
   const getTodoDateLabel = useCallback(
     (todo: Todo) => {
       if (todo.status === 'completed' && todo.completedAt) {
-        return `Completada ${formatShortDate(todo.completedAt.slice(0, 10))}`;
+        return t('todos.completed', { date: formatShortDate(todo.completedAt.slice(0, 10), locale) });
       }
       if (!isDateKey(todo.dueAt)) {
-        return 'Sin fecha límite';
+        return t('todos.noDueDate');
       }
       if (todo.dueAt === todayKey) {
-        return 'Vence hoy';
+        return t('todos.dueToday');
       }
       if (isBeforeDateKey(todo.dueAt, todayKey) && todo.status === 'pending') {
-        return `Vencida ${formatShortDate(todo.dueAt)}`;
+        return t('todos.overdue', { date: formatShortDate(todo.dueAt, locale) });
       }
-      return `Vence ${formatShortDate(todo.dueAt)}`;
+      return t('todos.due', { date: formatShortDate(todo.dueAt, locale) });
     },
-    [todayKey]
+    [locale, t, todayKey]
   );
 
   return {

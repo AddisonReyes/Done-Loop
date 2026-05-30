@@ -4,11 +4,14 @@ import { Animated, StyleSheet } from 'react-native';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
 import { ThemePreferenceProvider, useThemePreference } from '@/hooks/use-theme-preference';
+import { I18nProvider } from '@/i18n';
 
 export default function TabLayout() {
   return (
     <ThemePreferenceProvider>
-      <ThemedNavigation />
+      <I18nProvider>
+        <ThemedNavigation />
+      </I18nProvider>
     </ThemePreferenceProvider>
   );
 }

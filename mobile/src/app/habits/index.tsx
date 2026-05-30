@@ -8,10 +8,12 @@ import { HabitMonthHistory } from '@/features/habits/components/habit-month-hist
 import { useHabitsMvp } from '@/features/habits/hooks/use-habits-mvp';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
 
 export default function HabitsScreen() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const {
     cancelEditingHabit,
     completedHabitIds,
@@ -43,8 +45,8 @@ export default function HabitsScreen() {
   return (
     <ScreenScaffold
       eyebrow={todayKey}
-      title="Hábitos"
-      description="Crea hábitos diarios, marca el progreso de hoy y desactiva lo que ya no forma parte de tu rutina.">
+      title={t('habits.title')}
+      description={t('habits.description')}>
       <View style={styles.summary}>
         <View
           style={[
@@ -55,7 +57,7 @@ export default function HabitsScreen() {
             {totalCompletedToday}
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            completados
+            {t('habits.completedSummary')}
           </ThemedText>
         </View>
         <View
@@ -67,7 +69,7 @@ export default function HabitsScreen() {
             {pendingCount}
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            pendientes
+            {t('habits.pendingSummary')}
           </ThemedText>
         </View>
       </View>
@@ -91,19 +93,19 @@ export default function HabitsScreen() {
 
       {isLoading ? (
         <ThemedText type="small" themeColor="textSecondary">
-          Cargando hábitos...
+          {t('habits.loading')}
         </ThemedText>
       ) : null}
 
       {!isLoading && habits.length === 0 ? (
         <ThemedText type="small" themeColor="textSecondary">
-          Aún no tienes hábitos activos. Crea el primero para empezar el loop de hoy.
+          {t('habits.empty')}
         </ThemedText>
       ) : null}
 
       {!isLoading && habits.length > 0 && visibleHabits.length === 0 ? (
         <ThemedText type="small" themeColor="textSecondary">
-          No hay hábitos en este filtro.
+          {t('habits.emptyFilter')}
         </ThemedText>
       ) : null}
 

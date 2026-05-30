@@ -2,11 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { NotificationService } from '@/features/notifications/services/notification-service';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
-import type { UserSettings, UserThemePreference } from '@/features/settings/types';
+import type { UserLanguagePreference, UserSettings, UserThemePreference } from '@/features/settings/types';
 import { useThemePreference } from '@/hooks/use-theme-preference';
+import { useTranslation } from '@/i18n';
 
 export function useSettings() {
   const { preference, setThemePreference } = useThemePreference();
+  const { language, setLanguage } = useTranslation();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,9 +38,14 @@ export function useSettings() {
     await setThemePreference(theme);
   }, [setThemePreference]);
 
+  const setLanguagePreference = useCallback(async (nextLanguage: UserLanguagePreference) => {
+    await setLanguage(nextLanguage);
+  }, [setLanguage]);
+
   return {
     isLoading,
-    settings: settings ? { ...settings, theme: preference } : settings,
+    settings: settings ? { ...settings, theme: preference, language } : settings,
+    setLanguage: setLanguagePreference,
     setNotificationsEnabled,
     setTheme,
   };

@@ -2,9 +2,11 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { Colors } from '@/constants/theme';
 import { useThemePreference } from '@/hooks/use-theme-preference';
+import { useTranslation } from '@/i18n';
 
 export default function AppTabs() {
   const { resolvedTheme } = useThemePreference();
+  const { t } = useTranslation();
   const colors = Colors[resolvedTheme];
 
   return (
@@ -16,7 +18,7 @@ export default function AppTabs() {
         default: { color: colors.textSecondary },
       }}>
       <NativeTabs.Trigger name="habits/index">
-        <NativeTabs.Trigger.Label>Hábitos</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('tabs.habits')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/home.png')}
           renderingMode="template"
@@ -24,7 +26,7 @@ export default function AppTabs() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="todos/index">
-        <NativeTabs.Trigger.Label>Tareas</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('tabs.todos')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/explore.png')}
           renderingMode="template"
@@ -32,7 +34,7 @@ export default function AppTabs() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="settings/index">
-        <NativeTabs.Trigger.Label>Ajustes</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('tabs.settings')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/home.png')}
           renderingMode="template"

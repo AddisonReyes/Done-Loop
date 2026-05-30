@@ -4,6 +4,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 
 export type HabitDayActivity = 'none' | 'partial' | 'complete';
 
@@ -21,6 +22,7 @@ export function HabitMonthHistory({
   onNextMonth,
 }: HabitMonthHistoryProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
@@ -58,7 +60,10 @@ export function HabitMonthHistory({
           return (
             <ThemedView
               key={day.dateKey}
-              accessibilityLabel={`${day.dateKey}: ${day.activity}`}
+              accessibilityLabel={t('habits.history.dayActivity', {
+                date: day.dateKey,
+                activity: t(`habits.history.${day.activity}`),
+              })}
               style={[
                 styles.day,
                 {
@@ -77,9 +82,9 @@ export function HabitMonthHistory({
       </View>
 
       <View style={styles.legend}>
-        <LegendDot label="Sin actividad" color={theme.historyEmpty} />
-        <LegendDot label="Parcial" color={theme.historyPartial} />
-        <LegendDot label="Completa" color={theme.historyComplete} />
+        <LegendDot label={t('habits.history.none')} color={theme.historyEmpty} />
+        <LegendDot label={t('habits.history.partial')} color={theme.historyPartial} />
+        <LegendDot label={t('habits.history.complete')} color={theme.historyComplete} />
       </View>
     </View>
   );

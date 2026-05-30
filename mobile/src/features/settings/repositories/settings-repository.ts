@@ -8,6 +8,7 @@ import { getDatabaseAsync } from '@/storage/database/client';
 
 import type {
   UpdateUserSettingsInput,
+  UserLanguagePreference,
   UserPlan,
   UserSettings,
   UserThemePreference,
@@ -16,6 +17,7 @@ import type {
 type UserSettingsRow = {
   notifications_enabled: number;
   theme: UserThemePreference;
+  language: UserLanguagePreference;
   plan: UserPlan;
   privacy_policy_url: string | null;
   terms_url: string | null;
@@ -24,6 +26,7 @@ type UserSettingsRow = {
 const defaultSettings: UserSettings = {
   notificationsEnabled: false,
   theme: 'system',
+  language: 'en',
   plan: 'free',
 };
 
@@ -31,6 +34,7 @@ function mapUserSettingsRow(row: UserSettingsRow): UserSettings {
   return {
     notificationsEnabled: fromSQLiteBoolean(row.notifications_enabled),
     theme: row.theme,
+    language: row.language,
     plan: row.plan,
     privacyPolicyUrl: optionalString(row.privacy_policy_url),
     termsUrl: optionalString(row.terms_url),
@@ -42,6 +46,7 @@ export const SettingsRepository = {
     const database = await getDatabaseAsync();
     const row = await database.getFirstAsync<UserSettingsRow>(
       `SELECT notifications_enabled, theme, plan, privacy_policy_url, terms_url
+       , language
        FROM user_settings
        WHERE id = 1;`
     );
@@ -57,6 +62,7 @@ export const SettingsRepository = {
     const database = await getDatabaseAsync();
     const existingRow = await database.getFirstAsync<UserSettingsRow>(
       `SELECT notifications_enabled, theme, plan, privacy_policy_url, terms_url
+       , language
        FROM user_settings
        WHERE id = 1;`
     );
@@ -72,21 +78,24 @@ export const SettingsRepository = {
         id,
         notifications_enabled,
         theme,
+        language,
         plan,
         privacy_policy_url,
         terms_url,
         created_at,
         updated_at
-      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         notifications_enabled = excluded.notifications_enabled,
         theme = excluded.theme,
+        language = excluded.language,
         plan = excluded.plan,
         privacy_policy_url = excluded.privacy_policy_url,
         terms_url = excluded.terms_url,
         updated_at = excluded.updated_at;`,
       toSQLiteBoolean(next.notificationsEnabled),
       next.theme,
+      next.language,
       next.plan,
       nullableString(next.privacyPolicyUrl),
       nullableString(next.termsUrl),

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 
 type HabitFormProps = {
   value: string;
@@ -12,13 +13,14 @@ type HabitFormProps = {
 
 export function HabitForm({ value, onChangeText, onSubmit }: HabitFormProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const disabled = value.trim().length === 0;
 
   return (
     <View style={styles.container}>
       <TextInput
-        accessibilityLabel="Nombre del hábito"
-        placeholder="Nuevo hábito"
+        accessibilityLabel={t('habits.formLabel')}
+        placeholder={t('habits.formPlaceholder')}
         placeholderTextColor={theme.textSecondary}
         value={value}
         onChangeText={onChangeText}
@@ -47,7 +49,7 @@ export function HabitForm({ value, onChangeText, onSubmit }: HabitFormProps) {
           pressed && styles.pressed,
         ]}>
         <ThemedText type="smallBold" style={styles.buttonText}>
-          Crear
+          {t('habits.create')}
         </ThemedText>
       </Pressable>
     </View>

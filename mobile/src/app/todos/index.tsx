@@ -7,28 +7,30 @@ import { useTodosMvp } from '@/features/todos/hooks/use-todos-mvp';
 import type { TodoSort, TodoViewMode } from '@/features/todos/hooks/use-todos-mvp';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
 
-const sorts: { value: TodoSort; label: string }[] = [
-  { value: 'priority', label: 'Prioridad' },
-  { value: 'dueAt', label: 'Fecha' },
-  { value: 'createdAt', label: 'Creación' },
+const sorts: { value: TodoSort; labelKey: string }[] = [
+  { value: 'priority', labelKey: 'todos.sorts.priority' },
+  { value: 'dueAt', labelKey: 'todos.sorts.dueAt' },
+  { value: 'createdAt', labelKey: 'todos.sorts.createdAt' },
 ];
 
-const modes: { value: TodoViewMode; label: string }[] = [
-  { value: 'list', label: 'Lista' },
-  { value: 'calendar', label: 'Calendario' },
+const modes: { value: TodoViewMode; labelKey: string }[] = [
+  { value: 'list', labelKey: 'todos.modes.list' },
+  { value: 'calendar', labelKey: 'todos.modes.calendar' },
 ];
 
 export default function TodosScreen() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const todos = useTodosMvp();
 
   return (
     <ScreenScaffold
-      eyebrow="Tareas"
-      title="Tareas"
-      description="Organiza pendientes por prioridad, vencimiento y estado sin perder tareas eliminadas por accidente.">
+      eyebrow={t('todos.eyebrow')}
+      title={t('todos.title')}
+      description={t('todos.description')}>
       <TodoForm
         title={todos.title}
         dueDate={todos.dueDate}
@@ -45,7 +47,7 @@ export default function TodosScreen() {
         {modes.map((mode) => (
           <Segment
             key={mode.value}
-            label={mode.label}
+            label={t(mode.labelKey)}
             selected={todos.viewMode === mode.value}
             onPress={() => todos.setViewMode(mode.value)}
           />
@@ -56,7 +58,7 @@ export default function TodosScreen() {
         {sorts.map((sort) => (
           <Segment
             key={sort.value}
-            label={sort.label}
+            label={t(sort.labelKey)}
             selected={todos.sort === sort.value}
             onPress={() => todos.setSort(sort.value)}
           />
@@ -75,7 +77,7 @@ export default function TodosScreen() {
           },
         ]}>
         <ThemedText type="smallBold" themeColor={todos.showDeleted ? 'accentStrong' : 'textSecondary'}>
-          {todos.showDeleted ? 'Viendo eliminadas' : 'Ver eliminadas'}
+          {todos.showDeleted ? t('todos.deletedToggleActive') : t('todos.deletedToggle')}
         </ThemedText>
       </Pressable>
 
@@ -87,7 +89,7 @@ export default function TodosScreen() {
 
       {todos.isLoading ? (
         <ThemedText type="small" themeColor="textSecondary">
-          Cargando tareas...
+          {t('todos.loading')}
         </ThemedText>
       ) : null}
 
@@ -144,7 +146,7 @@ export default function TodosScreen() {
 
       {!todos.isLoading && todos.sortedTodos.length === 0 ? (
         <ThemedText type="small" themeColor="textSecondary">
-          {todos.showDeleted ? 'No hay tareas eliminadas.' : 'Aún no hay tareas.'}
+          {todos.showDeleted ? t('todos.emptyDeleted') : t('todos.empty')}
         </ThemedText>
       ) : null}
     </ScreenScaffold>

@@ -62,6 +62,7 @@ export const migration001InitialSchema = {
         id INTEGER PRIMARY KEY CHECK (id = 1),
         notifications_enabled INTEGER NOT NULL CHECK (notifications_enabled IN (0, 1)),
         theme TEXT NOT NULL CHECK (theme IN ('system', 'light', 'dark')),
+        language TEXT NOT NULL DEFAULT 'en' CHECK (language IN ('en', 'es')),
         plan TEXT NOT NULL CHECK (plan IN ('free', 'no_ads', 'premium')),
         privacy_policy_url TEXT,
         terms_url TEXT,

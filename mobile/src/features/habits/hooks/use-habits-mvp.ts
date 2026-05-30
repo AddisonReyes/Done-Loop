@@ -9,6 +9,7 @@ import {
   getMonthDateKeys,
   startOfMonth,
 } from '@/shared/utils/date';
+import { useTranslation } from '@/i18n';
 
 type HabitFilter = 'all' | 'pendingToday' | 'completedToday';
 
@@ -19,6 +20,7 @@ function getTodayKey(): string {
 }
 
 export function useHabitsMvp() {
+  const { locale, t } = useTranslation();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [todayCompletions, setTodayCompletions] = useState<HabitCompletion[]>([]);
   const [status, setStatus] = useState<AsyncStatus>('loading');
@@ -32,7 +34,7 @@ export function useHabitsMvp() {
 
   const todayKey = useMemo(() => getTodayKey(), []);
   const monthDateKeys = useMemo(() => getMonthDateKeys(displayedMonth), [displayedMonth]);
-  const monthLabel = useMemo(() => formatMonthLabel(displayedMonth), [displayedMonth]);
+  const monthLabel = useMemo(() => formatMonthLabel(displayedMonth, locale), [displayedMonth, locale]);
 
   const completedHabitIds = useMemo(() => {
     return new Set(
@@ -55,10 +57,10 @@ export function useHabitsMvp() {
       setTodayCompletions(completions);
       setStatus('idle');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'No se pudieron cargar los hábitos.');
+      setErrorMessage(error instanceof Error ? error.message : t('habits.loadError'));
       setStatus('error');
     }
-  }, [todayKey]);
+  }, [t, todayKey]);
 
   const loadMonthHistory = useCallback(async () => {
     if (monthDateKeys.length === 0) {

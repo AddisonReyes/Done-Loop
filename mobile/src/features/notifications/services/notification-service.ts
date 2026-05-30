@@ -1,15 +1,20 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import type { UserLanguagePreference } from '@/features/settings/types';
+import { translations } from '@/i18n/translations';
+
 type ScheduleHabitReminderInput = {
   habitId: string;
   habitName: string;
   reminderTime?: string;
+  language?: UserLanguagePreference;
 };
 
 type ScheduleTodoReminderInput = {
   title: string;
   dueAt?: string;
+  language?: UserLanguagePreference;
 };
 
 async function ensurePermissionsAsync(): Promise<boolean> {
@@ -46,6 +51,7 @@ export const NotificationService = {
 
   async scheduleHabitReminderAsync({
     habitName,
+    language = 'en',
     reminderTime,
   }: ScheduleHabitReminderInput): Promise<string | undefined> {
     const time = parseReminderTime(reminderTime);
@@ -56,7 +62,7 @@ export const NotificationService = {
     return Notifications.scheduleNotificationAsync({
       content: {
         title: 'Done Loop',
-        body: `Hora de completar: ${habitName}`,
+        body: translations[language].notifications.habitBody.replace('{{habitName}}', habitName),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -69,6 +75,7 @@ export const NotificationService = {
   async scheduleTodoReminderAsync({
     title,
     dueAt,
+    language = 'en',
   }: ScheduleTodoReminderInput): Promise<string | undefined> {
     if (!dueAt || !(await ensurePermissionsAsync())) {
       return undefined;
@@ -81,7 +88,7 @@ export const NotificationService = {
 
     return Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Tarea próxima',
+        title: translations[language].notifications.todoTitle,
         body: title,
       },
       trigger: {

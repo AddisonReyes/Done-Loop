@@ -5,34 +5,41 @@ import { ThemedText } from '@/components/themed-text';
 import { AdsService } from '@/features/monetization/ads/ads-service';
 import { EntitlementsService } from '@/features/monetization/entitlements/entitlements-service';
 import { useSettings } from '@/features/settings/hooks/use-settings';
-import type { UserThemePreference } from '@/features/settings/types';
+import type { UserLanguagePreference, UserThemePreference } from '@/features/settings/types';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
 
-const themeOptions: { value: UserThemePreference; label: string }[] = [
-  { value: 'system', label: 'Sistema' },
-  { value: 'light', label: 'Claro' },
-  { value: 'dark', label: 'Oscuro' },
+const themeOptions: { value: UserThemePreference; labelKey: string }[] = [
+  { value: 'system', labelKey: 'settings.theme.system' },
+  { value: 'light', labelKey: 'settings.theme.light' },
+  { value: 'dark', labelKey: 'settings.theme.dark' },
+];
+
+const languageOptions: { value: UserLanguagePreference; labelKey: string }[] = [
+  { value: 'en', labelKey: 'settings.language.en' },
+  { value: 'es', labelKey: 'settings.language.es' },
 ];
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { isLoading, settings, setNotificationsEnabled, setTheme } = useSettings();
+  const { t } = useTranslation();
+  const { isLoading, settings, setLanguage, setNotificationsEnabled, setTheme } = useSettings();
   const plan = settings?.plan ?? 'free';
 
   return (
     <ScreenScaffold
-      eyebrow="Producto"
-      title="Ajustes"
-      description="Preferencias locales, estado del plan e información necesaria para preparar Done Loop como producto real.">
+      eyebrow={t('settings.eyebrow')}
+      title={t('settings.title')}
+      description={t('settings.description')}>
       {isLoading || !settings ? (
         <ThemedText type="small" themeColor="textSecondary">
-          Cargando ajustes...
+          {t('settings.loading')}
         </ThemedText>
       ) : (
         <>
-          <Section title="Preferencias">
+          <Section title={t('settings.preferences')}>
             <Pressable
               accessibilityRole="switch"
               accessibilityState={{ checked: settings.notificationsEnabled }}
@@ -45,15 +52,15 @@ export default function SettingsScreen() {
                 },
               ]}>
               <View>
-                <ThemedText type="smallBold">Notificaciones</ThemedText>
+                <ThemedText type="smallBold">{t('settings.notifications')}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
-                  Recordatorios locales para hábitos y tareas
+                  {t('settings.notificationDetail')}
                 </ThemedText>
               </View>
               <ThemedText
                 type="smallBold"
                 themeColor={settings.notificationsEnabled ? 'accentStrong' : 'textSecondary'}>
-                {settings.notificationsEnabled ? 'On' : 'Off'}
+                {settings.notificationsEnabled ? t('common.on') : t('common.off')}
               </ThemedText>
             </Pressable>
 
@@ -75,31 +82,57 @@ export default function SettingsScreen() {
                   <ThemedText
                     type="smallBold"
                     themeColor={settings.theme === option.value ? 'accentStrong' : 'textSecondary'}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </ThemedText>
                 </Pressable>
               ))}
             </View>
           </Section>
 
-          <Section title="Plan">
-            <InfoRow label="Plan actual" value={plan} />
-            <InfoRow label="Mostrar ads" value={AdsService.shouldShowAds(plan) ? 'Si' : 'No' } />
-            <InfoRow
-              label="Estadísticas premium"
-              value={EntitlementsService.canUseFeature(plan, 'advanced_stats') ? 'Activas' : 'Futuro'}
-            />
-            <DisabledAction label="Quitar anuncios" />
-            <DisabledAction label="Premium" />
-            <DisabledAction label="Restaurar compras" />
+          <Section title={t('settings.language.section')}>
+            <View style={styles.segmentRow}>
+              {languageOptions.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: settings.language === option.value }}
+                  onPress={() => void setLanguage(option.value)}
+                  style={[
+                    styles.segment,
+                    {
+                      backgroundColor:
+                        settings.language === option.value ? theme.accentSoft : theme.backgroundSelected,
+                      borderColor: settings.language === option.value ? theme.borderStrong : theme.border,
+                    },
+                  ]}>
+                  <ThemedText
+                    type="smallBold"
+                    themeColor={settings.language === option.value ? 'accentStrong' : 'textSecondary'}>
+                    {t(option.labelKey)}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
           </Section>
 
-          <Section title="Información">
-            <InfoRow label="Versión" value={Constants.expoConfig?.version ?? '1.0.0'} />
-            <InfoRow label="Privacidad" value={settings.privacyPolicyUrl ?? 'Pendiente'} />
-            <InfoRow label="Términos" value={settings.termsUrl ?? 'Pendiente'} />
-            <DisabledAction label="Enviar feedback" />
-            <DisabledAction label="Reportar errores" />
+          <Section title={t('settings.plan')}>
+            <InfoRow label={t('settings.currentPlan')} value={plan} />
+            <InfoRow label={t('settings.showAds')} value={AdsService.shouldShowAds(plan) ? t('common.yes') : t('common.no')} />
+            <InfoRow
+              label={t('settings.premiumStats')}
+              value={EntitlementsService.canUseFeature(plan, 'advanced_stats') ? t('settings.premiumActive') : t('settings.premiumFuture')}
+            />
+            <DisabledAction label={t('settings.removeAds')} />
+            <DisabledAction label={t('settings.premium')} />
+            <DisabledAction label={t('settings.restorePurchases')} />
+          </Section>
+
+          <Section title={t('settings.information')}>
+            <InfoRow label={t('settings.version')} value={Constants.expoConfig?.version ?? '1.0.0'} />
+            <InfoRow label={t('settings.privacy')} value={settings.privacyPolicyUrl ?? t('settings.pending')} />
+            <InfoRow label={t('settings.terms')} value={settings.termsUrl ?? t('settings.pending')} />
+            <DisabledAction label={t('settings.sendFeedback')} />
+            <DisabledAction label={t('settings.reportBugs')} />
           </Section>
         </>
       )}
@@ -131,6 +164,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function DisabledAction({ label }: { label: string }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <View
       style={[
@@ -138,7 +172,7 @@ function DisabledAction({ label }: { label: string }) {
         { backgroundColor: theme.backgroundSelected, borderColor: theme.border },
       ]}>
       <ThemedText type="smallBold" themeColor="textSecondary">
-        {label} · futuro
+        {label} · {t('common.future')}
       </ThemedText>
     </View>
   );
