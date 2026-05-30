@@ -21,12 +21,12 @@ export function ScreenScaffold({ title, eyebrow, description, children }: Screen
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <LinearGradient
-        colors={['rgba(168, 85, 247, 0.20)', 'rgba(88, 28, 135, 0.08)', 'rgba(8, 8, 10, 0)']}
+        colors={[theme.washTop, theme.washMid, 'rgba(8, 8, 10, 0)']}
         locations={[0, 0.46, 1]}
         style={styles.topWash}
       />
       <LinearGradient
-        colors={['rgba(255, 255, 255, 0.06)', 'rgba(255, 255, 255, 0.01)', 'rgba(8, 8, 10, 0)']}
+        colors={[theme.sheenStart, theme.sheenEnd, 'rgba(8, 8, 10, 0)']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.softSheen}
@@ -61,7 +61,7 @@ export function ScreenScaffold({ title, eyebrow, description, children }: Screen
             type="backgroundElement"
             style={[styles.card, { borderColor: theme.border, shadowColor: theme.glow }]}>
             <LinearGradient
-              colors={['rgba(255, 255, 255, 0.07)', 'rgba(255, 255, 255, 0.01)']}
+              colors={[theme.sheenStart, theme.sheenEnd]}
               style={styles.cardSheen}
             />
             {children}

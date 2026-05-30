@@ -3,8 +3,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { NotificationService } from '@/features/notifications/services/notification-service';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
 import type { UserSettings, UserThemePreference } from '@/features/settings/types';
+import { useThemePreference } from '@/hooks/use-theme-preference';
 
 export function useSettings() {
+  const { preference, setThemePreference } = useThemePreference();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,12 +33,12 @@ export function useSettings() {
   );
 
   const setTheme = useCallback(async (theme: UserThemePreference) => {
-    setSettings(await SettingsRepository.update({ theme }));
-  }, []);
+    await setThemePreference(theme);
+  }, [setThemePreference]);
 
   return {
     isLoading,
-    settings,
+    settings: settings ? { ...settings, theme: preference } : settings,
     setNotificationsEnabled,
     setTheme,
   };
