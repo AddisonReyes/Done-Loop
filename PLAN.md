@@ -1,6 +1,6 @@
-# PLAN.md — Easy To Do Mobile-First Refactor
+# PLAN.md — Done Loop Mobile-First Refactor
 
-Este documento define el plan de refactorización de **Easy To Do** para convertir la app actual en una aplicación **mobile-first** usando **Expo + React Native + TypeScript**.
+Este documento define el plan de refactorización de **Done Loop** para convertir la app actual en una aplicación **mobile-first** usando **Expo + React Native + TypeScript**.
 
 El objetivo de este archivo es reducir el riesgo de cambios masivos, mantener el trabajo compartimentado y permitir que Codex implemente la migración por fases controladas.
 
@@ -8,7 +8,7 @@ El objetivo de este archivo es reducir el riesgo de cambios masivos, mantener el
 
 ## 0. Objetivo general
 
-Easy To Do actualmente es una app simple de hábitos y tareas pensada principalmente para web. El objetivo es convertirla en una app móvil preparada para Android y futura publicación en Google Play Store.
+Done Loop actualmente es una app simple de hábitos y tareas pensada principalmente para web. El objetivo es convertirla en una app móvil preparada para Android y futura publicación en Google Play Store.
 
 La nueva versión debe enfocarse en:
 
