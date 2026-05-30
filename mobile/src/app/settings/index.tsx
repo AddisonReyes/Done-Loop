@@ -5,7 +5,11 @@ import { ThemedText } from '@/components/themed-text';
 import { AdsService } from '@/features/monetization/ads/ads-service';
 import { EntitlementsService } from '@/features/monetization/entitlements/entitlements-service';
 import { useSettings } from '@/features/settings/hooks/use-settings';
-import type { UserLanguagePreference, UserThemePreference } from '@/features/settings/types';
+import type {
+  UserDateFormatPreference,
+  UserLanguagePreference,
+  UserThemePreference,
+} from '@/features/settings/types';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
@@ -22,10 +26,17 @@ const languageOptions: { value: UserLanguagePreference; labelKey: string }[] = [
   { value: 'es', labelKey: 'settings.language.es' },
 ];
 
+const dateFormatOptions: { value: UserDateFormatPreference; labelKey: string }[] = [
+  { value: 'iso', labelKey: 'settings.dateFormat.iso' },
+  { value: 'mdy', labelKey: 'settings.dateFormat.mdy' },
+  { value: 'dmy', labelKey: 'settings.dateFormat.dmy' },
+  { value: 'long', labelKey: 'settings.dateFormat.long' },
+];
+
 export default function SettingsScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
-  const { isLoading, settings, setLanguage, setNotificationsEnabled, setTheme } = useSettings();
+  const { isLoading, settings, setDateFormat, setLanguage, setNotificationsEnabled, setTheme } = useSettings();
   const plan = settings?.plan ?? 'free';
 
   return (
@@ -108,6 +119,32 @@ export default function SettingsScreen() {
                   <ThemedText
                     type="smallBold"
                     themeColor={settings.language === option.value ? 'accentStrong' : 'textSecondary'}>
+                    {t(option.labelKey)}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
+          </Section>
+
+          <Section title={t('settings.dateFormat.section')}>
+            <View style={styles.segmentRow}>
+              {dateFormatOptions.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: settings.dateFormat === option.value }}
+                  onPress={() => void setDateFormat(option.value)}
+                  style={[
+                    styles.segment,
+                    {
+                      backgroundColor:
+                        settings.dateFormat === option.value ? theme.accentSoft : theme.backgroundSelected,
+                      borderColor: settings.dateFormat === option.value ? theme.borderStrong : theme.border,
+                    },
+                  ]}>
+                  <ThemedText
+                    type="smallBold"
+                    themeColor={settings.dateFormat === option.value ? 'accentStrong' : 'textSecondary'}>
                     {t(option.labelKey)}
                   </ThemedText>
                 </Pressable>

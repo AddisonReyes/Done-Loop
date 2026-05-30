@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { HabitDayActivity } from '@/features/habits/components/habit-month-history';
 import { HabitCompletionRepository, HabitRepository } from '@/features/habits/repositories';
-import type { Habit, HabitCompletion } from '@/features/habits/types';
+import type { CreateHabitInput, Habit, HabitCompletion, UpdateHabitInput } from '@/features/habits/types';
 import {
   addMonths,
   formatMonthLabel,
@@ -11,7 +11,7 @@ import {
 } from '@/shared/utils/date';
 import { useTranslation } from '@/i18n';
 
-type HabitFilter = 'all' | 'pendingToday' | 'completedToday';
+export type HabitFilter = 'all' | 'pendingToday' | 'completedToday';
 
 type AsyncStatus = 'idle' | 'loading' | 'error';
 
@@ -123,6 +123,22 @@ export function useHabitsMvp() {
     await loadHabits();
   }, [loadHabits, newHabitName]);
 
+  const createHabitFromDraft = useCallback(
+    async (input: CreateHabitInput) => {
+      if (!input.name.trim()) {
+        return;
+      }
+
+      await HabitRepository.create({
+        ...input,
+        name: input.name.trim(),
+        isActive: true,
+      });
+      await loadHabits();
+    },
+    [loadHabits]
+  );
+
   const startEditingHabit = useCallback((habit: Habit) => {
     setEditingHabitId(habit.id);
     setEditingHabitName(habit.name);
@@ -147,6 +163,21 @@ export function useHabitsMvp() {
     cancelEditingHabit();
     await loadHabits();
   }, [cancelEditingHabit, editingHabitId, editingHabitName, loadHabits]);
+
+  const updateHabitFromDraft = useCallback(
+    async (habitId: string, input: UpdateHabitInput) => {
+      if (!input.name?.trim()) {
+        return;
+      }
+
+      await HabitRepository.update(habitId, {
+        ...input,
+        name: input.name.trim(),
+      });
+      await loadHabits();
+    },
+    [loadHabits]
+  );
 
   const deactivateHabit = useCallback(
     async (habitId: string) => {
@@ -211,6 +242,7 @@ export function useHabitsMvp() {
   return {
     completedHabitIds,
     createHabit,
+    createHabitFromDraft,
     deactivateHabit,
     editingHabitId,
     editingHabitName,
@@ -232,9 +264,8 @@ export function useHabitsMvp() {
     toggleTodayCompletion,
     totalCompletedToday: completedHabitIds.size,
     visibleHabits,
+    updateHabitFromDraft,
     goToPreviousMonth,
     goToNextMonth,
   };
 }
-
-export type { HabitFilter };

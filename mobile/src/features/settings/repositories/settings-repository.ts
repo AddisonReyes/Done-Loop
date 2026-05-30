@@ -8,6 +8,7 @@ import { getDatabaseAsync } from '@/storage/database/client';
 
 import type {
   UpdateUserSettingsInput,
+  UserDateFormatPreference,
   UserLanguagePreference,
   UserPlan,
   UserSettings,
@@ -18,6 +19,7 @@ type UserSettingsRow = {
   notifications_enabled: number;
   theme: UserThemePreference;
   language: UserLanguagePreference;
+  date_format: UserDateFormatPreference;
   plan: UserPlan;
   privacy_policy_url: string | null;
   terms_url: string | null;
@@ -27,6 +29,7 @@ const defaultSettings: UserSettings = {
   notificationsEnabled: false,
   theme: 'system',
   language: 'en',
+  dateFormat: 'dmy',
   plan: 'free',
 };
 
@@ -35,6 +38,7 @@ function mapUserSettingsRow(row: UserSettingsRow): UserSettings {
     notificationsEnabled: fromSQLiteBoolean(row.notifications_enabled),
     theme: row.theme,
     language: row.language,
+    dateFormat: row.date_format,
     plan: row.plan,
     privacyPolicyUrl: optionalString(row.privacy_policy_url),
     termsUrl: optionalString(row.terms_url),
@@ -45,8 +49,7 @@ export const SettingsRepository = {
   async get(): Promise<UserSettings> {
     const database = await getDatabaseAsync();
     const row = await database.getFirstAsync<UserSettingsRow>(
-      `SELECT notifications_enabled, theme, plan, privacy_policy_url, terms_url
-       , language
+      `SELECT notifications_enabled, theme, language, date_format, plan, privacy_policy_url, terms_url
        FROM user_settings
        WHERE id = 1;`
     );
@@ -61,8 +64,7 @@ export const SettingsRepository = {
   async update(input: UpdateUserSettingsInput): Promise<UserSettings> {
     const database = await getDatabaseAsync();
     const existingRow = await database.getFirstAsync<UserSettingsRow>(
-      `SELECT notifications_enabled, theme, plan, privacy_policy_url, terms_url
-       , language
+      `SELECT notifications_enabled, theme, language, date_format, plan, privacy_policy_url, terms_url
        FROM user_settings
        WHERE id = 1;`
     );
@@ -79,16 +81,18 @@ export const SettingsRepository = {
         notifications_enabled,
         theme,
         language,
+        date_format,
         plan,
         privacy_policy_url,
         terms_url,
         created_at,
         updated_at
-      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         notifications_enabled = excluded.notifications_enabled,
         theme = excluded.theme,
         language = excluded.language,
+        date_format = excluded.date_format,
         plan = excluded.plan,
         privacy_policy_url = excluded.privacy_policy_url,
         terms_url = excluded.terms_url,
@@ -96,6 +100,7 @@ export const SettingsRepository = {
       toSQLiteBoolean(next.notificationsEnabled),
       next.theme,
       next.language,
+      next.dateFormat,
       next.plan,
       nullableString(next.privacyPolicyUrl),
       nullableString(next.termsUrl),

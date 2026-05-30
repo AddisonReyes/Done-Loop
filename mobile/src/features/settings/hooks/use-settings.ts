@@ -2,7 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { NotificationService } from '@/features/notifications/services/notification-service';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
-import type { UserLanguagePreference, UserSettings, UserThemePreference } from '@/features/settings/types';
+import type {
+  UserDateFormatPreference,
+  UserLanguagePreference,
+  UserSettings,
+  UserThemePreference,
+} from '@/features/settings/types';
 import { useThemePreference } from '@/hooks/use-theme-preference';
 import { useTranslation } from '@/i18n';
 
@@ -42,9 +47,14 @@ export function useSettings() {
     await setLanguage(nextLanguage);
   }, [setLanguage]);
 
+  const setDateFormat = useCallback(async (dateFormat: UserDateFormatPreference) => {
+    setSettings(await SettingsRepository.update({ dateFormat }));
+  }, []);
+
   return {
     isLoading,
     settings: settings ? { ...settings, theme: preference, language } : settings,
+    setDateFormat,
     setLanguage: setLanguagePreference,
     setNotificationsEnabled,
     setTheme,

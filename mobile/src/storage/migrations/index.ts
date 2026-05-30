@@ -2,6 +2,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { migration001InitialSchema } from '@/storage/migrations/migration-001-initial-schema';
 import { migration002AddLanguageSetting } from '@/storage/migrations/migration-002-add-language-setting';
+import { migration003AddDateFormatSetting } from '@/storage/migrations/migration-003-add-date-format-setting';
+import { migration004DefaultDateFormatDmy } from '@/storage/migrations/migration-004-default-date-format-dmy';
 
 type Migration = {
   id: number;
@@ -9,7 +11,12 @@ type Migration = {
   up: (database: SQLiteDatabase) => Promise<void>;
 };
 
-const migrations: Migration[] = [migration001InitialSchema, migration002AddLanguageSetting];
+const migrations: Migration[] = [
+  migration001InitialSchema,
+  migration002AddLanguageSetting,
+  migration003AddDateFormatSetting,
+  migration004DefaultDateFormatDmy,
+];
 
 export async function runMigrationsAsync(database: SQLiteDatabase): Promise<void> {
   await database.execAsync(`

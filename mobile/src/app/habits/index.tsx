@@ -1,26 +1,28 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { HabitEditorModal } from '@/features/habits/components/habit-editor-modal';
 import { HabitFilterTabs } from '@/features/habits/components/habit-filter-tabs';
-import { HabitForm } from '@/features/habits/components/habit-form';
 import { HabitListItem } from '@/features/habits/components/habit-list-item';
 import { HabitMonthHistory } from '@/features/habits/components/habit-month-history';
 import { useHabitsMvp } from '@/features/habits/hooks/use-habits-mvp';
+import type { Habit } from '@/features/habits/types';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
+import { FloatingCreateButton } from '@/shared/components/floating-create-button';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
 
 export default function HabitsScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const {
-    cancelEditingHabit,
     completedHabitIds,
-    createHabit,
+    createHabitFromDraft,
     deactivateHabit,
-    editingHabitId,
-    editingHabitName,
     errorMessage,
     filter,
     goToNextMonth,
@@ -28,115 +30,132 @@ export default function HabitsScreen() {
     isLoading,
     monthHistoryDays,
     monthLabel,
-    newHabitName,
     pendingCount,
-    saveEditingHabit,
-    setEditingHabitName,
     setFilter,
-    setNewHabitName,
-    startEditingHabit,
     todayKey,
     toggleTodayCompletion,
     totalCompletedToday,
     visibleHabits,
     habits,
+    updateHabitFromDraft,
   } = useHabitsMvp();
 
   return (
-    <ScreenScaffold
-      eyebrow={todayKey}
-      title={t('habits.title')}
-      description={t('habits.description')}>
-      <View style={styles.summary}>
-        <View
-          style={[
-            styles.summaryItem,
-            { backgroundColor: theme.accentSoft, borderColor: theme.borderStrong },
-          ]}>
-          <ThemedText type="subtitle" style={styles.summaryNumber}>
-            {totalCompletedToday}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('habits.completedSummary')}
-          </ThemedText>
+    <View style={styles.screen}>
+      <ScreenScaffold
+        eyebrow={todayKey}
+        title={t('habits.title')}
+        description={t('habits.description')}>
+        <View style={styles.summary}>
+          <View
+            style={[
+              styles.summaryItem,
+              { backgroundColor: theme.accentSoft, borderColor: theme.borderStrong },
+            ]}>
+            <ThemedText type="subtitle" style={styles.summaryNumber}>
+              {totalCompletedToday}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('habits.completedSummary')}
+            </ThemedText>
+          </View>
+          <View
+            style={[
+              styles.summaryItem,
+              { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+            ]}>
+            <ThemedText type="subtitle" style={styles.summaryNumber}>
+              {pendingCount}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('habits.pendingSummary')}
+            </ThemedText>
+          </View>
         </View>
-        <View
-          style={[
-            styles.summaryItem,
-            { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
-          ]}>
-          <ThemedText type="subtitle" style={styles.summaryNumber}>
-            {pendingCount}
+
+        <HabitFilterTabs value={filter} onChange={setFilter} />
+
+        <HabitMonthHistory
+          monthLabel={monthLabel}
+          days={monthHistoryDays}
+          onPreviousMonth={goToPreviousMonth}
+          onNextMonth={goToNextMonth}
+        />
+
+        {errorMessage ? (
+          <ThemedText type="small" themeColor="warning">
+            {errorMessage}
           </ThemedText>
+        ) : null}
+
+        {isLoading ? (
           <ThemedText type="small" themeColor="textSecondary">
-            {t('habits.pendingSummary')}
+            {t('habits.loading')}
           </ThemedText>
+        ) : null}
+
+        {!isLoading && habits.length === 0 ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('habits.empty')}
+          </ThemedText>
+        ) : null}
+
+        {!isLoading && habits.length > 0 && visibleHabits.length === 0 ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('habits.emptyFilter')}
+          </ThemedText>
+        ) : null}
+
+        <View style={styles.list}>
+          {visibleHabits.map((habit) => (
+            <HabitListItem
+              key={habit.id}
+              habit={habit}
+              completedToday={completedHabitIds.has(habit.id)}
+              editing={false}
+              editingName=""
+              onEditingNameChange={() => {}}
+              onToggleToday={() => {
+                void toggleTodayCompletion(habit.id);
+              }}
+              onStartEdit={() => setEditingHabit(habit)}
+              onSaveEdit={() => {}}
+              onCancelEdit={() => {}}
+              onDeactivate={() => {
+                void deactivateHabit(habit.id);
+              }}
+            />
+          ))}
         </View>
-      </View>
-
-      <HabitForm value={newHabitName} onChangeText={setNewHabitName} onSubmit={createHabit} />
-
-      <HabitFilterTabs value={filter} onChange={setFilter} />
-
-      <HabitMonthHistory
-        monthLabel={monthLabel}
-        days={monthHistoryDays}
-        onPreviousMonth={goToPreviousMonth}
-        onNextMonth={goToNextMonth}
+      </ScreenScaffold>
+      <HabitEditorModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onSubmit={(draft) => {
+          void createHabitFromDraft(draft);
+          setIsCreateModalVisible(false);
+        }}
       />
-
-      {errorMessage ? (
-        <ThemedText type="small" themeColor="warning">
-          {errorMessage}
-        </ThemedText>
-      ) : null}
-
-      {isLoading ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('habits.loading')}
-        </ThemedText>
-      ) : null}
-
-      {!isLoading && habits.length === 0 ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('habits.empty')}
-        </ThemedText>
-      ) : null}
-
-      {!isLoading && habits.length > 0 && visibleHabits.length === 0 ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('habits.emptyFilter')}
-        </ThemedText>
-      ) : null}
-
-      <View style={styles.list}>
-        {visibleHabits.map((habit) => (
-          <HabitListItem
-            key={habit.id}
-            habit={habit}
-            completedToday={completedHabitIds.has(habit.id)}
-            editing={editingHabitId === habit.id}
-            editingName={editingHabitName}
-            onEditingNameChange={setEditingHabitName}
-            onToggleToday={() => {
-              void toggleTodayCompletion(habit.id);
-            }}
-            onStartEdit={() => startEditingHabit(habit)}
-            onSaveEdit={() => {
-              void saveEditingHabit();
-            }}
-            onCancelEdit={cancelEditingHabit}
-            onDeactivate={() => {
-              void deactivateHabit(habit.id);
-            }}
-          />
-        ))}
-      </View>
-    </ScreenScaffold>
+      <HabitEditorModal
+        habit={editingHabit}
+        visible={!!editingHabit}
+        onClose={() => setEditingHabit(null)}
+        onSubmit={(draft) => {
+          if (editingHabit) {
+            void updateHabitFromDraft(editingHabit.id, draft);
+          }
+          setEditingHabit(null);
+        }}
+      />
+      <FloatingCreateButton onPress={() => setIsCreateModalVisible(true)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   summary: {
     flexDirection: 'row',
     gap: Spacing.two,

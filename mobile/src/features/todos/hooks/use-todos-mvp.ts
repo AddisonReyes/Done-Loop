@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { NotificationService } from '@/features/notifications/services/notification-service';
+import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
+import type { UserDateFormatPreference } from '@/features/settings/types';
 import { TodoRepository } from '@/features/todos/repositories';
-import type { Todo, TodoPriority } from '@/features/todos/types';
+import type { CreateTodoInput, Todo, TodoPriority, UpdateTodoInput } from '@/features/todos/types';
 import { useTranslation } from '@/i18n';
-import { formatShortDate, isBeforeDateKey, isDateKey, toDateKey } from '@/shared/utils/date';
+import { formatDateKey, isBeforeDateKey, isDateKey, toDateKey } from '@/shared/utils/date';
 
 type TodoSort = 'priority' | 'dueAt' | 'createdAt';
 type TodoViewMode = 'list' | 'calendar';
@@ -24,6 +26,7 @@ export function useTodosMvp() {
   const [showDeleted, setShowDeleted] = useState(false);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [dateFormat, setDateFormat] = useState<UserDateFormatPreference>('iso');
 
   const todayKey = useMemo(() => toDateKey(new Date()), []);
   const normalizedDueDate = useMemo(() => {
@@ -54,6 +57,13 @@ export function useTodosMvp() {
     };
   }, [loadTodos]);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      SettingsRepository.get().then((settings) => setDateFormat(settings.dateFormat));
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, []);
+
   const createTodo = useCallback(async () => {
     const cleanTitle = title.trim();
     if (!cleanTitle) {
@@ -78,6 +88,28 @@ export function useTodosMvp() {
     await loadTodos();
   }, [language, loadTodos, normalizedDueDate, priority, title]);
 
+  const createTodoFromDraft = useCallback(
+    async (input: Omit<CreateTodoInput, 'notificationId'>) => {
+      if (!input.title.trim()) {
+        return;
+      }
+
+      const notificationId = await NotificationService.scheduleTodoReminderAsync({
+        title: input.title.trim(),
+        dueAt: input.dueAt,
+        language,
+      });
+
+      await TodoRepository.create({
+        ...input,
+        title: input.title.trim(),
+        notificationId,
+      });
+      await loadTodos();
+    },
+    [language, loadTodos]
+  );
+
   const startEditing = useCallback((todo: Todo) => {
     setEditingTodoId(todo.id);
     setEditingTitle(todo.title);
@@ -97,6 +129,21 @@ export function useTodosMvp() {
     cancelEditing();
     await loadTodos();
   }, [cancelEditing, editingTitle, editingTodoId, loadTodos]);
+
+  const updateTodoFromDraft = useCallback(
+    async (todo: Todo, input: UpdateTodoInput) => {
+      if (!input.title?.trim()) {
+        return;
+      }
+
+      await TodoRepository.update(todo.id, {
+        ...input,
+        title: input.title.trim(),
+      });
+      await loadTodos();
+    },
+    [loadTodos]
+  );
 
   const completeTodo = useCallback(
     async (todo: Todo) => {
@@ -188,7 +235,7 @@ export function useTodosMvp() {
   const getTodoDateLabel = useCallback(
     (todo: Todo) => {
       if (todo.status === 'completed' && todo.completedAt) {
-        return t('todos.completed', { date: formatShortDate(todo.completedAt.slice(0, 10), locale) });
+        return t('todos.completed', { date: formatDateKey(todo.completedAt.slice(0, 10), locale, dateFormat) });
       }
       if (!isDateKey(todo.dueAt)) {
         return t('todos.noDueDate');
@@ -197,19 +244,21 @@ export function useTodosMvp() {
         return t('todos.dueToday');
       }
       if (isBeforeDateKey(todo.dueAt, todayKey) && todo.status === 'pending') {
-        return t('todos.overdue', { date: formatShortDate(todo.dueAt, locale) });
+        return t('todos.overdue', { date: formatDateKey(todo.dueAt, locale, dateFormat) });
       }
-      return t('todos.due', { date: formatShortDate(todo.dueAt, locale) });
+      return t('todos.due', { date: formatDateKey(todo.dueAt, locale, dateFormat) });
     },
-    [locale, t, todayKey]
+    [dateFormat, locale, t, todayKey]
   );
 
   return {
     calendarGroups,
     completeTodo,
     createTodo,
+    createTodoFromDraft,
     deletedTodos,
     dueDate,
+    dateFormat,
     editingTitle,
     editingTodoId,
     errorMessage,
@@ -234,6 +283,7 @@ export function useTodosMvp() {
     startEditing,
     cancelEditing,
     title,
+    updateTodoFromDraft,
     viewMode,
   };
 }
