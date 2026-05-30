@@ -29,7 +29,7 @@ export function HabitForm({ value, onChangeText, onSubmit }: HabitFormProps) {
           {
             borderColor: theme.border,
             color: theme.text,
-            backgroundColor: theme.background,
+            backgroundColor: theme.surfaceStrong,
           },
         ]}
       />
@@ -40,7 +40,10 @@ export function HabitForm({ value, onChangeText, onSubmit }: HabitFormProps) {
         onPress={onSubmit}
         style={({ pressed }) => [
           styles.button,
-          { backgroundColor: disabled ? theme.backgroundSelected : theme.accent },
+          {
+            backgroundColor: disabled ? theme.backgroundSelected : theme.accent,
+            borderColor: disabled ? theme.border : theme.borderStrong,
+          },
           pressed && styles.pressed,
         ]}>
         <ThemedText type="smallBold" style={styles.buttonText}>
@@ -67,6 +70,7 @@ const styles = StyleSheet.create({
   button: {
     minHeight: 48,
     minWidth: 80,
+    borderWidth: 1,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',

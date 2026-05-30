@@ -37,14 +37,22 @@ export default function SettingsScreen() {
               accessibilityRole="switch"
               accessibilityState={{ checked: settings.notificationsEnabled }}
               onPress={() => void setNotificationsEnabled(!settings.notificationsEnabled)}
-              style={[styles.row, { borderColor: theme.border }]}>
+              style={[
+                styles.row,
+                {
+                  borderColor: settings.notificationsEnabled ? theme.borderStrong : theme.border,
+                  backgroundColor: settings.notificationsEnabled ? theme.accentSoft : theme.surfaceSoft,
+                },
+              ]}>
               <View>
                 <ThemedText type="smallBold">Notificaciones</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   Recordatorios locales para hábitos y tareas
                 </ThemedText>
               </View>
-              <ThemedText type="smallBold" themeColor={settings.notificationsEnabled ? 'accent' : 'textSecondary'}>
+              <ThemedText
+                type="smallBold"
+                themeColor={settings.notificationsEnabled ? 'accentStrong' : 'textSecondary'}>
                 {settings.notificationsEnabled ? 'On' : 'Off'}
               </ThemedText>
             </Pressable>
@@ -61,11 +69,12 @@ export default function SettingsScreen() {
                     {
                       backgroundColor:
                         settings.theme === option.value ? theme.accentSoft : theme.backgroundSelected,
+                      borderColor: settings.theme === option.value ? theme.borderStrong : theme.border,
                     },
                   ]}>
                   <ThemedText
                     type="smallBold"
-                    themeColor={settings.theme === option.value ? 'accent' : 'textSecondary'}>
+                    themeColor={settings.theme === option.value ? 'accentStrong' : 'textSecondary'}>
                     {option.label}
                   </ThemedText>
                 </Pressable>
@@ -101,7 +110,7 @@ export default function SettingsScreen() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <ThemedText type="smallBold" themeColor="accent">
+      <ThemedText type="smallBold" themeColor="accentStrong">
         {title}
       </ThemedText>
       {children}
@@ -123,7 +132,11 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 function DisabledAction({ label }: { label: string }) {
   const theme = useTheme();
   return (
-    <View style={[styles.disabledAction, { backgroundColor: theme.backgroundSelected }]}>
+    <View
+      style={[
+        styles.disabledAction,
+        { backgroundColor: theme.backgroundSelected, borderColor: theme.border },
+      ]}>
       <ThemedText type="smallBold" themeColor="textSecondary">
         {label} · futuro
       </ThemedText>
@@ -152,6 +165,7 @@ const styles = StyleSheet.create({
   },
   segment: {
     minHeight: 40,
+    borderWidth: 1,
     borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: Spacing.three,
@@ -165,6 +179,7 @@ const styles = StyleSheet.create({
   },
   disabledAction: {
     minHeight: 44,
+    borderWidth: 1,
     borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: Spacing.three,

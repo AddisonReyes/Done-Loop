@@ -7,9 +7,11 @@ import { HabitListItem } from '@/features/habits/components/habit-list-item';
 import { HabitMonthHistory } from '@/features/habits/components/habit-month-history';
 import { useHabitsMvp } from '@/features/habits/hooks/use-habits-mvp';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
 
 export default function HabitsScreen() {
+  const theme = useTheme();
   const {
     cancelEditingHabit,
     completedHabitIds,
@@ -44,7 +46,11 @@ export default function HabitsScreen() {
       title="Hábitos"
       description="Crea hábitos diarios, marca el progreso de hoy y desactiva lo que ya no forma parte de tu rutina.">
       <View style={styles.summary}>
-        <View style={styles.summaryItem}>
+        <View
+          style={[
+            styles.summaryItem,
+            { backgroundColor: theme.accentSoft, borderColor: theme.borderStrong },
+          ]}>
           <ThemedText type="subtitle" style={styles.summaryNumber}>
             {totalCompletedToday}
           </ThemedText>
@@ -52,7 +58,11 @@ export default function HabitsScreen() {
             completados
           </ThemedText>
         </View>
-        <View style={styles.summaryItem}>
+        <View
+          style={[
+            styles.summaryItem,
+            { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+          ]}>
           <ThemedText type="subtitle" style={styles.summaryNumber}>
             {pendingCount}
           </ThemedText>
@@ -131,7 +141,12 @@ const styles = StyleSheet.create({
   },
   summaryItem: {
     flex: 1,
+    minHeight: 92,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: Spacing.three,
     gap: Spacing.one,
+    justifyContent: 'center',
   },
   summaryNumber: {
     fontSize: 28,

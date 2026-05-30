@@ -9,9 +9,9 @@ import {
 import { Pressable, View, StyleSheet } from 'react-native';
 
 import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function AppTabs() {
   return (
@@ -35,29 +35,46 @@ export default function AppTabs() {
 }
 
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+  const theme = useTheme();
+
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+      <View
+        style={[
+          styles.tabButtonView,
+          {
+            backgroundColor: isFocused ? theme.accentSoft : 'transparent',
+            borderColor: isFocused ? theme.borderStrong : 'transparent',
+          },
+        ]}>
+        <ThemedText type="small" themeColor={isFocused ? 'accentStrong' : 'textSecondary'}>
           {children}
         </ThemedText>
-      </ThemedView>
+      </View>
     </Pressable>
   );
 }
 
 export function CustomTabList(props: TabListProps) {
+  const theme = useTheme();
+
   return (
     <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
+      <View
+        style={[
+          styles.innerContainer,
+          {
+            backgroundColor: theme.backgroundElement,
+            borderColor: theme.border,
+            shadowColor: theme.glow,
+          },
+        ]}>
+        <ThemedText type="smallBold" themeColor="accentStrong" style={styles.brandText}>
           Done Loop
         </ThemedText>
 
         {props.children}
-      </ThemedView>
+      </View>
     </View>
   );
 }
@@ -72,6 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   innerContainer: {
+    borderWidth: 1,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.five,
@@ -80,6 +98,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: Spacing.two,
     maxWidth: MaxContentWidth,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 28,
   },
   brandText: {
     marginRight: 'auto',
@@ -88,6 +109,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   tabButtonView: {
+    borderWidth: 1,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,

@@ -47,7 +47,15 @@ export function TodoListItem({
   const completed = todo.status === 'completed';
 
   return (
-    <View style={[styles.container, { borderColor: theme.border }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          borderColor: completed ? theme.borderStrong : theme.border,
+          backgroundColor: completed ? theme.accentSoft : theme.surfaceSoft,
+          shadowColor: theme.glow,
+        },
+      ]}>
       <View style={styles.header}>
         {editing ? (
           <TextInput
@@ -56,7 +64,11 @@ export function TodoListItem({
             value={editingTitle}
             onChangeText={onEditingTitleChange}
             onSubmitEditing={onSaveEdit}
-            style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+            placeholderTextColor={theme.textSecondary}
+            style={[
+              styles.input,
+              { borderColor: theme.border, color: theme.text, backgroundColor: theme.surfaceStrong },
+            ]}
           />
         ) : (
           <ThemedText type="smallBold" style={completed && styles.completedText}>
@@ -97,8 +109,14 @@ function Action({ label, muted, onPress }: { label: string; muted?: boolean; onP
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={[styles.action, { backgroundColor: muted ? theme.backgroundSelected : theme.accentSoft }]}>
-      <ThemedText type="smallBold" themeColor={muted ? 'textSecondary' : 'accent'}>
+      style={[
+        styles.action,
+        {
+          backgroundColor: muted ? theme.backgroundSelected : theme.accentSoft,
+          borderColor: muted ? theme.border : theme.borderStrong,
+        },
+      ]}>
+      <ThemedText type="smallBold" themeColor={muted ? 'textSecondary' : 'accentStrong'}>
         {label}
       </ThemedText>
     </Pressable>
@@ -111,6 +129,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: Spacing.three,
     gap: Spacing.three,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 2,
   },
   header: {
     gap: Spacing.one,
@@ -132,6 +154,7 @@ const styles = StyleSheet.create({
   },
   action: {
     minHeight: 36,
+    borderWidth: 1,
     borderRadius: 12,
     justifyContent: 'center',
     paddingHorizontal: Spacing.three,

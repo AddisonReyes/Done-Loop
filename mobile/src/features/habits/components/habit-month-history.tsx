@@ -25,14 +25,24 @@ export function HabitMonthHistory({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={onPreviousMonth} style={styles.navButton}>
-          <ThemedText type="smallBold">‹</ThemedText>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onPreviousMonth}
+          style={[styles.navButton, { backgroundColor: theme.backgroundSelected, borderColor: theme.border }]}>
+          <ThemedText type="smallBold" themeColor="accentStrong">
+            ‹
+          </ThemedText>
         </Pressable>
         <ThemedText type="smallBold" style={styles.monthLabel}>
           {monthLabel}
         </ThemedText>
-        <Pressable accessibilityRole="button" onPress={onNextMonth} style={styles.navButton}>
-          <ThemedText type="smallBold">›</ThemedText>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onNextMonth}
+          style={[styles.navButton, { backgroundColor: theme.backgroundSelected, borderColor: theme.border }]}>
+          <ThemedText type="smallBold" themeColor="accentStrong">
+            ›
+          </ThemedText>
         </Pressable>
       </View>
 
@@ -40,16 +50,22 @@ export function HabitMonthHistory({
         {days.map((day) => {
           const backgroundColor =
             day.activity === 'complete'
-              ? theme.accent
+              ? theme.historyComplete
               : day.activity === 'partial'
-                ? theme.warning
-                : theme.backgroundSelected;
+                ? theme.historyPartial
+                : theme.historyEmpty;
 
           return (
             <ThemedView
               key={day.dateKey}
               accessibilityLabel={`${day.dateKey}: ${day.activity}`}
-              style={[styles.day, { backgroundColor }]}>
+              style={[
+                styles.day,
+                {
+                  backgroundColor,
+                  borderColor: day.activity === 'none' ? theme.border : theme.borderStrong,
+                },
+              ]}>
               <ThemedText
                 type="code"
                 style={[styles.dayNumber, day.activity !== 'none' && styles.activeDayText]}>
@@ -61,9 +77,9 @@ export function HabitMonthHistory({
       </View>
 
       <View style={styles.legend}>
-        <LegendDot label="Sin actividad" color={theme.backgroundSelected} />
-        <LegendDot label="Parcial" color={theme.warning} />
-        <LegendDot label="Completa" color={theme.accent} />
+        <LegendDot label="Sin actividad" color={theme.historyEmpty} />
+        <LegendDot label="Parcial" color={theme.historyPartial} />
+        <LegendDot label="Completa" color={theme.historyComplete} />
       </View>
     </View>
   );
@@ -93,6 +109,7 @@ const styles = StyleSheet.create({
   navButton: {
     width: 44,
     height: 44,
+    borderWidth: 1,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -108,6 +125,7 @@ const styles = StyleSheet.create({
   day: {
     width: 42,
     aspectRatio: 1,
+    borderWidth: 1,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',

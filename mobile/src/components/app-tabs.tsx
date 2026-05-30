@@ -10,9 +10,9 @@ export default function AppTabs() {
   return (
     <NativeTabs
       backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
+      indicatorColor={colors.accentSoft}
       labelStyle={{
-        selected: { color: colors.accent },
+        selected: { color: colors.accentStrong },
         default: { color: colors.textSecondary },
       }}>
       <NativeTabs.Trigger name="habits/index">

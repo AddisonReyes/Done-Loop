@@ -1,7 +1,6 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -22,7 +21,7 @@ export function HabitFilterTabs({ value, onChange }: HabitFilterTabsProps) {
   const theme = useTheme();
 
   return (
-    <ThemedView type="backgroundSelected" style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.surfaceSoft, borderColor: theme.border }]}>
       {filters.map((filter) => {
         const selected = filter.value === value;
 
@@ -34,25 +33,26 @@ export function HabitFilterTabs({ value, onChange }: HabitFilterTabsProps) {
             onPress={() => onChange(filter.value)}
             style={({ pressed }) => [
               styles.button,
-              selected && { backgroundColor: theme.accentSoft },
+              selected && { backgroundColor: theme.accentSoft, borderColor: theme.borderStrong },
               pressed && styles.pressed,
             ]}>
             <ThemedText
               type="smallBold"
-              themeColor={selected ? 'accent' : 'textSecondary'}
+              themeColor={selected ? 'accentStrong' : 'textSecondary'}
               style={styles.buttonLabel}>
               {filter.label}
             </ThemedText>
           </Pressable>
         );
       })}
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
     padding: Spacing.one,
     gap: Spacing.one,
@@ -60,6 +60,8 @@ const styles = StyleSheet.create({
   button: {
     minHeight: 42,
     flex: 1,
+    borderWidth: 1,
+    borderColor: 'transparent',
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',

@@ -43,7 +43,10 @@ export function TodoForm({
         placeholderTextColor={theme.textSecondary}
         value={title}
         onChangeText={onTitleChange}
-        style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+        style={[
+          styles.input,
+          { borderColor: theme.border, color: theme.text, backgroundColor: theme.surfaceStrong },
+        ]}
       />
       {hasInvalidDueDate ? (
         <ThemedText type="small" themeColor="warning">
@@ -56,7 +59,10 @@ export function TodoForm({
         placeholderTextColor={theme.textSecondary}
         value={dueDate}
         onChangeText={onDueDateChange}
-        style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+        style={[
+          styles.input,
+          { borderColor: theme.border, color: theme.text, backgroundColor: theme.surfaceStrong },
+        ]}
       />
       <View style={styles.priorityRow}>
         {priorities.map((item) => {
@@ -69,9 +75,12 @@ export function TodoForm({
               onPress={() => onPriorityChange(item.value)}
               style={[
                 styles.priorityButton,
-                { backgroundColor: selected ? theme.accentSoft : theme.backgroundSelected },
+                {
+                  backgroundColor: selected ? theme.accentSoft : theme.backgroundSelected,
+                  borderColor: selected ? theme.borderStrong : theme.border,
+                },
               ]}>
-              <ThemedText type="smallBold" themeColor={selected ? 'accent' : 'textSecondary'}>
+              <ThemedText type="smallBold" themeColor={selected ? 'accentStrong' : 'textSecondary'}>
                 {item.label}
               </ThemedText>
             </Pressable>
@@ -83,7 +92,13 @@ export function TodoForm({
         accessibilityState={{ disabled }}
         disabled={disabled}
         onPress={onSubmit}
-        style={[styles.submit, { backgroundColor: disabled ? theme.backgroundSelected : theme.accent }]}>
+        style={[
+          styles.submit,
+          {
+            backgroundColor: disabled ? theme.backgroundSelected : theme.accent,
+            borderColor: disabled ? theme.border : theme.borderStrong,
+          },
+        ]}>
         <ThemedText type="smallBold" style={styles.submitText}>
           Crear tarea
         </ThemedText>
@@ -110,12 +125,14 @@ const styles = StyleSheet.create({
   },
   priorityButton: {
     minHeight: 40,
+    borderWidth: 1,
     borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: Spacing.three,
   },
   submit: {
     minHeight: 48,
+    borderWidth: 1,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',

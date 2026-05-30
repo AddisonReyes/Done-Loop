@@ -1,5 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -18,41 +19,81 @@ export function ScreenScaffold({ title, eyebrow, description, children }: Screen
   const theme = useTheme();
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: insets.top + Spacing.four,
-          paddingBottom: insets.bottom + BottomTabInset + Spacing.four,
-          paddingLeft: Math.max(insets.left, Spacing.three),
-          paddingRight: Math.max(insets.right, Spacing.three),
-        },
-      ]}>
-      <View style={styles.inner}>
-        <View style={styles.header}>
-          {eyebrow ? (
-            <ThemedText type="smallBold" themeColor="accent" style={styles.eyebrow}>
-              {eyebrow}
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
+      <LinearGradient
+        colors={['rgba(168, 85, 247, 0.20)', 'rgba(88, 28, 135, 0.08)', 'rgba(8, 8, 10, 0)']}
+        locations={[0, 0.46, 1]}
+        style={styles.topWash}
+      />
+      <LinearGradient
+        colors={['rgba(255, 255, 255, 0.06)', 'rgba(255, 255, 255, 0.01)', 'rgba(8, 8, 10, 0)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.softSheen}
+      />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: insets.top + Spacing.four,
+            paddingBottom: insets.bottom + BottomTabInset + Spacing.four,
+            paddingLeft: Math.max(insets.left, Spacing.three),
+            paddingRight: Math.max(insets.right, Spacing.three),
+          },
+        ]}>
+        <View style={styles.inner}>
+          <View style={styles.header}>
+            {eyebrow ? (
+              <ThemedText type="smallBold" themeColor="accentStrong" style={styles.eyebrow}>
+                {eyebrow}
+              </ThemedText>
+            ) : null}
+            <ThemedText type="title" style={styles.title}>
+              {title}
             </ThemedText>
-          ) : null}
-          <ThemedText type="title" style={styles.title}>
-            {title}
-          </ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.description}>
-            {description}
-          </ThemedText>
-        </View>
+            <ThemedText themeColor="textSecondary" style={styles.description}>
+              {description}
+            </ThemedText>
+          </View>
 
-        <ThemedView type="backgroundElement" style={[styles.card, { borderColor: theme.border }]}>
-          {children}
-        </ThemedView>
-      </View>
-    </ScrollView>
+          <ThemedView
+            type="backgroundElement"
+            style={[styles.card, { borderColor: theme.border, shadowColor: theme.glow }]}>
+            <LinearGradient
+              colors={['rgba(255, 255, 255, 0.07)', 'rgba(255, 255, 255, 0.01)']}
+              style={styles.cardSheen}
+            />
+            {children}
+          </ThemedView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  topWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 360,
+    pointerEvents: 'none',
+  },
+  softSheen: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '100%',
+    opacity: 0.88,
+    pointerEvents: 'none',
+  },
   scrollView: {
     flex: 1,
   },
@@ -69,6 +110,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   eyebrow: {
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   title: {
@@ -83,5 +125,18 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: Spacing.three,
     gap: Spacing.three,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.22,
+    shadowRadius: 34,
+    elevation: 8,
+  },
+  cardSheen: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    pointerEvents: 'none',
   },
 });

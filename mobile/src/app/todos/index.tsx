@@ -67,8 +67,14 @@ export default function TodosScreen() {
         accessibilityRole="switch"
         accessibilityState={{ checked: todos.showDeleted }}
         onPress={() => todos.setShowDeleted(!todos.showDeleted)}
-        style={[styles.deletedToggle, { backgroundColor: theme.backgroundSelected }]}>
-        <ThemedText type="smallBold" themeColor={todos.showDeleted ? 'accent' : 'textSecondary'}>
+        style={[
+          styles.deletedToggle,
+          {
+            backgroundColor: todos.showDeleted ? theme.accentSoft : theme.backgroundSelected,
+            borderColor: todos.showDeleted ? theme.borderStrong : theme.border,
+          },
+        ]}>
+        <ThemedText type="smallBold" themeColor={todos.showDeleted ? 'accentStrong' : 'textSecondary'}>
           {todos.showDeleted ? 'Viendo eliminadas' : 'Ver eliminadas'}
         </ThemedText>
       </Pressable>
@@ -152,8 +158,14 @@ function Segment({ label, selected, onPress }: { label: string; selected: boolea
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[styles.segment, { backgroundColor: selected ? theme.accentSoft : theme.backgroundSelected }]}>
-      <ThemedText type="smallBold" themeColor={selected ? 'accent' : 'textSecondary'}>
+      style={[
+        styles.segment,
+        {
+          backgroundColor: selected ? theme.accentSoft : theme.backgroundSelected,
+          borderColor: selected ? theme.borderStrong : theme.border,
+        },
+      ]}>
+      <ThemedText type="smallBold" themeColor={selected ? 'accentStrong' : 'textSecondary'}>
         {label}
       </ThemedText>
     </Pressable>
@@ -168,12 +180,14 @@ const styles = StyleSheet.create({
   },
   segment: {
     minHeight: 40,
+    borderWidth: 1,
     borderRadius: 14,
     justifyContent: 'center',
     paddingHorizontal: Spacing.three,
   },
   deletedToggle: {
     minHeight: 44,
+    borderWidth: 1,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',

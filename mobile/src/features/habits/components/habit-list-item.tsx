@@ -34,17 +34,25 @@ export function HabitListItem({
   const theme = useTheme();
 
   return (
-    <View style={[styles.container, { borderColor: theme.border }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          borderColor: completedToday ? theme.borderStrong : theme.border,
+          backgroundColor: completedToday ? theme.accentSoft : theme.surfaceSoft,
+          shadowColor: theme.glow,
+        },
+      ]}>
       <Pressable
         accessibilityRole="checkbox"
         accessibilityState={{ checked: completedToday }}
         onPress={onToggleToday}
         style={[
           styles.check,
-          {
-            borderColor: completedToday ? theme.accent : theme.border,
-            backgroundColor: completedToday ? theme.accent : theme.background,
-          },
+            {
+                borderColor: completedToday ? theme.accentStrong : theme.border,
+                backgroundColor: completedToday ? theme.accent : theme.backgroundSelected,
+              },
         ]}>
         <ThemedText type="smallBold" style={completedToday && styles.checkText}>
           {completedToday ? '✓' : ''}
@@ -65,9 +73,10 @@ export function HabitListItem({
               {
                 borderColor: theme.border,
                 color: theme.text,
-                backgroundColor: theme.background,
+                backgroundColor: theme.surfaceStrong,
               },
             ]}
+            placeholderTextColor={theme.textSecondary}
           />
         ) : (
           <>
@@ -114,9 +123,10 @@ function ActionButton({ label, muted, onPress }: ActionButtonProps) {
       style={({ pressed }) => [
         styles.actionButton,
         { backgroundColor: muted ? theme.backgroundSelected : theme.accentSoft },
+        { borderColor: muted ? theme.border : theme.borderStrong },
         pressed && styles.pressed,
       ]}>
-      <ThemedText type="smallBold" themeColor={muted ? 'textSecondary' : 'accent'}>
+      <ThemedText type="smallBold" themeColor={muted ? 'textSecondary' : 'accentStrong'}>
         {label}
       </ThemedText>
     </Pressable>
@@ -130,6 +140,10 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     flexDirection: 'row',
     gap: Spacing.three,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 2,
   },
   check: {
     width: 44,
@@ -163,6 +177,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     minHeight: 36,
+    borderWidth: 1,
     borderRadius: 12,
     justifyContent: 'center',
     paddingHorizontal: Spacing.three,
