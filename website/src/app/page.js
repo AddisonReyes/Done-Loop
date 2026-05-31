@@ -66,7 +66,7 @@ export default function Home() {
             </h1>
             <p className="mx-auto mt-6 max-w-[46rem] text-lg leading-8 text-text-secondary sm:text-xl">{copy.heroText}</p>
             <div className="mx-auto mt-8 max-w-sm">
-              <a className="block rounded-2xl bg-accent px-6 py-4 text-center font-bold text-white shadow-[0_18px_40px_rgba(168,85,247,0.24)] transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent-strong focus:ring-offset-2 focus:ring-offset-background" href={playStoreHref}>
+              <a className="block rounded-2xl bg-accent px-6 py-4 text-center font-bold text-white transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent-strong focus:ring-offset-2 focus:ring-offset-background" href={playStoreHref}>
                 {copy.playCta}
               </a>
               <p className="mt-3 text-sm text-text-muted">{copy.playNote}</p>

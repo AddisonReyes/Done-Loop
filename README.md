@@ -18,7 +18,7 @@ Done Loop is a local-first productivity app for habits, tasks, and lightweight d
 ## Project Structure
 
 - `mobile/` - Expo React Native app for Android, iOS, and Expo-supported development workflows.
-- `frontend/` - legacy Next.js web version.
+- `website/` - Next.js marketing landing page for Done Loop.
 - `backend/` - placeholder/backend workspace.
 
 ## Mobile Tech Stack
@@ -78,14 +78,12 @@ User settings currently include:
 
 Done Loop uses a calm, card-based mobile UI with light and dark themes. The accent system updates primary actions, selected states, borders, and habit history colors across the app. Fraunces is bundled locally and loaded through Expo Font.
 
-## Legacy Web App
+## Website
 
-The `frontend/` directory contains the earlier Next.js implementation. It can still be run separately:
+The `website/` directory contains the current marketing landing page:
 
 ```bash
-cd frontend
+cd website
 npm install
 npm run dev
 ```
-
-The root README now documents the current mobile app first because that is the active app experience.
