@@ -24,7 +24,7 @@ export default function HabitsScreen() {
   const {
     completedHabitIds,
     createHabitFromDraft,
-    deactivateHabit,
+    deleteHabit,
     errorMessage,
     filter,
     goToNextMonth,
@@ -118,8 +118,8 @@ export default function HabitsScreen() {
                 void toggleTodayCompletion(habit.id);
               }}
               onStartEdit={() => setEditingHabit(habit)}
-              onDeactivate={() => {
-                void deactivateHabit(habit.id);
+              onDelete={() => {
+                void deleteHabit(habit.id);
               }}
             />
           ))}

@@ -49,9 +49,7 @@ export default function CalendarScreen() {
                   dateLabel={todos.getTodoDateLabel(todo)}
                   onComplete={() => void todos.completeTodo(todo)}
                   onReopen={() => void todos.reopenTodo(todo)}
-                  onSoftDelete={() => void todos.softDeleteTodo(todo)}
-                  onRestore={() => void todos.restoreTodo(todo)}
-                  onPermanentDelete={() => void todos.permanentlyDeleteTodo(todo)}
+                  onDelete={() => void todos.deleteTodo(todo)}
                 />
               ))}
             </View>

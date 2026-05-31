@@ -80,25 +80,6 @@ export const TodoRepository = {
     return todo;
   },
 
-  async listAll(): Promise<Todo[]> {
-    const database = await getDatabaseAsync();
-    const rows = await database.getAllAsync<TodoRow>(
-      'SELECT * FROM todos ORDER BY created_at DESC;'
-    );
-    return rows.map(mapTodoRow);
-  },
-
-  async listByStatus(status: TodoStatus): Promise<Todo[]> {
-    const database = await getDatabaseAsync();
-    const rows = await database.getAllAsync<TodoRow>(
-      `SELECT * FROM todos
-       WHERE status = ?
-       ORDER BY created_at DESC;`,
-      status
-    );
-    return rows.map(mapTodoRow);
-  },
-
   async listActive(): Promise<Todo[]> {
     const database = await getDatabaseAsync();
     const rows = await database.getAllAsync<TodoRow>(
@@ -159,15 +140,5 @@ export const TodoRepository = {
     const database = await getDatabaseAsync();
     const result = await database.runAsync('DELETE FROM todos WHERE id = ?;', id);
     return result.changes > 0;
-  },
-
-  async purgeDeletedBefore(cutoffIso: string): Promise<number> {
-    const database = await getDatabaseAsync();
-    const result = await database.runAsync(
-      `DELETE FROM todos
-       WHERE status = 'deleted' AND deleted_at IS NOT NULL AND deleted_at < ?;`,
-      cutoffIso
-    );
-    return result.changes;
   },
 };

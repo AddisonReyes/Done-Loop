@@ -11,9 +11,7 @@ type TodoListItemProps = {
   dateLabel: string;
   onComplete: () => void;
   onReopen: () => void;
-  onSoftDelete: () => void;
-  onRestore: () => void;
-  onPermanentDelete: () => void;
+  onDelete: () => void;
   onStartEdit?: () => void;
 };
 
@@ -28,14 +26,11 @@ export function TodoListItem({
   dateLabel,
   onComplete,
   onReopen,
-  onSoftDelete,
-  onRestore,
-  onPermanentDelete,
+  onDelete,
   onStartEdit,
 }: TodoListItemProps) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const deleted = todo.status === 'deleted';
   const completed = todo.status === 'completed';
 
   return (
@@ -57,21 +52,12 @@ export function TodoListItem({
       </View>
 
       <View style={styles.actions}>
-        {deleted ? (
-          <>
-            <Action label={t('todos.actions.restore')} onPress={onRestore} />
-            <Action label={t('todos.actions.permanentDelete')} muted onPress={onPermanentDelete} />
-          </>
-        ) : (
-          <>
-            <Action
-              label={completed ? t('todos.actions.reopen') : t('todos.actions.complete')}
-              onPress={completed ? onReopen : onComplete}
-            />
-            {onStartEdit ? <Action label={t('todos.actions.edit')} muted onPress={onStartEdit} /> : null}
-            <Action label={t('todos.actions.delete')} muted onPress={onSoftDelete} />
-          </>
-        )}
+        <Action
+          label={completed ? t('todos.actions.reopen') : t('todos.actions.complete')}
+          onPress={completed ? onReopen : onComplete}
+        />
+        {onStartEdit ? <Action label={t('todos.actions.edit')} muted onPress={onStartEdit} /> : null}
+        <Action label={t('todos.actions.delete')} muted onPress={onDelete} />
       </View>
     </View>
   );

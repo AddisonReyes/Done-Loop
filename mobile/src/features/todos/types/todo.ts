@@ -1,4 +1,4 @@
-export type TodoStatus = 'pending' | 'completed' | 'deleted';
+export type TodoStatus = 'pending' | 'completed';
 
 export type TodoPriority = 1 | 2 | 3;
 

@@ -56,17 +56,10 @@ export function TabButton({
       {...props}
       accessibilityLabel={label}
       style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
-      <View
-        style={[
-          styles.tabButtonView,
-          {
-            backgroundColor: isFocused ? theme.accentSoft : 'transparent',
-            borderColor: isFocused ? theme.borderStrong : 'transparent',
-          },
-        ]}>
+      <View style={styles.tabButtonView}>
         <MaterialCommunityIcons
           name={iconName}
-          size={24}
+          size={23}
           color={isFocused ? theme.accentStrong : theme.textSecondary}
         />
       </View>
@@ -81,14 +74,21 @@ export function CustomTabList(props: TabListProps) {
   return (
     <View
       {...props}
-      style={[styles.tabListContainer, { paddingBottom: Math.max(insets.bottom, Spacing.three) }]}>
+      style={[
+        styles.tabListContainer,
+        {
+          backgroundColor: theme.backgroundElement,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          shadowColor: theme.glow,
+        },
+      ]}>
       <View
         style={[
           styles.innerContainer,
           {
-            backgroundColor: theme.backgroundElement,
-            borderColor: theme.border,
-            shadowColor: theme.glow,
+            backgroundColor: 'transparent',
           },
         ]}>
         {props.children}
@@ -103,22 +103,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.two,
     position: 'absolute',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
     width: '100%',
   },
   innerContainer: {
     alignItems: 'center',
-    borderRadius: 22,
-    borderWidth: 1,
     flexDirection: 'row',
-    gap: Spacing.one,
     justifyContent: 'space-around',
-    minHeight: 56,
-    paddingHorizontal: Spacing.one,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
+    minHeight: 52,
+    paddingHorizontal: Spacing.two,
+    paddingTop: Spacing.one,
     width: '100%',
   },
   tabButton: {
@@ -128,11 +125,10 @@ const styles = StyleSheet.create({
   },
   tabButtonView: {
     alignItems: 'center',
-    borderRadius: 15,
-    borderWidth: 1,
-    height: 46,
+    borderRadius: 16,
+    height: 42,
     justifyContent: 'center',
-    width: 58,
+    width: 56,
   },
   pressed: {
     opacity: 0.72,

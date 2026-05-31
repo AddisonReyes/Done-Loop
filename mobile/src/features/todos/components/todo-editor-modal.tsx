@@ -8,6 +8,7 @@ import type { Todo, TodoPriority } from '@/features/todos/types';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
 import { AppModal } from '@/shared/components/app-modal';
+import { TextLimits } from '@/shared/constants/text-limits';
 import { DatePickerField } from '@/shared/components/date-picker-field';
 
 type TodoEditorModalProps = {
@@ -51,26 +52,20 @@ function TodoEditorForm({
 
   return (
       <ScrollView contentContainerStyle={styles.content}>
-        <TextInput
+        <LimitedTextInput
           accessibilityLabel={t('todos.form.titleLabel')}
           placeholder={t('todos.form.titlePlaceholder')}
-          placeholderTextColor={theme.textSecondary}
           value={title}
+          limit={TextLimits.title}
           onChangeText={setTitle}
-          style={[styles.input, { backgroundColor: theme.surfaceStrong, borderColor: theme.border, color: theme.text }]}
         />
-        <TextInput
+        <LimitedTextInput
           accessibilityLabel={t('todos.form.descriptionLabel')}
           placeholder={t('todos.form.descriptionPlaceholder')}
-          placeholderTextColor={theme.textSecondary}
           value={description}
+          limit={TextLimits.description}
           onChangeText={setDescription}
           multiline
-          style={[
-            styles.input,
-            styles.textArea,
-            { backgroundColor: theme.surfaceStrong, borderColor: theme.border, color: theme.text },
-          ]}
         />
         <View style={styles.priorityRow}>
           {priorities.map((item) => {
@@ -88,7 +83,10 @@ function TodoEditorForm({
                     borderColor: selected ? theme.borderStrong : theme.border,
                   },
                 ]}>
-                <ThemedText type="smallBold" themeColor={selected ? 'accentStrong' : 'textSecondary'}>
+                <ThemedText
+                  type="smallBold"
+                  themeColor={selected ? 'accentStrong' : 'textSecondary'}
+                  style={styles.optionText}>
                   {t(`todos.priorities.${item}`)}
                 </ThemedText>
               </Pressable>
@@ -127,9 +125,54 @@ function TodoEditorForm({
   );
 }
 
+type LimitedTextInputProps = {
+  accessibilityLabel: string;
+  multiline?: boolean;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+  value: string;
+  limit: number;
+};
+
+function LimitedTextInput({
+  accessibilityLabel,
+  limit,
+  multiline,
+  onChangeText,
+  placeholder,
+  value,
+}: LimitedTextInputProps) {
+  const theme = useTheme();
+
+  return (
+    <View style={styles.inputGroup}>
+      <TextInput
+        accessibilityLabel={accessibilityLabel}
+        placeholder={placeholder}
+        placeholderTextColor={theme.textSecondary}
+        value={value}
+        maxLength={limit}
+        onChangeText={onChangeText}
+        multiline={multiline}
+        style={[
+          styles.input,
+          multiline && styles.textArea,
+          { backgroundColor: theme.surfaceStrong, borderColor: theme.border, color: theme.text },
+        ]}
+      />
+      <ThemedText type="small" themeColor="textMuted" style={styles.counter}>
+        {value.length}/{limit}
+      </ThemedText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     gap: Spacing.two,
+  },
+  inputGroup: {
+    gap: Spacing.one,
   },
   input: {
     borderRadius: 16,
@@ -145,15 +188,22 @@ const styles = StyleSheet.create({
   },
   priorityRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   priorityButton: {
+    alignItems: 'center',
     borderRadius: 14,
     borderWidth: 1,
+    flex: 1,
     justifyContent: 'center',
     minHeight: 40,
-    paddingHorizontal: Spacing.three,
+    paddingHorizontal: Spacing.two,
+  },
+  optionText: {
+    textAlign: 'center',
+  },
+  counter: {
+    alignSelf: 'flex-end',
   },
   submit: {
     alignItems: 'center',

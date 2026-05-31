@@ -12,7 +12,7 @@ type HabitListItemProps = {
   completedToday: boolean;
   onToggleToday: () => void;
   onStartEdit: () => void;
-  onDeactivate: () => void;
+  onDelete: () => void;
 };
 
 export function HabitListItem({
@@ -20,7 +20,7 @@ export function HabitListItem({
   completedToday,
   onToggleToday,
   onStartEdit,
-  onDeactivate,
+  onDelete,
 }: HabitListItemProps) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -60,7 +60,7 @@ export function HabitListItem({
 
         <View style={styles.actions}>
           <ActionButton label={t('habits.edit')} onPress={onStartEdit} />
-          <ActionButton label={t('habits.deactivate')} onPress={onDeactivate} muted />
+          <ActionButton label={t('habits.delete')} onPress={onDelete} muted />
         </View>
       </View>
     </View>

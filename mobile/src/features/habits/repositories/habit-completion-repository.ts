@@ -114,4 +114,10 @@ export const HabitCompletionRepository = {
     const result = await database.runAsync('DELETE FROM habit_completions WHERE id = ?;', id);
     return result.changes > 0;
   },
+
+  async deleteByHabitId(habitId: string): Promise<number> {
+    const database = await getDatabaseAsync();
+    const result = await database.runAsync('DELETE FROM habit_completions WHERE habit_id = ?;', habitId);
+    return result.changes;
+  },
 };

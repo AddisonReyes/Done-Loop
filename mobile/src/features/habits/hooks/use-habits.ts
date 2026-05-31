@@ -10,6 +10,7 @@ import {
   startOfMonth,
 } from '@/shared/utils/date';
 import { useTranslation } from '@/i18n';
+import { TextLimits } from '@/shared/constants/text-limits';
 
 export type HabitFilter = 'all' | 'pendingToday' | 'completedToday';
 
@@ -106,13 +107,17 @@ export function useHabits() {
 
   const createHabitFromDraft = useCallback(
     async (input: CreateHabitInput) => {
-      if (!input.name.trim()) {
+      const name = input.name.trim().slice(0, TextLimits.title);
+      const description = input.description?.trim().slice(0, TextLimits.description);
+
+      if (!name) {
         return;
       }
 
       await HabitRepository.create({
         ...input,
-        name: input.name.trim(),
+        name,
+        description: description || undefined,
         isActive: true,
       });
       await loadHabits();
@@ -122,28 +127,31 @@ export function useHabits() {
 
   const updateHabitFromDraft = useCallback(
     async (habitId: string, input: UpdateHabitInput) => {
-      if (!input.name?.trim()) {
+      const name = input.name?.trim().slice(0, TextLimits.title);
+      const description = input.description?.trim().slice(0, TextLimits.description);
+
+      if (!name) {
         return;
       }
 
       await HabitRepository.update(habitId, {
         ...input,
-        name: input.name.trim(),
+        name,
+        description: description || undefined,
       });
       await loadHabits();
     },
     [loadHabits]
   );
 
-  const deactivateHabit = useCallback(
+  const deleteHabit = useCallback(
     async (habitId: string) => {
-      await HabitRepository.update(habitId, {
-        isActive: false,
-        deletedAt: new Date().toISOString(),
-      });
+      await HabitCompletionRepository.deleteByHabitId(habitId);
+      await HabitRepository.deleteById(habitId);
       await loadHabits();
+      await loadMonthHistory();
     },
-    [loadHabits]
+    [loadHabits, loadMonthHistory]
   );
 
   const toggleTodayCompletion = useCallback(
@@ -198,7 +206,7 @@ export function useHabits() {
   return {
     completedHabitIds,
     createHabitFromDraft,
-    deactivateHabit,
+    deleteHabit,
     errorMessage,
     filter,
     habits,

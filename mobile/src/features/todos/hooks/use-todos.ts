@@ -6,12 +6,11 @@ import type { UserDateFormatPreference } from '@/features/settings/types';
 import { TodoRepository } from '@/features/todos/repositories';
 import type { CreateTodoInput, Todo, UpdateTodoInput } from '@/features/todos/types';
 import { useTranslation } from '@/i18n';
+import { TextLimits } from '@/shared/constants/text-limits';
 import { formatDateKey, isBeforeDateKey, isDateKey, toDateKey } from '@/shared/utils/date';
 
 type TodoSort = 'priority' | 'dueAt' | 'createdAt';
 type TodoViewMode = 'list' | 'calendar';
-
-const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
 
 export function useTodos() {
   const { language, locale, t } = useTranslation();
@@ -20,7 +19,6 @@ export function useTodos() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sort, setSort] = useState<TodoSort>('priority');
   const [viewMode, setViewMode] = useState<TodoViewMode>('list');
-  const [showDeleted, setShowDeleted] = useState(false);
   const [dateFormat, setDateFormat] = useState<UserDateFormatPreference>('iso');
 
   const todayKey = useMemo(() => toDateKey(new Date()), []);
@@ -29,8 +27,7 @@ export function useTodos() {
     try {
       setStatus('loading');
       setErrorMessage(null);
-      await TodoRepository.purgeDeletedBefore(new Date(Date.now() - oneMonthMs).toISOString());
-      setTodos(await TodoRepository.listAll());
+      setTodos(await TodoRepository.listActive());
       setStatus('idle');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : t('todos.loadError'));
@@ -57,19 +54,23 @@ export function useTodos() {
 
   const createTodoFromDraft = useCallback(
     async (input: Omit<CreateTodoInput, 'notificationId'>) => {
-      if (!input.title.trim()) {
+      const title = input.title.trim().slice(0, TextLimits.title);
+      const description = input.description?.trim().slice(0, TextLimits.description);
+
+      if (!title) {
         return;
       }
 
       const notificationId = await NotificationService.scheduleTodoReminderAsync({
-        title: input.title.trim(),
+        title,
         dueAt: input.dueAt,
         language,
       });
 
       await TodoRepository.create({
         ...input,
-        title: input.title.trim(),
+        title,
+        description: description || undefined,
         notificationId,
       });
       await loadTodos();
@@ -79,13 +80,17 @@ export function useTodos() {
 
   const updateTodoFromDraft = useCallback(
     async (todo: Todo, input: UpdateTodoInput) => {
-      if (!input.title?.trim()) {
+      const title = input.title?.trim().slice(0, TextLimits.title);
+      const description = input.description?.trim().slice(0, TextLimits.description);
+
+      if (!title) {
         return;
       }
 
       await TodoRepository.update(todo.id, {
         ...input,
-        title: input.title.trim(),
+        title,
+        description: description || undefined,
       });
       await loadTodos();
     },
@@ -115,44 +120,17 @@ export function useTodos() {
     [loadTodos]
   );
 
-  const softDeleteTodo = useCallback(
+  const deleteTodo = useCallback(
     async (todo: Todo) => {
-      await TodoRepository.update(todo.id, {
-        status: 'deleted',
-        deletedAt: new Date().toISOString(),
-      });
       await NotificationService.cancelAsync(todo.notificationId);
-      await loadTodos();
-    },
-    [loadTodos]
-  );
-
-  const restoreTodo = useCallback(
-    async (todo: Todo) => {
-      await TodoRepository.update(todo.id, {
-        status: 'pending',
-        deletedAt: undefined,
-      });
-      await loadTodos();
-    },
-    [loadTodos]
-  );
-
-  const permanentlyDeleteTodo = useCallback(
-    async (todo: Todo) => {
       await TodoRepository.deleteById(todo.id);
       await loadTodos();
     },
     [loadTodos]
   );
 
-  const activeTodos = useMemo(() => todos.filter((todo) => todo.status !== 'deleted'), [todos]);
-  const deletedTodos = useMemo(() => todos.filter((todo) => todo.status === 'deleted'), [todos]);
-
   const sortedTodos = useMemo(() => {
-    const source = showDeleted ? deletedTodos : activeTodos;
-
-    return [...source].sort((a, b) => {
+    return [...todos].sort((a, b) => {
       if (sort === 'priority') {
         return a.priority - b.priority || a.createdAt.localeCompare(b.createdAt);
       }
@@ -161,12 +139,12 @@ export function useTodos() {
       }
       return b.createdAt.localeCompare(a.createdAt);
     });
-  }, [activeTodos, deletedTodos, showDeleted, sort]);
+  }, [sort, todos]);
 
   const calendarGroups = useMemo(() => {
     const groups = new Map<string, Todo[]>();
 
-    for (const todo of activeTodos) {
+    for (const todo of todos) {
       const completedDateKey = todo.completedAt?.slice(0, 10);
       const dateKey = isDateKey(todo.dueAt)
         ? todo.dueAt
@@ -177,7 +155,7 @@ export function useTodos() {
     }
 
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [activeTodos, t]);
+  }, [t, todos]);
 
   const getTodoDateLabel = useCallback(
     (todo: Todo) => {
@@ -202,19 +180,14 @@ export function useTodos() {
     calendarGroups,
     completeTodo,
     createTodoFromDraft,
-    deletedTodos,
     dateFormat,
+    deleteTodo,
     errorMessage,
     getTodoDateLabel,
     isLoading: status === 'loading',
-    permanentlyDeleteTodo,
     reopenTodo,
-    restoreTodo,
-    setShowDeleted,
     setSort,
     setViewMode,
-    showDeleted,
-    softDeleteTodo,
     sort,
     sortedTodos,
     updateTodoFromDraft,

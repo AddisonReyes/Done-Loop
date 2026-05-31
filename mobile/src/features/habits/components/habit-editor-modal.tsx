@@ -7,6 +7,7 @@ import type { Habit, HabitRecurrenceType } from '@/features/habits/types';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
 import { AppModal } from '@/shared/components/app-modal';
+import { TextLimits } from '@/shared/constants/text-limits';
 import { TimePickerField } from '@/shared/components/time-picker-field';
 
 type HabitDraft = {
@@ -63,26 +64,20 @@ function HabitEditorForm({ habit, onSubmit }: Pick<HabitEditorModalProps, 'habit
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-        <TextInput
+        <LimitedTextInput
           accessibilityLabel={t('habits.formLabel')}
           placeholder={t('habits.formPlaceholder')}
-          placeholderTextColor={theme.textSecondary}
           value={draft.name}
+          limit={TextLimits.title}
           onChangeText={(name) => setDraft((current) => ({ ...current, name }))}
-          style={[styles.input, { backgroundColor: theme.surfaceStrong, borderColor: theme.border, color: theme.text }]}
         />
-        <TextInput
+        <LimitedTextInput
           accessibilityLabel={t('habits.descriptionLabel')}
           placeholder={t('habits.descriptionPlaceholder')}
-          placeholderTextColor={theme.textSecondary}
           value={draft.description}
+          limit={TextLimits.description}
           onChangeText={(description) => setDraft((current) => ({ ...current, description }))}
           multiline
-          style={[
-            styles.input,
-            styles.textArea,
-            { backgroundColor: theme.surfaceStrong, borderColor: theme.border, color: theme.text },
-          ]}
         />
         <ThemedText type="smallBold">{t('habits.recurrence')}</ThemedText>
         <View style={styles.segmentRow}>
@@ -101,7 +96,10 @@ function HabitEditorForm({ habit, onSubmit }: Pick<HabitEditorModalProps, 'habit
                     borderColor: selected ? theme.borderStrong : theme.border,
                   },
                 ]}>
-                <ThemedText type="smallBold" themeColor={selected ? 'accentStrong' : 'textSecondary'}>
+                <ThemedText
+                  type="smallBold"
+                  themeColor={selected ? 'accentStrong' : 'textSecondary'}
+                  style={styles.optionText}>
                   {t(`habits.recurrences.${recurrenceType}`)}
                 </ThemedText>
               </Pressable>
@@ -162,9 +160,54 @@ function HabitEditorForm({ habit, onSubmit }: Pick<HabitEditorModalProps, 'habit
   );
 }
 
+type LimitedTextInputProps = {
+  accessibilityLabel: string;
+  multiline?: boolean;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+  value: string;
+  limit: number;
+};
+
+function LimitedTextInput({
+  accessibilityLabel,
+  limit,
+  multiline,
+  onChangeText,
+  placeholder,
+  value,
+}: LimitedTextInputProps) {
+  const theme = useTheme();
+
+  return (
+    <View style={styles.inputGroup}>
+      <TextInput
+        accessibilityLabel={accessibilityLabel}
+        placeholder={placeholder}
+        placeholderTextColor={theme.textSecondary}
+        value={value}
+        maxLength={limit}
+        onChangeText={onChangeText}
+        multiline={multiline}
+        style={[
+          styles.input,
+          multiline && styles.textArea,
+          { backgroundColor: theme.surfaceStrong, borderColor: theme.border, color: theme.text },
+        ]}
+      />
+      <ThemedText type="small" themeColor="textMuted" style={styles.counter}>
+        {value.length}/{limit}
+      </ThemedText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     gap: Spacing.two,
+  },
+  inputGroup: {
+    gap: Spacing.one,
   },
   input: {
     borderRadius: 16,
@@ -180,15 +223,22 @@ const styles = StyleSheet.create({
   },
   segmentRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   segment: {
+    alignItems: 'center',
     borderRadius: 14,
     borderWidth: 1,
+    flex: 1,
     justifyContent: 'center',
     minHeight: 40,
-    paddingHorizontal: Spacing.three,
+    paddingHorizontal: Spacing.one,
+  },
+  optionText: {
+    textAlign: 'center',
+  },
+  counter: {
+    alignSelf: 'flex-end',
   },
   switchRow: {
     alignItems: 'center',

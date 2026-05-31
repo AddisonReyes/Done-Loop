@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
@@ -10,7 +10,6 @@ import { useTodos } from '@/features/todos/hooks/use-todos';
 import type { TodoSort, TodoViewMode } from '@/features/todos/hooks/use-todos';
 import type { Todo } from '@/features/todos/types';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
 import { FloatingCreateButton } from '@/shared/components/floating-create-button';
 import { EmptyState } from '@/shared/components/empty-state';
@@ -30,7 +29,6 @@ const modes: { value: TodoViewMode; labelKey: string }[] = [
 ];
 
 export default function TodosScreen() {
-  const theme = useTheme();
   const { t } = useTranslation();
   const [dateFormat, setDateFormat] = useState<UserDateFormatPreference>('iso');
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
@@ -58,21 +56,6 @@ export default function TodosScreen() {
             onChange={todos.setSort}
             options={sorts.map((sort) => ({ value: sort.value, label: t(sort.labelKey) }))}
           />
-          <Pressable
-            accessibilityRole="switch"
-            accessibilityState={{ checked: todos.showDeleted }}
-            onPress={() => todos.setShowDeleted(!todos.showDeleted)}
-            style={[
-              styles.deletedToggle,
-              {
-                backgroundColor: todos.showDeleted ? theme.accentSoft : theme.backgroundSelected,
-                borderColor: todos.showDeleted ? theme.borderStrong : theme.border,
-              },
-            ]}>
-            <ThemedText type="smallBold" themeColor={todos.showDeleted ? 'accentStrong' : 'textSecondary'}>
-              {todos.showDeleted ? t('todos.deletedToggleActive') : t('todos.deletedToggle')}
-            </ThemedText>
-          </Pressable>
         </SectionCard>
 
         {todos.errorMessage ? (
@@ -87,7 +70,7 @@ export default function TodosScreen() {
           </ThemedText>
         ) : null}
 
-        {todos.viewMode === 'calendar' && !todos.showDeleted ? (
+        {todos.viewMode === 'calendar' ? (
           <View style={styles.list}>
             {todos.calendarGroups.map(([dateKey, groupedTodos]) => (
               <View key={dateKey} style={styles.calendarGroup}>
@@ -101,9 +84,7 @@ export default function TodosScreen() {
                     dateLabel={todos.getTodoDateLabel(todo)}
                     onComplete={() => void todos.completeTodo(todo)}
                     onReopen={() => void todos.reopenTodo(todo)}
-                    onSoftDelete={() => void todos.softDeleteTodo(todo)}
-                    onRestore={() => void todos.restoreTodo(todo)}
-                    onPermanentDelete={() => void todos.permanentlyDeleteTodo(todo)}
+                    onDelete={() => void todos.deleteTodo(todo)}
                     onStartEdit={() => setEditingTodo(todo)}
                   />
                 ))}
@@ -119,9 +100,7 @@ export default function TodosScreen() {
                 dateLabel={todos.getTodoDateLabel(todo)}
                 onComplete={() => void todos.completeTodo(todo)}
                 onReopen={() => void todos.reopenTodo(todo)}
-                onSoftDelete={() => void todos.softDeleteTodo(todo)}
-                onRestore={() => void todos.restoreTodo(todo)}
-                onPermanentDelete={() => void todos.permanentlyDeleteTodo(todo)}
+                onDelete={() => void todos.deleteTodo(todo)}
                 onStartEdit={() => setEditingTodo(todo)}
               />
             ))}
@@ -130,9 +109,9 @@ export default function TodosScreen() {
 
         {!todos.isLoading && todos.sortedTodos.length === 0 ? (
           <EmptyState
-            message={todos.showDeleted ? t('todos.emptyDeleted') : t('todos.empty')}
-            actionLabel={todos.showDeleted ? undefined : t('todos.form.create')}
-            onAction={todos.showDeleted ? undefined : () => setIsCreateModalVisible(true)}
+            message={t('todos.empty')}
+            actionLabel={t('todos.form.create')}
+            onAction={() => setIsCreateModalVisible(true)}
           />
         ) : null}
       </ScreenScaffold>
@@ -165,13 +144,6 @@ export default function TodosScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-  },
-  deletedToggle: {
-    minHeight: 44,
-    borderWidth: 1,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   list: {
     gap: Spacing.two,

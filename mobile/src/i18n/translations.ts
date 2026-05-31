@@ -19,7 +19,7 @@ export const translations = {
     },
     habits: {
       title: 'Habits',
-      description: 'Create daily habits, mark today’s progress, and deactivate what is no longer part of your routine.',
+      description: 'Create daily habits, mark today’s progress, and remove what is no longer part of your routine.',
       completedSummary: 'completed',
       pendingSummary: 'pending',
       loading: 'Loading habits...',
@@ -43,7 +43,7 @@ export const translations = {
       save: 'Save',
       cancel: 'Cancel',
       edit: 'Edit',
-      deactivate: 'Deactivate',
+      delete: 'Delete',
       filters: {
         all: 'All',
         pendingToday: 'Pending',
@@ -68,10 +68,7 @@ export const translations = {
       description: 'Organize tasks by priority, due date, and status without losing accidentally deleted items.',
       loading: 'Loading tasks...',
       empty: 'No tasks yet.',
-      emptyDeleted: 'No deleted tasks.',
       loadError: 'Could not load tasks.',
-      deletedToggle: 'View deleted',
-      deletedToggleActive: 'Viewing deleted',
       sorts: {
         priority: 'Priority',
         dueAt: 'Date',
@@ -98,8 +95,6 @@ export const translations = {
         editTitle: 'Edit task',
       },
       actions: {
-        restore: 'Restore',
-        permanentDelete: 'Delete forever',
         save: 'Save',
         cancel: 'Cancel',
         reopen: 'Reopen',
@@ -214,7 +209,7 @@ export const translations = {
       save: 'Guardar',
       cancel: 'Cancelar',
       edit: 'Editar',
-      deactivate: 'Desactivar',
+      delete: 'Eliminar',
       filters: {
         all: 'Todos',
         pendingToday: 'Pendientes',
@@ -239,10 +234,7 @@ export const translations = {
       description: 'Organiza pendientes por prioridad, vencimiento y estado sin perder tareas eliminadas por accidente.',
       loading: 'Cargando tareas...',
       empty: 'Aún no hay tareas.',
-      emptyDeleted: 'No hay tareas eliminadas.',
       loadError: 'No se pudieron cargar las tareas.',
-      deletedToggle: 'Ver eliminadas',
-      deletedToggleActive: 'Viendo eliminadas',
       sorts: {
         priority: 'Prioridad',
         dueAt: 'Fecha',
@@ -269,8 +261,6 @@ export const translations = {
         editTitle: 'Editar tarea',
       },
       actions: {
-        restore: 'Restaurar',
-        permanentDelete: 'Borrar final',
         save: 'Guardar',
         cancel: 'Cancelar',
         reopen: 'Reabrir',
