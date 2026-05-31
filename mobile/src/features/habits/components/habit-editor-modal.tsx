@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import type { Habit, HabitRecurrenceType } from '@/features/habits/types';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
@@ -212,6 +212,7 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 16,
     borderWidth: 1,
+    fontFamily: Fonts.sans,
     fontSize: 16,
     minHeight: 48,
     paddingHorizontal: Spacing.three,

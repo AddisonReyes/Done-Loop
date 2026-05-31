@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import type { UserDateFormatPreference } from '@/features/settings/types';
 import type { Todo, TodoPriority } from '@/features/todos/types';
 import { useTheme } from '@/hooks/use-theme';
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 16,
     borderWidth: 1,
+    fontFamily: Fonts.sans,
     fontSize: 16,
     minHeight: 48,
     paddingHorizontal: Spacing.three,
