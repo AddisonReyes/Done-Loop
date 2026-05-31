@@ -44,6 +44,13 @@ export const translations = {
       cancel: 'Cancel',
       edit: 'Edit',
       delete: 'Delete',
+      detail: {
+        interval: 'Interval',
+        recurrence: 'Recurrence',
+        reminder: 'Reminder',
+        reminderTime: 'Time',
+        status: 'Status',
+      },
       filters: {
         all: 'All',
         pendingToday: 'Pending',
@@ -101,6 +108,15 @@ export const translations = {
         complete: 'Complete',
         edit: 'Edit',
         delete: 'Delete',
+      },
+      detail: {
+        date: 'Date',
+        priority: 'Priority',
+        status: 'Status',
+      },
+      status: {
+        completed: 'Completed',
+        pending: 'Pending',
       },
       editLabel: 'Edit task',
       calendarNoDate: 'No date',
@@ -210,6 +226,13 @@ export const translations = {
       cancel: 'Cancelar',
       edit: 'Editar',
       delete: 'Eliminar',
+      detail: {
+        interval: 'Intervalo',
+        recurrence: 'Recurrencia',
+        reminder: 'Recordatorio',
+        reminderTime: 'Hora',
+        status: 'Estado',
+      },
       filters: {
         all: 'Todos',
         pendingToday: 'Pendientes',
@@ -267,6 +290,15 @@ export const translations = {
         complete: 'Completar',
         edit: 'Editar',
         delete: 'Eliminar',
+      },
+      detail: {
+        date: 'Fecha',
+        priority: 'Prioridad',
+        status: 'Estado',
+      },
+      status: {
+        completed: 'Completada',
+        pending: 'Pendiente',
       },
       editLabel: 'Editar tarea',
       calendarNoDate: 'Sin fecha',

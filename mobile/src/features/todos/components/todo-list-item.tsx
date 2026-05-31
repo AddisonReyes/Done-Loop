@@ -1,3 +1,5 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -32,6 +34,7 @@ export function TodoListItem({
   const theme = useTheme();
   const { t } = useTranslation();
   const completed = todo.status === 'completed';
+  const statusLabel = completed ? t('todos.status.completed') : t('todos.status.pending');
 
   return (
     <View
@@ -43,43 +46,80 @@ export function TodoListItem({
         },
       ]}>
       <View style={styles.header}>
-        <ThemedText type="smallBold" style={completed && styles.completedText}>
+        <ThemedText type="smallBold" style={[styles.title, completed && styles.completedText]}>
           {todo.title}
         </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t(priorityLabelKeys[todo.priority])} • {dateLabel}
-        </ThemedText>
+
+        <View style={styles.actions}>
+          <IconAction
+            iconName={completed ? 'refresh' : 'check-circle-outline'}
+            label={completed ? t('todos.actions.reopen') : t('todos.actions.complete')}
+            onPress={completed ? onReopen : onComplete}
+          />
+          {onStartEdit ? (
+            <IconAction iconName="pencil-outline" label={t('todos.actions.edit')} muted onPress={onStartEdit} />
+          ) : null}
+          <IconAction iconName="trash-can-outline" label={t('todos.actions.delete')} muted onPress={onDelete} />
+        </View>
       </View>
 
-      <View style={styles.actions}>
-        <Action
-          label={completed ? t('todos.actions.reopen') : t('todos.actions.complete')}
-          onPress={completed ? onReopen : onComplete}
-        />
-        {onStartEdit ? <Action label={t('todos.actions.edit')} muted onPress={onStartEdit} /> : null}
-        <Action label={t('todos.actions.delete')} muted onPress={onDelete} />
+      {todo.description ? <ThemedText type="small">{todo.description}</ThemedText> : null}
+
+      <View style={styles.details}>
+        <DetailRow label={t('todos.detail.priority')} value={t(priorityLabelKeys[todo.priority])} />
+        <DetailRow label={t('todos.detail.date')} value={dateLabel} />
+        <DetailRow label={t('todos.detail.status')} value={statusLabel} />
       </View>
     </View>
   );
 }
 
-function Action({ label, muted, onPress }: { label: string; muted?: boolean; onPress: () => void }) {
+type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+function IconAction({
+  iconName,
+  label,
+  muted,
+  onPress,
+}: {
+  iconName: IconName;
+  label: string;
+  muted?: boolean;
+  onPress: () => void;
+}) {
   const theme = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       onPress={onPress}
-      style={[
-        styles.action,
+      style={({ pressed }) => [
+        styles.iconButton,
         {
           backgroundColor: muted ? theme.backgroundSelected : theme.accentSoft,
           borderColor: muted ? theme.border : theme.borderStrong,
         },
+        pressed && styles.pressed,
       ]}>
-      <ThemedText type="smallBold" themeColor={muted ? 'textSecondary' : 'accentStrong'}>
+      <MaterialCommunityIcons
+        name={iconName}
+        size={20}
+        color={muted ? theme.textSecondary : theme.accentStrong}
+      />
+    </Pressable>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.detailRow}>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.detailLabel}>
         {label}
       </ThemedText>
-    </Pressable>
+      <ThemedText type="smallBold" style={styles.detailValue}>
+        {value}
+      </ThemedText>
+    </View>
   );
 }
 
@@ -91,21 +131,46 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   header: {
-    gap: Spacing.one,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    justifyContent: 'space-between',
+  },
+  title: {
+    flex: 1,
   },
   completedText: {
     textDecorationLine: 'line-through',
   },
   actions: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Spacing.two,
   },
-  action: {
-    minHeight: 40,
+  iconButton: {
+    alignItems: 'center',
     borderWidth: 1,
     borderRadius: 14,
+    height: 40,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.three,
+    width: 40,
+  },
+  details: {
+    gap: Spacing.one,
+  },
+  detailRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    justifyContent: 'space-between',
+  },
+  detailLabel: {
+    flex: 1,
+  },
+  detailValue: {
+    flex: 1.4,
+    textAlign: 'right',
+  },
+  pressed: {
+    opacity: 0.72,
   },
 });
