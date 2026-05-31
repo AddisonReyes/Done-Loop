@@ -4,6 +4,7 @@ import { NotificationService } from '@/features/notifications/services/notificat
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
 import type {
   UserDateFormatPreference,
+  UserAccentColorPreference,
   UserLanguagePreference,
   UserSettings,
   UserThemePreference,
@@ -12,7 +13,7 @@ import { useThemePreference } from '@/hooks/use-theme-preference';
 import { useTranslation } from '@/i18n';
 
 export function useSettings() {
-  const { preference, setThemePreference } = useThemePreference();
+  const { accentColor, preference, setAccentColorPreference, setThemePreference } = useThemePreference();
   const { language, setLanguage } = useTranslation();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +44,10 @@ export function useSettings() {
     await setThemePreference(theme);
   }, [setThemePreference]);
 
+  const setAccentColor = useCallback(async (nextAccentColor: UserAccentColorPreference) => {
+    await setAccentColorPreference(nextAccentColor);
+  }, [setAccentColorPreference]);
+
   const setLanguagePreference = useCallback(async (nextLanguage: UserLanguagePreference) => {
     await setLanguage(nextLanguage);
   }, [setLanguage]);
@@ -53,7 +58,8 @@ export function useSettings() {
 
   return {
     isLoading,
-    settings: settings ? { ...settings, theme: preference, language } : settings,
+    settings: settings ? { ...settings, accentColor, theme: preference, language } : settings,
+    setAccentColor,
     setDateFormat,
     setLanguage: setLanguagePreference,
     setNotificationsEnabled,

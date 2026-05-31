@@ -134,10 +134,21 @@ export const translations = {
       preferences: 'Preferences',
       notifications: 'Notifications',
       notificationDetail: 'Local reminders for habits and tasks',
+      customization: 'Customization',
       theme: {
+        section: 'Theme',
         system: 'System',
         light: 'Light',
         dark: 'Dark',
+      },
+      accentColor: {
+        section: 'App color',
+        purple: 'Purple',
+        blue: 'Blue',
+        green: 'Green',
+        red: 'Red',
+        yellow: 'Yellow',
+        pink: 'Pink',
       },
       language: {
         section: 'Language',
@@ -316,10 +327,21 @@ export const translations = {
       preferences: 'Preferencias',
       notifications: 'Notificaciones',
       notificationDetail: 'Recordatorios locales para hábitos y tareas',
+      customization: 'Personalización',
       theme: {
+        section: 'Tema',
         system: 'Sistema',
         light: 'Claro',
         dark: 'Oscuro',
+      },
+      accentColor: {
+        section: 'Color de la app',
+        purple: 'Morado',
+        blue: 'Azul',
+        green: 'Verde',
+        red: 'Rojo',
+        yellow: 'Amarillo',
+        pink: 'Rosado',
       },
       language: {
         section: 'Idioma',

@@ -12,17 +12,19 @@ import { Animated, useColorScheme as useSystemColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
-import type { UserThemePreference } from '@/features/settings/types';
+import type { UserAccentColorPreference, UserThemePreference } from '@/features/settings/types';
 
 type ResolvedTheme = 'light' | 'dark';
 
 type ThemePreferenceContextValue = {
   preference: UserThemePreference;
+  accentColor: UserAccentColorPreference;
   resolvedTheme: ResolvedTheme;
   isLoadingTheme: boolean;
   transitionOpacity: Animated.Value;
   transitionColor: string;
   setThemePreference: (preference: UserThemePreference) => Promise<void>;
+  setAccentColorPreference: (accentColor: UserAccentColorPreference) => Promise<void>;
 };
 
 const ThemePreferenceContext = createContext<ThemePreferenceContextValue | null>(null);
@@ -38,6 +40,7 @@ function resolveTheme(preference: UserThemePreference, systemTheme: string | nul
 export function ThemePreferenceProvider({ children }: PropsWithChildren) {
   const systemTheme = useSystemColorScheme();
   const [preference, setPreference] = useState<UserThemePreference>('system');
+  const [accentColor, setAccentColor] = useState<UserAccentColorPreference>('purple');
   const [isLoadingTheme, setIsLoadingTheme] = useState(true);
   const resolvedTheme = resolveTheme(preference, systemTheme);
   const previousResolvedTheme = useRef<ResolvedTheme>(resolvedTheme);
@@ -52,6 +55,7 @@ export function ThemePreferenceProvider({ children }: PropsWithChildren) {
 
       if (mounted) {
         setPreference(settings.theme);
+        setAccentColor(settings.accentColor);
         setIsLoadingTheme(false);
       }
     };
@@ -83,16 +87,32 @@ export function ThemePreferenceProvider({ children }: PropsWithChildren) {
     setPreference(nextSettings.theme);
   }, []);
 
+  const setAccentColorPreference = useCallback(async (nextAccentColor: UserAccentColorPreference) => {
+    const nextSettings = await SettingsRepository.update({ accentColor: nextAccentColor });
+    setAccentColor(nextSettings.accentColor);
+  }, []);
+
   const value = useMemo(
     () => ({
       preference,
+      accentColor,
       resolvedTheme,
       isLoadingTheme,
       transitionOpacity,
       transitionColor,
       setThemePreference,
+      setAccentColorPreference,
     }),
-    [isLoadingTheme, preference, resolvedTheme, setThemePreference, transitionColor, transitionOpacity]
+    [
+      accentColor,
+      isLoadingTheme,
+      preference,
+      resolvedTheme,
+      setAccentColorPreference,
+      setThemePreference,
+      transitionColor,
+      transitionOpacity,
+    ]
   );
 
   return <ThemePreferenceContext.Provider value={value}>{children}</ThemePreferenceContext.Provider>;
