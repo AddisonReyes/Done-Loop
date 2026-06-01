@@ -1,55 +1,53 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# Repository Guidelines
 
-# This is NOT the Next.js you know
+These instructions apply to the whole repository. More specific `AGENTS.md` files inside subdirectories add project-specific rules for that area.
 
-This repo uses Next.js `16.2.4` (see `package.json`). APIs, conventions, and file structure may differ from your training data.
+## Engineering Standards
 
-If you are unsure about a Next behavior, trust the checked-in config and the local docs shipped with the installed version:
+- Follow sound software engineering practices: small cohesive changes, clear boundaries, typed interfaces, and predictable behavior.
+- Write clean code that is easy to read, maintain, test, and extend.
+- Prefer simple, explicit solutions over clever abstractions.
+- Keep files, functions, components, hooks, and modules well structured and organized around their responsibility.
+- Avoid mixing unrelated concerns in the same change.
+- Preserve existing architecture and local patterns unless there is a strong reason to improve them.
 
-- `node_modules/next/dist/docs/index.md`
-<!-- END:nextjs-agent-rules -->
+## Code Quality
 
-## Commands (npm)
+- Use meaningful names for variables, functions, components, types, and files.
+- Keep functions focused; extract helpers only when they reduce real complexity or duplication.
+- Avoid dead code, unused exports, broad casts, and hidden side effects.
+- Do not weaken TypeScript or lint rules to make errors disappear.
+- Add comments only when they clarify non-obvious behavior or important intent.
+- Keep UI code accessible, responsive, and consistent with the existing design system.
 
-- Install: `npm install` (lockfile is `package-lock.json`)
-- Dev: `npm run dev`
-- Build: `npm run build`
-- Preview static build: `npm run start` (serves `out/` on port 3000)
-- Lint: `npm run lint` (runs `eslint` with flat config at `eslint.config.mjs`)
-- Typecheck (no script): `npx tsc -p tsconfig.json --noEmit`
+## Project Awareness
 
-No tests are configured in `package.json`.
+- The current product focus is the Expo React Native app in `mobile/`.
+- The `frontend/` directory contains a legacy Next.js implementation.
+- Read the nearest `AGENTS.md`, package scripts, configs, and existing code before making changes.
+- Use the repository's existing dependencies and patterns before introducing new ones.
+- Do not change app identity, native configuration, storage schemas, or migrations casually.
 
-### Typecheck gotcha
+## Data And Persistence
 
-`next-env.d.ts` imports `.next/dev/types/routes.d.ts`. On a fresh clone, `npx tsc` can fail until Next has generated `.next` types.
+- Treat stored data as user-owned. When changing persisted shapes, add safe migrations or compatibility handling.
+- Keep migrations deterministic and idempotent where possible.
+- Validate data at boundaries and avoid assuming old local data is perfectly shaped.
 
-If that happens, run `npm run dev` (or `npm run build`) once, then rerun `npx tsc -p tsconfig.json --noEmit`.
+## Validation
 
-## Repo Layout (real entrypoints)
+- Run the most relevant checks for the files changed.
+- For mobile changes, prefer:
+  - `cd mobile && npm run typecheck`
+  - `cd mobile && npm run lint`
+- For frontend changes, prefer:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npx tsc -p tsconfig.json --noEmit`
+- If a check cannot be run, document why and call out the remaining risk.
 
-- App Router entrypoints live in `app/`.
-- Main UI + state live in `app/page.tsx` (client component: it uses `localStorage`).
-- Global styles: `app/globals.css`.
-- Document shell + fonts + `metadata`: `app/layout.tsx`.
+## Git Hygiene
 
-## Theme (dark-only)
-
-- `app/layout.tsx` forces Tailwind dark mode via the `dark` class on `<html>`.
-- `app/globals.css` sets dark palette in `:root` (there is no light theme).
-
-## Styling (Tailwind v4)
-
-- Tailwind is wired via PostCSS: `postcss.config.mjs` uses `@tailwindcss/postcss`.
-- CSS uses `@import "tailwindcss";` in `app/globals.css`.
-- There is no `tailwind.config.*` in this repo; don\'t add one unless you actually need custom Tailwind config.
-
-## Persistence (local-only)
-
-App data is stored in browser `localStorage` under the `easyToDo.*` keys (see `LS` in `app/page.tsx`: `habits`, `todos`, `habitHistory`, `lastSeen`).
-
-If you change the stored shape/meaning, add a migration in `initFromStorage(...)` (or deliberately reset keys) so existing users don\'t get stuck with invalid state.
-
-## Hydration gotcha
-
-`app/page.tsx` derives initial UI from local-only inputs (`localStorage`, current date). It intentionally renders a deterministic loading shell until after mount to avoid Next/React hydration mismatches; preserve that pattern when editing.
+- Do not revert or overwrite unrelated user changes.
+- Keep diffs focused on the requested task.
+- Avoid destructive commands unless explicitly requested.
+- Before finishing, review the diff for accidental churn, generated noise, or unrelated edits.

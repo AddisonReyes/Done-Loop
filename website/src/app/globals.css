@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0b0f;
+  --foreground: #f5f3ff;
+  --surface: #17171d;
+  --surface-strong: #22222a;
+  --border: #2b2b34;
+  --border-strong: #4b3a68;
+  --accent: #a855f7;
+  --accent-strong: #c084fc;
+  --accent-rgb: 168 85 247;
+  --accent-strong-rgb: 192 132 252;
+  --border-strong-rgb: 75 58 104;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  animation: accent-cycle 96s linear infinite;
+}
+
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #a855f7;
+}
+
+@property --accent-strong {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #c084fc;
+}
+
+@property --border-strong {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4b3a68;
+}
+
+@keyframes accent-cycle {
+  0%,
+  100% {
+    --accent: #a855f7;
+    --accent-strong: #c084fc;
+    --border-strong: #4b3a68;
+    --accent-rgb: 168 85 247;
+    --accent-strong-rgb: 192 132 252;
+    --border-strong-rgb: 75 58 104;
+  }
+
+  16.66% {
+    --accent: #f87171;
+    --accent-strong: #fca5a5;
+    --border-strong: #5f2a32;
+    --accent-rgb: 248 113 113;
+    --accent-strong-rgb: 252 165 165;
+    --border-strong-rgb: 95 42 50;
+  }
+
+  33.33% {
+    --accent: #f472b6;
+    --accent-strong: #f9a8d4;
+    --border-strong: #5e2949;
+    --accent-rgb: 244 114 182;
+    --accent-strong-rgb: 249 168 212;
+    --border-strong-rgb: 94 41 73;
+  }
+
+  50% {
+    --accent: #fbbf24;
+    --accent-strong: #fcd34d;
+    --border-strong: #5c481a;
+    --accent-rgb: 251 191 36;
+    --accent-strong-rgb: 252 211 77;
+    --border-strong-rgb: 92 72 26;
+  }
+
+  66.66% {
+    --accent: #60a5fa;
+    --accent-strong: #93c5fd;
+    --border-strong: #1e3a5f;
+    --accent-rgb: 96 165 250;
+    --accent-strong-rgb: 147 197 253;
+    --border-strong-rgb: 30 58 95;
+  }
+
+  83.33% {
+    --accent: #4ade80;
+    --accent-strong: #86efac;
+    --border-strong: #1f5132;
+    --accent-rgb: 74 222 128;
+    --accent-strong-rgb: 134 239 172;
+    --border-strong-rgb: 31 81 50;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --font-sans: var(--font-fraunces);
+  --font-serif: var(--font-fraunces);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-fraunces), Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--foreground);
+}
+
+a,
+button,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ambient-background {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 30%),
+    radial-gradient(circle at 84% 6%, color-mix(in srgb, var(--accent-strong) 12%, transparent), transparent 26%),
+    radial-gradient(circle at 50% 90%, color-mix(in srgb, var(--border-strong) 14%, transparent), transparent 34%),
+    repeating-linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.045) 0,
+      rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px,
+      transparent 34px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%);
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.9) 48%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.ambient-background::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 7%, transparent), transparent),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 118px,
+      color-mix(in srgb, var(--accent) 3.5%, transparent) 119px,
+      transparent 120px
+    );
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    animation: none;
+  }
+}
