@@ -10,19 +10,15 @@ import {
   formatMonthLabel,
   getMonthDateKeys,
   startOfMonth,
-  toDateKey,
 } from '@/shared/utils/date';
 import { useTranslation } from '@/i18n';
+import { useCurrentDateKey } from '@/shared/hooks/use-current-date-key';
 import { normalizeHabitCreateDraft, normalizeHabitUpdateDraft } from '../services/habit-draft';
 import { getHabitsDueOnDate } from '../services/habit-recurrence';
 
 export type HabitFilter = 'all' | 'pendingToday' | 'completedToday';
 
 type AsyncStatus = 'idle' | 'loading' | 'error';
-
-function getTodayKey(): string {
-  return toDateKey(new Date());
-}
 
 export function useHabits() {
   const { language, locale, t } = useTranslation();
@@ -34,7 +30,7 @@ export function useHabits() {
   const [displayedMonth, setDisplayedMonth] = useState(() => startOfMonth(new Date()));
   const [monthCompletions, setMonthCompletions] = useState<HabitCompletion[]>([]);
 
-  const todayKey = useMemo(() => getTodayKey(), []);
+  const todayKey = useCurrentDateKey();
   const monthDateKeys = useMemo(() => getMonthDateKeys(displayedMonth), [displayedMonth]);
   const monthLabel = useMemo(() => formatMonthLabel(displayedMonth, locale), [displayedMonth, locale]);
 
@@ -117,84 +113,112 @@ export function useHabits() {
 
   const createHabitFromDraft = useCallback(
     async (input: CreateHabitInput) => {
-      const draft = normalizeHabitCreateDraft(input);
-      if (!draft) {
-        return;
-      }
+      try {
+        setErrorMessage(null);
+        const draft = normalizeHabitCreateDraft(input);
+        if (!draft) {
+          return false;
+        }
 
-      const createdHabit = await HabitRepository.create(draft);
-      const settings = await SettingsRepository.get();
-      const notificationId =
-        settings.notificationsEnabled && draft.remindersEnabled
-          ? await NotificationService.scheduleHabitReminderAsync({
-              habitId: createdHabit.id,
-              habitName: draft.name,
-              reminderTime: draft.reminderTime,
-              language,
-            })
-          : undefined;
+        const createdHabit = await HabitRepository.create(draft);
+        const settings = await SettingsRepository.get();
+        const notificationId =
+          settings.notificationsEnabled && draft.remindersEnabled
+            ? await NotificationService.scheduleHabitReminderAsync({
+                habitId: createdHabit.id,
+                habitName: draft.name,
+                reminderTime: draft.reminderTime,
+                language,
+              })
+            : undefined;
 
-      if (notificationId) {
-        await HabitRepository.update(createdHabit.id, { notificationId });
+        if (notificationId) {
+          await HabitRepository.update(createdHabit.id, { notificationId });
+        }
+        await loadHabits();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
+        return false;
       }
-      await loadHabits();
     },
-    [language, loadHabits]
+    [language, loadHabits, t]
   );
 
   const updateHabitFromDraft = useCallback(
     async (habitId: string, input: UpdateHabitInput) => {
-      const draft = normalizeHabitUpdateDraft(input);
-      if (!draft) {
-        return;
+      try {
+        setErrorMessage(null);
+        const draft = normalizeHabitUpdateDraft(input);
+        if (!draft) {
+          return false;
+        }
+
+        const existing = habits.find((habit) => habit.id === habitId) ?? (await HabitRepository.findById(habitId));
+        const nextReminderTime = 'reminderTime' in input ? draft.reminderTime : existing?.reminderTime;
+        const nextName = draft.name ?? existing?.name ?? '';
+        const nextRemindersEnabled =
+          'remindersEnabled' in input ? draft.remindersEnabled ?? false : existing?.remindersEnabled ?? false;
+        const settings = await SettingsRepository.get();
+
+        await NotificationService.cancelAsync(existing?.notificationId);
+        const notificationId =
+          settings.notificationsEnabled && nextRemindersEnabled
+            ? await NotificationService.scheduleHabitReminderAsync({
+                habitId,
+                habitName: nextName,
+                reminderTime: nextReminderTime,
+                language,
+              })
+            : undefined;
+
+        await HabitRepository.update(habitId, { ...draft, notificationId });
+        await loadHabits();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
+        return false;
       }
-
-      const existing = habits.find((habit) => habit.id === habitId) ?? (await HabitRepository.findById(habitId));
-      const nextReminderTime = 'reminderTime' in input ? draft.reminderTime : existing?.reminderTime;
-      const nextName = draft.name ?? existing?.name ?? '';
-      const nextRemindersEnabled =
-        'remindersEnabled' in input ? draft.remindersEnabled ?? false : existing?.remindersEnabled ?? false;
-      const settings = await SettingsRepository.get();
-
-      await NotificationService.cancelAsync(existing?.notificationId);
-      const notificationId =
-        settings.notificationsEnabled && nextRemindersEnabled
-          ? await NotificationService.scheduleHabitReminderAsync({
-              habitId,
-              habitName: nextName,
-              reminderTime: nextReminderTime,
-              language,
-            })
-          : undefined;
-
-      await HabitRepository.update(habitId, { ...draft, notificationId });
-      await loadHabits();
     },
-    [habits, language, loadHabits]
+    [habits, language, loadHabits, t]
   );
 
   const deleteHabit = useCallback(
     async (habitId: string) => {
-      await HabitCompletionRepository.deleteByHabitId(habitId);
-      await NotificationService.cancelAsync(habits.find((habit) => habit.id === habitId)?.notificationId);
-      await HabitRepository.deleteById(habitId);
-      await loadHabits();
-      await loadMonthHistory();
+      try {
+        setErrorMessage(null);
+        await HabitCompletionRepository.deleteByHabitId(habitId);
+        await NotificationService.cancelAsync(habits.find((habit) => habit.id === habitId)?.notificationId);
+        await HabitRepository.deleteById(habitId);
+        await loadHabits();
+        await loadMonthHistory();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
+        return false;
+      }
     },
-    [habits, loadHabits, loadMonthHistory]
+    [habits, loadHabits, loadMonthHistory, t]
   );
 
   const toggleTodayCompletion = useCallback(
     async (habitId: string) => {
-      const isCompleted = completedHabitIds.has(habitId);
-      await HabitCompletionRepository.upsert({
-        habitId,
-        date: todayKey,
-        completed: !isCompleted,
-      });
-      await Promise.all([loadHabits(), loadMonthHistory()]);
+      try {
+        setErrorMessage(null);
+        const isCompleted = completedHabitIds.has(habitId);
+        await HabitCompletionRepository.upsert({
+          habitId,
+          date: todayKey,
+          completed: !isCompleted,
+        });
+        await Promise.all([loadHabits(), loadMonthHistory()]);
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
+        return false;
+      }
     },
-    [completedHabitIds, loadHabits, loadMonthHistory, todayKey]
+    [completedHabitIds, loadHabits, loadMonthHistory, t, todayKey]
   );
 
   const monthHistoryDays = useMemo(() => {
@@ -250,6 +274,7 @@ export function useHabits() {
     filter,
     habits,
     isLoading: status === 'loading',
+    monthDateKeys,
     monthHistoryDays,
     monthLabel,
     pendingCount: habitsDueToday.length - completedHabitIds.size,

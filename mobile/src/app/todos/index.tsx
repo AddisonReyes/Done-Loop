@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
-import type { UserDateFormatPreference } from '@/features/settings/types';
 import { TodoEditorModal } from '@/features/todos/components/todo-editor-modal';
 import { TodoListItem } from '@/features/todos/components/todo-list-item';
 import { useTodos } from '@/features/todos/hooks/use-todos';
@@ -16,6 +14,7 @@ import { EmptyState } from '@/shared/components/empty-state';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
 import { SectionCard } from '@/shared/components/section-card';
 import { SegmentedControl } from '@/shared/components/segmented-control';
+import { formatDateKey, isDateKey } from '@/shared/utils/date';
 
 const sorts: { value: TodoSort; labelKey: string }[] = [
   { value: 'priority', labelKey: 'todos.sorts.priority' },
@@ -29,18 +28,10 @@ const modes: { value: TodoViewMode; labelKey: string }[] = [
 ];
 
 export default function TodosScreen() {
-  const { t } = useTranslation();
-  const [dateFormat, setDateFormat] = useState<UserDateFormatPreference>('iso');
+  const { locale, t } = useTranslation();
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const todos = useTodos();
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      SettingsRepository.get().then((settings) => setDateFormat(settings.dateFormat));
-    }, 0);
-    return () => clearTimeout(timeout);
-  }, []);
 
   return (
     <View style={styles.screen}>
@@ -75,7 +66,7 @@ export default function TodosScreen() {
             {todos.calendarGroups.map(([dateKey, groupedTodos]) => (
               <View key={dateKey} style={styles.calendarGroup}>
                 <ThemedText type="smallBold" themeColor="accent">
-                  {dateKey}
+                  {isDateKey(dateKey) ? formatDateKey(dateKey, locale, todos.dateFormat) : dateKey}
                 </ThemedText>
                 {groupedTodos.map((todo) => (
                   <TodoListItem
@@ -116,24 +107,24 @@ export default function TodosScreen() {
         ) : null}
       </ScreenScaffold>
       <TodoEditorModal
-        dateFormat={dateFormat}
+        dateFormat={todos.dateFormat}
         visible={isCreateModalVisible}
         onClose={() => setIsCreateModalVisible(false)}
-        onSubmit={(draft) => {
-          void todos.createTodoFromDraft(draft);
-          setIsCreateModalVisible(false);
+        onSubmit={async (draft) => {
+          if (await todos.createTodoFromDraft(draft)) {
+            setIsCreateModalVisible(false);
+          }
         }}
       />
       <TodoEditorModal
-        dateFormat={dateFormat}
+        dateFormat={todos.dateFormat}
         todo={editingTodo}
         visible={!!editingTodo}
         onClose={() => setEditingTodo(null)}
-        onSubmit={(draft) => {
-          if (editingTodo) {
-            void todos.updateTodoFromDraft(editingTodo, draft);
+        onSubmit={async (draft) => {
+          if (editingTodo && (await todos.updateTodoFromDraft(editingTodo, draft))) {
+            setEditingTodo(null);
           }
-          setEditingTodo(null);
         }}
       />
       <FloatingCreateButton onPress={() => setIsCreateModalVisible(true)} />

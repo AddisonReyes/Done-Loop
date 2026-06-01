@@ -10,6 +10,7 @@ export const translations = {
       none: 'None',
       clear: 'Clear',
       close: 'Close',
+      create: 'Create',
     },
     tabs: {
       habits: 'Habits',
@@ -26,6 +27,7 @@ export const translations = {
       empty: 'You do not have active habits yet. Create the first one to start today’s loop.',
       emptyFilter: 'No habits in this filter.',
       loadError: 'Could not load habits.',
+      saveError: 'Could not save habit changes.',
       formLabel: 'Habit name',
       formPlaceholder: 'New habit',
       descriptionLabel: 'Description',
@@ -76,6 +78,7 @@ export const translations = {
       loading: 'Loading tasks...',
       empty: 'No tasks yet.',
       loadError: 'Could not load tasks.',
+      saveError: 'Could not save task changes.',
       sorts: {
         priority: 'Priority',
         dueAt: 'Date',
@@ -197,6 +200,7 @@ export const translations = {
       none: 'Ninguna',
       clear: 'Limpiar',
       close: 'Cerrar',
+      create: 'Crear',
     },
     tabs: {
       habits: 'Hábitos',
@@ -213,6 +217,7 @@ export const translations = {
       empty: 'Aún no tienes hábitos activos. Crea el primero para empezar el loop de hoy.',
       emptyFilter: 'No hay hábitos en este filtro.',
       loadError: 'No se pudieron cargar los hábitos.',
+      saveError: 'No se pudieron guardar los cambios del hábito.',
       formLabel: 'Nombre del hábito',
       formPlaceholder: 'Nuevo hábito',
       descriptionLabel: 'Descripción',
@@ -263,6 +268,7 @@ export const translations = {
       loading: 'Cargando tareas...',
       empty: 'Aún no hay tareas.',
       loadError: 'No se pudieron cargar las tareas.',
+      saveError: 'No se pudieron guardar los cambios de la tarea.',
       sorts: {
         priority: 'Prioridad',
         dueAt: 'Fecha',

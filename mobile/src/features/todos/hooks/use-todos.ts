@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { NotificationService } from '@/features/notifications/services/notification-service';
+import { useDateFormatPreference } from '@/features/settings/hooks/use-date-format-preference';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
-import type { UserDateFormatPreference } from '@/features/settings/types';
 import { TodoRepository } from '@/features/todos/repositories';
 import type { CreateTodoInput, Todo, UpdateTodoInput } from '@/features/todos/types';
 import { useTranslation } from '@/i18n';
-import { formatDateKey, isBeforeDateKey, isDateKey, toDateKey } from '@/shared/utils/date';
+import { useCurrentDateKey } from '@/shared/hooks/use-current-date-key';
+import { formatDateKey, isBeforeDateKey, isDateKey } from '@/shared/utils/date';
 import { normalizeTodoCreateDraft, normalizeTodoUpdateDraft } from '../services/todo-draft';
 
 type TodoSort = 'priority' | 'dueAt' | 'createdAt';
@@ -19,9 +20,8 @@ export function useTodos() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sort, setSort] = useState<TodoSort>('priority');
   const [viewMode, setViewMode] = useState<TodoViewMode>('list');
-  const [dateFormat, setDateFormat] = useState<UserDateFormatPreference>('iso');
-
-  const todayKey = useMemo(() => toDateKey(new Date()), []);
+  const dateFormat = useDateFormatPreference();
+  const todayKey = useCurrentDateKey();
 
   const loadTodos = useCallback(async () => {
     try {
@@ -45,93 +45,132 @@ export function useTodos() {
     };
   }, [loadTodos]);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      SettingsRepository.get().then((settings) => setDateFormat(settings.dateFormat));
-    }, 0);
-    return () => clearTimeout(timeout);
-  }, []);
-
   const createTodoFromDraft = useCallback(
     async (input: Omit<CreateTodoInput, 'notificationId'>) => {
-      const draft = normalizeTodoCreateDraft(input);
-      if (!draft) {
-        return;
+      try {
+        setErrorMessage(null);
+        const draft = normalizeTodoCreateDraft(input);
+        if (!draft) {
+          return false;
+        }
+
+        const settings = await SettingsRepository.get();
+        const notificationId = settings.notificationsEnabled
+          ? await NotificationService.scheduleTodoReminderAsync({
+              title: draft.title,
+              dueAt: draft.dueAt,
+              language,
+            })
+          : undefined;
+
+        await TodoRepository.create({
+          ...draft,
+          notificationId,
+        });
+        await loadTodos();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
+        return false;
       }
-
-      const settings = await SettingsRepository.get();
-      const notificationId = settings.notificationsEnabled
-        ? await NotificationService.scheduleTodoReminderAsync({
-            title: draft.title,
-            dueAt: draft.dueAt,
-            language,
-          })
-        : undefined;
-
-      await TodoRepository.create({
-        ...draft,
-        notificationId,
-      });
-      await loadTodos();
     },
-    [language, loadTodos]
+    [language, loadTodos, t]
   );
 
   const updateTodoFromDraft = useCallback(
     async (todo: Todo, input: UpdateTodoInput) => {
-      const draft = normalizeTodoUpdateDraft(input);
-      if (!draft) {
-        return;
+      try {
+        setErrorMessage(null);
+        const draft = normalizeTodoUpdateDraft(input);
+        if (!draft) {
+          return false;
+        }
+
+        await NotificationService.cancelAsync(todo.notificationId);
+        const settings = await SettingsRepository.get();
+        const nextTitle = draft.title ?? todo.title;
+        const nextDueAt = 'dueAt' in input ? draft.dueAt : todo.dueAt;
+        const notificationId = settings.notificationsEnabled && todo.status === 'pending'
+          ? await NotificationService.scheduleTodoReminderAsync({
+              title: nextTitle,
+              dueAt: nextDueAt,
+              language,
+            })
+          : undefined;
+
+        await TodoRepository.update(todo.id, { ...draft, notificationId });
+        await loadTodos();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
+        return false;
       }
-
-      await NotificationService.cancelAsync(todo.notificationId);
-      const settings = await SettingsRepository.get();
-      const nextTitle = draft.title ?? todo.title;
-      const nextDueAt = 'dueAt' in input ? draft.dueAt : todo.dueAt;
-      const notificationId = settings.notificationsEnabled
-        ? await NotificationService.scheduleTodoReminderAsync({
-            title: nextTitle,
-            dueAt: nextDueAt,
-            language,
-          })
-        : undefined;
-
-      await TodoRepository.update(todo.id, { ...draft, notificationId });
-      await loadTodos();
     },
-    [language, loadTodos]
+    [language, loadTodos, t]
   );
 
   const completeTodo = useCallback(
     async (todo: Todo) => {
-      await TodoRepository.update(todo.id, {
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-      });
-      await NotificationService.cancelAsync(todo.notificationId);
-      await loadTodos();
+      try {
+        setErrorMessage(null);
+        await NotificationService.cancelAsync(todo.notificationId);
+        await TodoRepository.update(todo.id, {
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+          notificationId: undefined,
+        });
+        await loadTodos();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
+        return false;
+      }
     },
-    [loadTodos]
+    [loadTodos, t]
   );
 
   const reopenTodo = useCallback(
     async (todo: Todo) => {
-      await TodoRepository.update(todo.id, {
-        status: 'pending',
-        completedAt: undefined,
-      });
-      await loadTodos();
+      try {
+        setErrorMessage(null);
+        const settings = await SettingsRepository.get();
+        const notificationId = settings.notificationsEnabled
+          ? await NotificationService.scheduleTodoReminderAsync({
+              title: todo.title,
+              dueAt: todo.dueAt,
+              language,
+            })
+          : undefined;
+
+        await TodoRepository.update(todo.id, {
+          status: 'pending',
+          completedAt: undefined,
+          notificationId,
+        });
+        await loadTodos();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
+        return false;
+      }
     },
-    [loadTodos]
+    [language, loadTodos, t]
   );
 
   const deleteTodo = useCallback(
     async (todo: Todo) => {
-      await NotificationService.cancelAsync(todo.notificationId);
-      await TodoRepository.deleteById(todo.id);
-      await loadTodos();
+      try {
+        setErrorMessage(null);
+        await NotificationService.cancelAsync(todo.notificationId);
+        await TodoRepository.deleteById(todo.id);
+        await loadTodos();
+        return true;
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
+        return false;
+      }
     },
-    [loadTodos]
+    [loadTodos, t]
   );
 
   const sortedTodos = useMemo(() => {

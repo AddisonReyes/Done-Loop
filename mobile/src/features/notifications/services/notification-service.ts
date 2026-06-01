@@ -1,9 +1,12 @@
-import * as Notifications from 'expo-notifications';
+import Constants, { AppOwnership } from 'expo-constants';
 
 import type { UserLanguagePreference } from '@/features/settings/types';
 import { translations } from '@/i18n/translations';
 import { dateKeyToLocalDate } from '@/shared/utils/date';
 import { parseReminderTime } from './reminder-time';
+
+type NotificationsModule = typeof import('expo-notifications');
+type NotificationsModuleLoader = () => Promise<NotificationsModule | null>;
 
 type ScheduleHabitReminderInput = {
   habitId: string;
@@ -18,17 +21,55 @@ type ScheduleTodoReminderInput = {
   language?: UserLanguagePreference;
 };
 
+let notificationsModuleLoader: NotificationsModuleLoader = () => import('expo-notifications');
+let notificationsModulePromise: Promise<NotificationsModule | null> | null = null;
+
+async function getNotificationsModuleAsync(): Promise<NotificationsModule | null> {
+  if (Constants.appOwnership === AppOwnership.Expo) {
+    return null;
+  }
+
+  if (!notificationsModulePromise) {
+    notificationsModulePromise = notificationsModuleLoader().catch(() => null);
+  }
+
+  return notificationsModulePromise;
+}
+
 async function ensurePermissionsAsync(): Promise<boolean> {
-  const existing = await Notifications.getPermissionsAsync();
+  const notifications = await getNotificationsModuleAsync();
+  if (!notifications) {
+    return false;
+  }
+
+  const existing = await notifications.getPermissionsAsync();
   if (existing.granted) {
     return true;
   }
 
-  const requested = await Notifications.requestPermissionsAsync();
+  const requested = await notifications.requestPermissionsAsync();
   return requested.granted;
 }
 
 export const NotificationService = {
+  async configureForegroundHandlingAsync(): Promise<boolean> {
+    const notifications = await getNotificationsModuleAsync();
+    if (!notifications) {
+      return false;
+    }
+
+    notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+
+    return true;
+  },
+
   async requestPermissionsAsync(): Promise<boolean> {
     return ensurePermissionsAsync();
   },
@@ -38,18 +79,23 @@ export const NotificationService = {
     language = 'en',
     reminderTime,
   }: ScheduleHabitReminderInput): Promise<string | undefined> {
+    const notifications = await getNotificationsModuleAsync();
+    if (!notifications) {
+      return undefined;
+    }
+
     const time = parseReminderTime(reminderTime);
     if (!time || !(await ensurePermissionsAsync())) {
       return undefined;
     }
 
-    return Notifications.scheduleNotificationAsync({
+    return notifications.scheduleNotificationAsync({
       content: {
         title: 'Done Loop',
         body: translations[language].notifications.habitBody.replace('{{habitName}}', habitName),
       },
       trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        type: notifications.SchedulableTriggerInputTypes.DAILY,
         hour: time.hour,
         minute: time.minute,
       },
@@ -61,7 +107,8 @@ export const NotificationService = {
     dueAt,
     language = 'en',
   }: ScheduleTodoReminderInput): Promise<string | undefined> {
-    if (!dueAt || !(await ensurePermissionsAsync())) {
+    const notifications = await getNotificationsModuleAsync();
+    if (!notifications || !dueAt || !(await ensurePermissionsAsync())) {
       return undefined;
     }
 
@@ -76,27 +123,43 @@ export const NotificationService = {
       return undefined;
     }
 
-    return Notifications.scheduleNotificationAsync({
+    return notifications.scheduleNotificationAsync({
       content: {
         title: translations[language].notifications.todoTitle,
         body: title,
       },
       trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        type: notifications.SchedulableTriggerInputTypes.DATE,
         date: dueDate,
       },
     });
   },
 
   async cancelAsync(notificationId?: string): Promise<void> {
-    if (!notificationId) {
+    const notifications = await getNotificationsModuleAsync();
+    if (!notifications || !notificationId) {
       return;
     }
 
-    await Notifications.cancelScheduledNotificationAsync(notificationId);
+    await notifications.cancelScheduledNotificationAsync(notificationId);
   },
 
   async cancelAllAsync(): Promise<void> {
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    const notifications = await getNotificationsModuleAsync();
+    if (!notifications) {
+      return;
+    }
+
+    await notifications.cancelAllScheduledNotificationsAsync();
   },
 };
+
+export function setNotificationModuleLoaderForTests(loader: NotificationsModuleLoader): void {
+  notificationsModuleLoader = loader;
+  notificationsModulePromise = null;
+}
+
+export function resetNotificationModuleLoaderForTests(): void {
+  notificationsModuleLoader = () => import('expo-notifications');
+  notificationsModulePromise = null;
+}

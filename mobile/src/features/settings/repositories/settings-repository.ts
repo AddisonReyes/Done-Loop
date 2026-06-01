@@ -18,6 +18,7 @@ import type {
 const PrivacyPolicyUrl = 'https://done-loop.pages.dev/privacy';
 const TermsUrl = 'https://done-loop.pages.dev/terms';
 const FreePlan = 'free';
+const settingsListeners = new Set<(settings: UserSettings) => void>();
 
 type UserSettingsRow = {
   notifications_enabled: number;
@@ -52,6 +53,13 @@ function mapUserSettingsRow(row: UserSettingsRow): UserSettings {
 }
 
 export const SettingsRepository = {
+  subscribe(listener: (settings: UserSettings) => void): () => void {
+    settingsListeners.add(listener);
+    return () => {
+      settingsListeners.delete(listener);
+    };
+  },
+
   async get(): Promise<UserSettings> {
     const database = await getDatabaseAsync();
     const row = await database.getFirstAsync<UserSettingsRow>(
@@ -116,6 +124,8 @@ export const SettingsRepository = {
       now,
       now
     );
+
+    settingsListeners.forEach((listener) => listener(next));
 
     return next;
   },

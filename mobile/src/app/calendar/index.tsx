@@ -8,11 +8,16 @@ import { useTodos } from '@/features/todos/hooks/use-todos';
 import { Spacing } from '@/constants/theme';
 import { useTranslation } from '@/i18n';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
+import { formatDateKey, isDateKey } from '@/shared/utils/date';
 
 export default function CalendarScreen() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const habits = useHabits();
   const todos = useTodos();
+  const monthDateKeys = new Set(habits.monthDateKeys);
+  const monthlyTodoGroups = todos.calendarGroups.filter(([dateKey]) => {
+    return isDateKey(dateKey) && monthDateKeys.has(dateKey);
+  });
 
   return (
     <ScreenScaffold title={t('calendar.title')}>
@@ -32,15 +37,15 @@ export default function CalendarScreen() {
         <ThemedText type="smallBold" themeColor="accentStrong">
           {t('calendar.tasks')}
         </ThemedText>
-        {todos.calendarGroups.length === 0 ? (
+        {monthlyTodoGroups.length === 0 ? (
           <ThemedText type="small" themeColor="textSecondary">
             {t('calendar.noTasks')}
           </ThemedText>
         ) : (
-          todos.calendarGroups.map(([dateKey, groupedTodos]) => (
+          monthlyTodoGroups.map(([dateKey, groupedTodos]) => (
             <View key={dateKey} style={styles.group}>
               <ThemedText type="smallBold" themeColor="accent">
-                {dateKey}
+                {formatDateKey(dateKey, locale, todos.dateFormat)}
               </ThemedText>
               {groupedTodos.map((todo) => (
                 <TodoListItem

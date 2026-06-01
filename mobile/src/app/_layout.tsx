@@ -1,8 +1,10 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { NotificationService } from '@/features/notifications/services/notification-service';
 import AppTabs from '@/components/app-tabs';
 import { ThemePreferenceProvider, useThemePreference } from '@/hooks/use-theme-preference';
 import { I18nProvider } from '@/i18n';
@@ -27,6 +29,10 @@ function ThemedNavigation() {
     'Fraunces-Medium': require('@/assets/fonts/Fraunces-Medium.ttf'),
     'Fraunces-SemiBold': require('@/assets/fonts/Fraunces-SemiBold.ttf'),
   });
+
+  useEffect(() => {
+    void NotificationService.configureForegroundHandlingAsync();
+  }, []);
 
   return (
     <ThemeProvider value={resolvedTheme === 'dark' ? DarkTheme : DefaultTheme}>

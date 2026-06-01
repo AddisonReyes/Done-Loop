@@ -128,20 +128,20 @@ export default function HabitsScreen() {
       <HabitEditorModal
         visible={isCreateModalVisible}
         onClose={() => setIsCreateModalVisible(false)}
-        onSubmit={(draft) => {
-          void createHabitFromDraft(draft);
-          setIsCreateModalVisible(false);
+        onSubmit={async (draft) => {
+          if (await createHabitFromDraft(draft)) {
+            setIsCreateModalVisible(false);
+          }
         }}
       />
       <HabitEditorModal
         habit={editingHabit}
         visible={!!editingHabit}
         onClose={() => setEditingHabit(null)}
-        onSubmit={(draft) => {
-          if (editingHabit) {
-            void updateHabitFromDraft(editingHabit.id, draft);
+        onSubmit={async (draft) => {
+          if (editingHabit && (await updateHabitFromDraft(editingHabit.id, draft))) {
+            setEditingHabit(null);
           }
-          setEditingHabit(null);
         }}
       />
       <FloatingCreateButton onPress={() => setIsCreateModalVisible(true)} />

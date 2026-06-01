@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { NotificationService } from '@/features/notifications/services/notification-service';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
+import { setNotificationsEnabledPreferenceAsync } from '@/features/settings/services/notification-settings';
 import type {
   UserDateFormatPreference,
   UserAccentColorPreference,
@@ -34,13 +34,9 @@ export function useSettings() {
 
   const setNotificationsEnabled = useCallback(
     async (enabled: boolean) => {
-      const granted = enabled ? await NotificationService.requestPermissionsAsync() : false;
-      if (!enabled) {
-        await NotificationService.cancelAllAsync();
-      }
-      setSettings(await SettingsRepository.update({ notificationsEnabled: enabled && granted }));
+      setSettings(await setNotificationsEnabledPreferenceAsync(enabled, language));
     },
-    []
+    [language]
   );
 
   const setTheme = useCallback(async (theme: UserThemePreference) => {
