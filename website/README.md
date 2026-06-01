@@ -24,4 +24,4 @@ npm run build
 
 - The page is marketing-only and does not include auth, analytics, forms, or app data.
 - English is the default copy, with Spanish selectable in the page header.
-- The Google Play CTA intentionally uses a placeholder hash link until the store listing exists.
+- The Google Play CTA uses an internal `#google-play` section until an external store URL is configured.

@@ -4,7 +4,7 @@ const content = {
   en: {
     title: "Privacy Policy",
     intro:
-      "Done Loop is designed as a local-first productivity app. This page explains the current privacy approach for the marketing website and the app experience.",
+      "Done Loop is a free, local-first productivity app for habits and tasks. This page explains the privacy approach for the website and app.",
     sections: [
       {
         title: "Website data",
@@ -12,11 +12,19 @@ const content = {
       },
       {
         title: "App data",
-        body: "Done Loop stores habits, tasks, settings, and related productivity data locally on your device. The app is not designed to send that personal data to this website.",
+        body: "Done Loop stores habits, tasks, reminders, settings, and related productivity data locally on your device. The app does not provide accounts, cloud sync, analytics, advertising, memberships, subscriptions, or payment features.",
+      },
+      {
+        title: "Notifications",
+        body: "If you enable reminders, Done Loop uses your device notification permission to schedule local habit and task reminders. Reminder content is generated on your device.",
+      },
+      {
+        title: "Retention and deletion",
+        body: "App data remains on your device until you edit it, delete it, or remove the app and its local data from your device.",
       },
       {
         title: "Google Play",
-        body: "When the Android app is available through Google Play, downloads and store interactions may be handled under Google Play policies and Google account settings.",
+        body: "Done Loop is distributed through Google Play, where downloads and store interactions may be handled under Google Play policies and Google account settings.",
       },
       {
         title: "Contact",
@@ -27,7 +35,7 @@ const content = {
   es: {
     title: "Política de Privacidad",
     intro:
-      "Done Loop está diseñada como una app de productividad local. Esta página explica el enfoque actual de privacidad para el sitio web de marketing y la experiencia de la app.",
+      "Done Loop es una app gratuita de productividad local para hábitos y tareas. Esta página explica el enfoque de privacidad para el sitio web y la app.",
     sections: [
       {
         title: "Datos del sitio web",
@@ -35,11 +43,19 @@ const content = {
       },
       {
         title: "Datos de la app",
-        body: "Done Loop guarda hábitos, tareas, ajustes y datos relacionados con productividad localmente en tu dispositivo. La app no está diseñada para enviar esos datos personales a este sitio web.",
+        body: "Done Loop guarda hábitos, tareas, recordatorios, ajustes y datos relacionados con productividad localmente en tu dispositivo. La app no ofrece cuentas, sincronización en la nube, analíticas, anuncios, membresías, suscripciones ni pagos.",
+      },
+      {
+        title: "Notificaciones",
+        body: "Si activas recordatorios, Done Loop usa el permiso de notificaciones de tu dispositivo para programar recordatorios locales de hábitos y tareas. El contenido de los recordatorios se genera en tu dispositivo.",
+      },
+      {
+        title: "Retención y eliminación",
+        body: "Los datos de la app permanecen en tu dispositivo hasta que los edites, los elimines o borres la app y sus datos locales de tu dispositivo.",
       },
       {
         title: "Google Play",
-        body: "Cuando la app de Android esté disponible en Google Play, las descargas e interacciones de la tienda podrán regirse por las políticas de Google Play y los ajustes de tu cuenta de Google.",
+        body: "Done Loop se distribuye a través de Google Play, donde las descargas e interacciones de la tienda pueden regirse por las políticas de Google Play y los ajustes de tu cuenta de Google.",
       },
       {
         title: "Contacto",

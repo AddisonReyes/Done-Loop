@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Footer } from "./shared/footer";
 import { LanguageSelect } from "./shared/language-select";
 
-const playStoreHref = "#google-play-coming-soon";
+const playStoreHref = "#google-play";
 
 const translations = {
   en: {
@@ -14,7 +14,6 @@ const translations = {
     heroText:
       "Done Loop brings habits, tasks, calendar context, reminders, and personalization into a focused mobile app that works from your device first.",
     playCta: "Download on Google Play",
-    playNote: "Placeholder link until the Play Store listing is live.",
     featureTitle: "Built for daily follow-through",
     featureText:
       "A simple system for seeing what matters, checking it off, and returning tomorrow without noise.",
@@ -24,7 +23,7 @@ const translations = {
       ["Personal rhythm", "Choose language, date format, theme, and accent color."],
     ],
     finalTitle: "Start with one loop.",
-    finalText: "The first public Android release is being prepared.",
+    finalText: "Done Loop is available for Android on Google Play.",
   },
   es: {
     languageLabel: "Idioma",
@@ -32,7 +31,6 @@ const translations = {
     heroText:
       "Done Loop reúne hábitos, tareas, calendario, recordatorios y personalización en una app móvil enfocada que funciona primero desde tu dispositivo.",
     playCta: "Descargar en Google Play",
-    playNote: "Enlace temporal hasta que la ficha de Play Store esté disponible.",
     featureTitle: "Creada para cumplir cada día",
     featureText:
       "Un sistema simple para ver lo importante, marcarlo como hecho y volver mañana sin ruido.",
@@ -42,7 +40,7 @@ const translations = {
       ["Ritmo personal", "Elige idioma, formato de fecha, tema y color de acento."],
     ],
     finalTitle: "Empieza con un ciclo.",
-    finalText: "La primera versión pública de Android está en preparación.",
+    finalText: "Done Loop está disponible para Android en Google Play.",
   },
 };
 
@@ -69,7 +67,6 @@ export default function Home() {
               <a className="block rounded-2xl bg-accent px-6 py-4 text-center font-bold text-white transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent-strong focus:ring-offset-2 focus:ring-offset-background" href={playStoreHref}>
                 {copy.playCta}
               </a>
-              <p className="mt-3 text-sm text-text-muted">{copy.playNote}</p>
             </div>
           </div>
         </section>
@@ -90,7 +87,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="google-play-coming-soon" className="my-10 flex flex-col gap-6 rounded-[2rem] border border-border-strong bg-surface p-7 shadow-[0_22px_70px_rgba(0,0,0,0.24)] md:flex-row md:items-center md:justify-between md:p-9">
+        <section id="google-play" className="my-10 flex flex-col gap-6 rounded-[2rem] border border-border-strong bg-surface p-7 shadow-[0_22px_70px_rgba(0,0,0,0.24)] md:flex-row md:items-center md:justify-between md:p-9">
           <div className="max-w-xl">
             <h2 className="font-serif text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{copy.finalTitle}</h2>
             <p className="mt-3 leading-7 text-text-secondary">{copy.finalText}</p>

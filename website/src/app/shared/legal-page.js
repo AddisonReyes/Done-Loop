@@ -10,12 +10,12 @@ const common = {
   en: {
     languageLabel: "Language",
     back: "Back to Done Loop",
-    updated: "Last updated: May 31, 2026",
+    updated: "Last updated: June 1, 2026",
   },
   es: {
     languageLabel: "Idioma",
     back: "Volver a Done Loop",
-    updated: "Última actualización: 31 de mayo de 2026",
+    updated: "Última actualización: 1 de junio de 2026",
   },
 };
 
