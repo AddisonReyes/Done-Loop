@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
+
 import { LegalPage } from "../shared/legal-page";
+import type { LegalContent, Localized } from "../shared/types";
 
 const content = {
   en: {
@@ -63,9 +66,9 @@ const content = {
       },
     ],
   },
-};
+} satisfies Localized<LegalContent>;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Privacy Policy - Done Loop",
 };
 

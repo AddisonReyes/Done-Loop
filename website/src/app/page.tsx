@@ -4,8 +4,21 @@ import { useState } from "react";
 
 import { Footer } from "./shared/footer";
 import { LanguageSelect } from "./shared/language-select";
+import type { Language, Localized } from "./shared/types";
 
 const playStoreHref = "#google-play";
+
+type HomeCopy = {
+  languageLabel: string;
+  heroTitle: string;
+  heroText: string;
+  playCta: string;
+  featureTitle: string;
+  featureText: string;
+  features: [string, string][];
+  finalTitle: string;
+  finalText: string;
+};
 
 const translations = {
   en: {
@@ -42,10 +55,10 @@ const translations = {
     finalTitle: "Empieza con un ciclo.",
     finalText: "Done Loop está disponible para Android en Google Play.",
   },
-};
+} satisfies Localized<HomeCopy>;
 
 export default function Home() {
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState<Language>("en");
   const copy = translations[language];
 
   return (

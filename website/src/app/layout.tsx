@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import localFont from "next/font/local";
+import type { ReactNode } from "react";
+
 import "./globals.css";
 
 const fraunces = localFont({
@@ -14,7 +17,7 @@ const fraunces = localFont({
 const description =
   "Done Loop is a local-first habit, task, calendar, and reminder app with a calm dark design.";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Done Loop - Habits and Tasks in One Quiet Loop",
   description,
   icons: {
@@ -27,7 +30,11 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+type RootLayoutProps = Readonly<{
+  children: ReactNode;
+}>;
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"

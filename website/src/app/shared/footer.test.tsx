@@ -21,4 +21,3 @@ describe("Footer", () => {
     expect(screen.getByRole("link", { name: "Privacy Policy" })).toBeInTheDocument();
   });
 });
-

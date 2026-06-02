@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Footer } from "./footer";
 import { LanguageSelect } from "./language-select";
+import type { LegalContent, Localized } from "./types";
 
 const common = {
   en: {
@@ -17,10 +18,18 @@ const common = {
     back: "Volver a Done Loop",
     updated: "Última actualización: 1 de junio de 2026",
   },
+} satisfies Localized<{
+  languageLabel: string;
+  back: string;
+  updated: string;
+}>;
+
+type LegalPageProps = {
+  content: Localized<LegalContent>;
 };
 
-export function LegalPage({ content }) {
-  const [language, setLanguage] = useState("en");
+export function LegalPage({ content }: LegalPageProps) {
+  const [language, setLanguage] = useState<keyof typeof content>("en");
   const copy = content[language];
   const shared = common[language];
 
