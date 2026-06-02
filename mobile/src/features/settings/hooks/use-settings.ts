@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
 import { setNotificationsEnabledPreferenceAsync } from '@/features/settings/services/notification-settings';
 import type {
-  UserDateFormatPreference,
   UserAccentColorPreference,
+  UserAppBackgroundPreference,
+  UserDateFormatPreference,
   UserLanguagePreference,
   UserSettings,
   UserThemePreference,
@@ -13,7 +14,14 @@ import { useThemePreference } from '@/hooks/use-theme-preference';
 import { useTranslation } from '@/i18n';
 
 export function useSettings() {
-  const { accentColor, preference, setAccentColorPreference, setThemePreference } = useThemePreference();
+  const {
+    accentColor,
+    appBackground,
+    preference,
+    setAccentColorPreference,
+    setAppBackgroundPreference,
+    setThemePreference,
+  } = useThemePreference();
   const { language, setLanguage } = useTranslation();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,6 +55,10 @@ export function useSettings() {
     await setAccentColorPreference(nextAccentColor);
   }, [setAccentColorPreference]);
 
+  const setAppBackground = useCallback(async (nextAppBackground: UserAppBackgroundPreference) => {
+    await setAppBackgroundPreference(nextAppBackground);
+  }, [setAppBackgroundPreference]);
+
   const setLanguagePreference = useCallback(async (nextLanguage: UserLanguagePreference) => {
     await setLanguage(nextLanguage);
   }, [setLanguage]);
@@ -57,8 +69,9 @@ export function useSettings() {
 
   return {
     isLoading,
-    settings: settings ? { ...settings, accentColor, theme: preference, language } : settings,
+    settings: settings ? { ...settings, accentColor, appBackground, theme: preference, language } : settings,
     setAccentColor,
+    setAppBackground,
     setDateFormat,
     setLanguage: setLanguagePreference,
     setNotificationsEnabled,

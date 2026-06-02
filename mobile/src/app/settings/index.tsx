@@ -7,6 +7,7 @@ import { AccentColors, Spacing } from '@/constants/theme';
 import { useSettings } from '@/features/settings/hooks/use-settings';
 import type {
   UserAccentColorPreference,
+  UserAppBackgroundPreference,
   UserDateFormatPreference,
   UserLanguagePreference,
   UserThemePreference,
@@ -45,6 +46,12 @@ const accentColorOptions: { value: UserAccentColorPreference; labelKey: string }
   { value: 'pink', labelKey: 'settings.accentColor.pink' },
 ];
 
+const appBackgroundOptions: { value: UserAppBackgroundPreference; labelKey: string }[] = [
+  { value: 'none', labelKey: 'settings.appBackground.none' },
+  { value: 'gradient', labelKey: 'settings.appBackground.gradient' },
+  { value: 'grid', labelKey: 'settings.appBackground.grid' },
+];
+
 const SourceCodeUrl = 'https://github.com/AddisonReyes/done-loop';
 const SourceCodeLabel = 'AddisonReyes/done-loop';
 
@@ -55,6 +62,7 @@ export default function SettingsScreen() {
     isLoading,
     settings,
     setAccentColor,
+    setAppBackground,
     setDateFormat,
     setLanguage,
     setNotificationsEnabled,
@@ -116,6 +124,16 @@ export default function SettingsScreen() {
                   />
                 ))}
               </View>
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <ThemedText type="smallBold">{t('settings.appBackground.section')}</ThemedText>
+              <DropdownSelect
+                label={t('settings.appBackground.section')}
+                value={settings.appBackground}
+                onChange={(value) => void setAppBackground(value)}
+                options={appBackgroundOptions.map((option) => ({ value: option.value, label: t(option.labelKey) }))}
+              />
             </View>
           </SectionCard>
 

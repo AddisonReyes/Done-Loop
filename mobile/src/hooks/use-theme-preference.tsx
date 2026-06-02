@@ -12,19 +12,25 @@ import { Animated, useColorScheme as useSystemColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
-import type { UserAccentColorPreference, UserThemePreference } from '@/features/settings/types';
+import type {
+  UserAccentColorPreference,
+  UserAppBackgroundPreference,
+  UserThemePreference,
+} from '@/features/settings/types';
 
 type ResolvedTheme = 'light' | 'dark';
 
 type ThemePreferenceContextValue = {
   preference: UserThemePreference;
   accentColor: UserAccentColorPreference;
+  appBackground: UserAppBackgroundPreference;
   resolvedTheme: ResolvedTheme;
   isLoadingTheme: boolean;
   transitionOpacity: Animated.Value;
   transitionColor: string;
   setThemePreference: (preference: UserThemePreference) => Promise<void>;
   setAccentColorPreference: (accentColor: UserAccentColorPreference) => Promise<void>;
+  setAppBackgroundPreference: (appBackground: UserAppBackgroundPreference) => Promise<void>;
 };
 
 const ThemePreferenceContext = createContext<ThemePreferenceContextValue | null>(null);
@@ -41,6 +47,7 @@ export function ThemePreferenceProvider({ children }: PropsWithChildren) {
   const systemTheme = useSystemColorScheme();
   const [preference, setPreference] = useState<UserThemePreference>('system');
   const [accentColor, setAccentColor] = useState<UserAccentColorPreference>('purple');
+  const [appBackground, setAppBackground] = useState<UserAppBackgroundPreference>('none');
   const [isLoadingTheme, setIsLoadingTheme] = useState(true);
   const resolvedTheme = resolveTheme(preference, systemTheme);
   const previousResolvedTheme = useRef<ResolvedTheme>(resolvedTheme);
@@ -56,6 +63,7 @@ export function ThemePreferenceProvider({ children }: PropsWithChildren) {
       if (mounted) {
         setPreference(settings.theme);
         setAccentColor(settings.accentColor);
+        setAppBackground(settings.appBackground);
         setIsLoadingTheme(false);
       }
     };
@@ -92,22 +100,31 @@ export function ThemePreferenceProvider({ children }: PropsWithChildren) {
     setAccentColor(nextSettings.accentColor);
   }, []);
 
+  const setAppBackgroundPreference = useCallback(async (nextAppBackground: UserAppBackgroundPreference) => {
+    const nextSettings = await SettingsRepository.update({ appBackground: nextAppBackground });
+    setAppBackground(nextSettings.appBackground);
+  }, []);
+
   const value = useMemo(
     () => ({
       preference,
       accentColor,
+      appBackground,
       resolvedTheme,
       isLoadingTheme,
       transitionOpacity,
       transitionColor,
       setThemePreference,
       setAccentColorPreference,
+      setAppBackgroundPreference,
     }),
     [
       accentColor,
+      appBackground,
       isLoadingTheme,
       preference,
       resolvedTheme,
+      setAppBackgroundPreference,
       setAccentColorPreference,
       setThemePreference,
       transitionColor,

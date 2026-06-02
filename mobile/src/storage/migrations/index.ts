@@ -6,6 +6,7 @@ import { migration003AddDateFormatSetting } from '@/storage/migrations/migration
 import { migration004DefaultDateFormatDmy } from '@/storage/migrations/migration-004-default-date-format-dmy';
 import { migration005AddAccentColorSetting } from '@/storage/migrations/migration-005-add-accent-color-setting';
 import { migration006AddHabitNotificationId } from '@/storage/migrations/migration-006-add-habit-notification-id';
+import { migration007AddAppBackgroundSetting } from '@/storage/migrations/migration-007-add-app-background-setting';
 
 type Migration = {
   id: number;
@@ -20,6 +21,7 @@ const migrations: Migration[] = [
   migration004DefaultDateFormatDmy,
   migration005AddAccentColorSetting,
   migration006AddHabitNotificationId,
+  migration007AddAppBackgroundSetting,
 ];
 
 export async function runMigrationsAsync(database: SQLiteDatabase): Promise<void> {

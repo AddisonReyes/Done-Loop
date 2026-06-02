@@ -1,6 +1,7 @@
 export type {
   UpdateUserSettingsInput,
   UserAccentColorPreference,
+  UserAppBackgroundPreference,
   UserDateFormatPreference,
   UserLanguagePreference,
   UserSettings,

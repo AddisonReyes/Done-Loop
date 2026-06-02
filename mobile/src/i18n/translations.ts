@@ -153,6 +153,12 @@ export const translations = {
         yellow: 'Yellow',
         pink: 'Pink',
       },
+      appBackground: {
+        section: 'App background',
+        none: 'No background',
+        gradient: 'Gradient',
+        grid: 'Grid',
+      },
       language: {
         section: 'Language',
         en: 'English',
@@ -344,6 +350,12 @@ export const translations = {
         red: 'Rojo',
         yellow: 'Amarillo',
         pink: 'Rosado',
+      },
+      appBackground: {
+        section: 'Fondo de la app',
+        none: 'Sin fondo',
+        gradient: 'Gradiente',
+        grid: 'Grid',
       },
       language: {
         section: 'Idioma',
