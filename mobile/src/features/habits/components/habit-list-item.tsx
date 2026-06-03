@@ -181,19 +181,23 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   header: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: Spacing.two,
   },
   titleGroup: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flex: 1,
     flexDirection: 'row',
     gap: Spacing.two,
+    minWidth: 128,
   },
   title: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   check: {
     width: 44,
@@ -201,6 +205,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
+    flexShrink: 0,
     justifyContent: 'center',
   },
   checkText: {
@@ -214,6 +219,8 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    flexShrink: 0,
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   iconButton: {
@@ -230,14 +237,18 @@ const styles = StyleSheet.create({
   detailRow: {
     alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
     justifyContent: 'space-between',
   },
   detailLabel: {
     flex: 1,
+    minWidth: 96,
   },
   detailValue: {
     flex: 1.4,
+    flexShrink: 1,
+    minWidth: 0,
     textAlign: 'right',
   },
   pressed: {

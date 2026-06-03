@@ -49,7 +49,7 @@ export function DropdownSelect<T extends string>({
           },
           pressed && styles.pressed,
         ]}>
-        <View>
+        <View style={styles.triggerLabel}>
           <ThemedText type="smallBold">{selectedOption.label}</ThemedText>
         </View>
         <MaterialCommunityIcons name="chevron-down" size={20} color={theme.textSecondary} />
@@ -87,7 +87,10 @@ export function DropdownSelect<T extends string>({
                       },
                       pressed && styles.pressed,
                     ]}>
-                    <ThemedText type="smallBold" themeColor={selected ? 'accentStrong' : 'text'}>
+                    <ThemedText
+                      type="smallBold"
+                      themeColor={selected ? 'accentStrong' : 'text'}
+                      style={styles.optionLabel}>
                       {option.label}
                     </ThemedText>
                     {selected ? (
@@ -116,7 +119,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
+  triggerLabel: {
+    flex: 1,
+    minWidth: 0,
+  },
   modalRoot: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'flex-end',
   },
@@ -129,10 +137,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     borderWidth: 1,
     gap: Spacing.three,
+    maxWidth: 640,
     padding: Spacing.three,
     shadowOffset: { width: 0, height: -12 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
+    width: '100%',
     elevation: 12,
   },
   options: {
@@ -146,6 +156,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     minHeight: 52,
     paddingHorizontal: Spacing.three,
+  },
+  optionLabel: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   pressed: {
     opacity: 0.72,

@@ -196,18 +196,22 @@ const styles = StyleSheet.create({
   },
   priorityRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   priorityButton: {
     alignItems: 'center',
     borderRadius: 14,
     borderWidth: 1,
+    flexBasis: '30%',
     flex: 1,
     justifyContent: 'center',
     minHeight: 40,
+    minWidth: 90,
     paddingHorizontal: Spacing.two,
   },
   optionText: {
+    minWidth: 0,
     textAlign: 'center',
   },
   counter: {

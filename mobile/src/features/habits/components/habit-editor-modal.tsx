@@ -231,18 +231,22 @@ const styles = StyleSheet.create({
   },
   segmentRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   segment: {
     alignItems: 'center',
     borderRadius: 14,
     borderWidth: 1,
+    flexBasis: '48%',
     flex: 1,
     justifyContent: 'center',
     minHeight: 40,
+    minWidth: 112,
     paddingHorizontal: Spacing.one,
   },
   optionText: {
+    minWidth: 0,
     textAlign: 'center',
   },
   counter: {
@@ -251,6 +255,8 @@ const styles = StyleSheet.create({
   switchRow: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
     justifyContent: 'space-between',
   },
   submit: {

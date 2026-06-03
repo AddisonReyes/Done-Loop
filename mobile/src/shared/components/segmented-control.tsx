@@ -23,6 +23,7 @@ export function SegmentedControl<T extends string>({ options, onChange, value }:
   const { animationsEnabled } = useThemePreference();
   const [containerWidth, setContainerWidth] = useState(0);
   const hasOptions = options.length > 0;
+  const wrapsOptions = options.length >= 4;
   const selectedIndex = Math.max(options.findIndex((option) => option.value === value), 0);
   const optionWidth = containerWidth > 0 && hasOptions ? (containerWidth - Spacing.half * 2) / options.length : 0;
   const indicatorX = useSharedValue(selectedIndex * optionWidth);
@@ -49,8 +50,12 @@ export function SegmentedControl<T extends string>({ options, onChange, value }:
     <View
       testID="segmented-control"
       onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
-      style={[styles.container, { backgroundColor: theme.backgroundSelected, borderColor: theme.border }]}>
-      {containerWidth > 0 && hasOptions ? (
+      style={[
+        styles.container,
+        wrapsOptions && styles.wrappedContainer,
+        { backgroundColor: theme.backgroundSelected, borderColor: theme.border },
+      ]}>
+      {containerWidth > 0 && hasOptions && !wrapsOptions ? (
         animationsEnabled ? (
           <Animated.View
             pointerEvents="none"
@@ -83,8 +88,18 @@ export function SegmentedControl<T extends string>({ options, onChange, value }:
             accessibilityRole="button"
             accessibilityState={{ selected }}
             onPress={() => onChange(option.value)}
-            style={styles.option}>
-            <ThemedText type="smallBold" themeColor={selected ? 'accentStrong' : 'textSecondary'}>
+            style={[
+              styles.option,
+              wrapsOptions && styles.wrappedOption,
+              wrapsOptions &&
+                selected && {
+                  backgroundColor: theme.backgroundElement,
+                },
+            ]}>
+            <ThemedText
+              type="smallBold"
+              themeColor={selected ? 'accentStrong' : 'textSecondary'}
+              style={styles.optionLabel}>
               {option.label}
             </ThemedText>
           </Pressable>
@@ -102,6 +117,10 @@ const styles = StyleSheet.create({
     padding: Spacing.half,
     position: 'relative',
   },
+  wrappedContainer: {
+    flexWrap: 'wrap',
+    gap: Spacing.half,
+  },
   indicator: {
     borderRadius: 13,
     bottom: Spacing.half,
@@ -117,5 +136,14 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: Spacing.two,
     zIndex: 1,
+  },
+  wrappedOption: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    minWidth: 112,
+  },
+  optionLabel: {
+    minWidth: 0,
+    textAlign: 'center',
   },
 });

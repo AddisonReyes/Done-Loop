@@ -51,7 +51,9 @@ export function TimePickerField({ label, onChange, value }: TimePickerFieldProps
             styles.button,
             { backgroundColor: theme.surfaceStrong, borderColor: theme.border },
           ]}>
-          <ThemedText type="small">{displayValue}</ThemedText>
+          <ThemedText type="small" style={styles.buttonLabel}>
+            {displayValue}
+          </ThemedText>
         </Pressable>
         {value ? (
           <Pressable
@@ -78,6 +80,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   button: {
@@ -86,7 +89,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     minHeight: 48,
+    minWidth: 0,
     paddingHorizontal: Spacing.three,
+  },
+  buttonLabel: {
+    flexShrink: 1,
   },
   clearButton: {
     justifyContent: 'center',

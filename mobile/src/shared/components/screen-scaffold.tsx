@@ -76,12 +76,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flexGrow: 1,
     alignItems: 'center',
+    flexGrow: 1,
   },
   inner: {
-    width: '100%',
     gap: Spacing.three,
+    maxWidth: 720,
+    minWidth: 0,
+    width: '100%',
   },
   header: {
     gap: Spacing.two,
@@ -99,6 +101,7 @@ const styles = StyleSheet.create({
   },
   description: {
     maxWidth: 420,
+    minWidth: 0,
   },
   contentStack: {
     gap: Spacing.three,

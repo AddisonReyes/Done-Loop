@@ -170,11 +170,14 @@ const styles = StyleSheet.create({
   },
   summary: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   summaryItem: {
+    flexBasis: '48%',
     flex: 1,
     minHeight: 92,
+    minWidth: 136,
     borderWidth: 1,
     borderRadius: 18,
     padding: Spacing.three,
@@ -184,6 +187,7 @@ const styles = StyleSheet.create({
   summaryNumber: {
     fontSize: 28,
     lineHeight: 34,
+    minWidth: 0,
   },
   list: {
     gap: Spacing.two,

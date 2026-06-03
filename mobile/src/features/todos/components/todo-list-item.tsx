@@ -171,19 +171,24 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   header: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
     justifyContent: 'space-between',
   },
   title: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 120,
   },
   completedText: {
     textDecorationLine: 'line-through',
   },
   actions: {
     flexDirection: 'row',
+    flexShrink: 0,
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   iconButton: {
@@ -200,14 +205,18 @@ const styles = StyleSheet.create({
   detailRow: {
     alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
     justifyContent: 'space-between',
   },
   detailLabel: {
     flex: 1,
+    minWidth: 96,
   },
   detailValue: {
     flex: 1.4,
+    flexShrink: 1,
+    minWidth: 0,
     textAlign: 'right',
   },
   pressed: {

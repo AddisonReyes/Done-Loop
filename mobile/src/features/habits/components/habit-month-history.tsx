@@ -104,7 +104,7 @@ function LegendDot({ borderColor, label, color }: { borderColor: string; label: 
   return (
     <View style={styles.legendItem}>
       <View style={[styles.legendDot, { backgroundColor: color, borderColor }]} />
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="small" themeColor="textSecondary" style={styles.legendLabel}>
         {label}
       </ThemedText>
     </View>
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.two,
     justifyContent: 'space-between',
   },
   navButton: {
@@ -127,14 +128,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 14,
     alignItems: 'center',
+    flexShrink: 0,
     justifyContent: 'center',
   },
   monthLabel: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    textAlign: 'center',
     textTransform: 'capitalize',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    minWidth: 0,
   },
   day: {
     aspectRatio: 1,
@@ -159,6 +166,7 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
     gap: Spacing.one,
   },
   legendDot: {
@@ -166,5 +174,8 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     borderWidth: 1,
+  },
+  legendLabel: {
+    flexShrink: 1,
   },
 });

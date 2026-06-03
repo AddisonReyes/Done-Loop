@@ -87,7 +87,7 @@ export default function SettingsScreen() {
                   backgroundColor: settings.notificationsEnabled ? theme.accentSoft : theme.surfaceSoft,
                 },
               ]}>
-              <View>
+              <View style={styles.rowCopy}>
                 <ThemedText type="smallBold">{t('settings.notifications')}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {t('settings.notificationDetail')}
@@ -100,6 +100,7 @@ export default function SettingsScreen() {
                 trackColor={{ false: theme.backgroundSelected, true: theme.accentSoft }}
                 value={settings.notificationsEnabled}
                 onValueChange={(enabled) => void setNotificationsEnabled(enabled)}
+                style={styles.switchControl}
               />
             </View>
             <View
@@ -110,7 +111,7 @@ export default function SettingsScreen() {
                   backgroundColor: settings.animationsEnabled ? theme.accentSoft : theme.surfaceSoft,
                 },
               ]}>
-              <View>
+              <View style={styles.rowCopy}>
                 <ThemedText type="smallBold">{t('settings.animations')}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {t('settings.animationsDetail')}
@@ -123,6 +124,7 @@ export default function SettingsScreen() {
                 trackColor={{ false: theme.backgroundSelected, true: theme.accentSoft }}
                 value={settings.animationsEnabled}
                 onValueChange={(enabled) => void setAnimationsEnabled(enabled)}
+                style={styles.switchControl}
               />
             </View>
           </SectionCard>
@@ -240,10 +242,12 @@ function AccentColorOption({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.infoRow}>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="small" themeColor="textSecondary" style={styles.infoLabel}>
         {label}
       </ThemedText>
-      <ThemedText type="smallBold">{value}</ThemedText>
+      <ThemedText type="smallBold" style={styles.infoValue}>
+        {value}
+      </ThemedText>
     </View>
   );
 }
@@ -268,7 +272,7 @@ function LinkInfoRow({
         void Linking.openURL(value);
       }}
       style={({ pressed }) => [styles.infoRow, pressed && styles.pressedRow]}>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="small" themeColor="textSecondary" style={styles.infoLabel}>
         {label}
       </ThemedText>
       <ThemedText type="smallBold" style={[styles.linkValue, { color: theme.accentStrong }]}>
@@ -289,12 +293,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
   },
+  rowCopy: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  switchControl: {
+    flexShrink: 0,
+  },
   infoRow: {
     minHeight: 36,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
+  },
+  infoLabel: {
+    flexShrink: 1,
+    minWidth: 96,
+  },
+  infoValue: {
+    flexShrink: 1,
+    minWidth: 0,
+    textAlign: 'right',
   },
   pressedRow: {
     opacity: 0.72,
@@ -302,6 +324,7 @@ const styles = StyleSheet.create({
   linkValue: {
     flex: 1,
     flexShrink: 1,
+    minWidth: 0,
     textAlign: 'right',
   },
   fieldGroup: {
@@ -320,7 +343,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: Spacing.one,
     minHeight: 76,
-    minWidth: 92,
+    minWidth: 88,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.two,
   },

@@ -38,7 +38,9 @@ export function AppModal({ children, onClose, title, visible }: AppModalProps) {
             },
           ]}>
           <View style={styles.header}>
-            <ThemedText type="smallBold">{title}</ThemedText>
+            <ThemedText type="smallBold" style={styles.title}>
+              {title}
+            </ThemedText>
             <Pressable accessibilityRole="button" onPress={onClose} style={styles.closeButton}>
               <ThemedText type="smallBold" themeColor="textSecondary">
                 ×
@@ -65,11 +67,13 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   sheet: {
+    alignSelf: 'center',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderWidth: 1,
     gap: Spacing.three,
     maxHeight: '90%',
+    maxWidth: 640,
     padding: Spacing.three,
     width: '100%',
     shadowOffset: { width: 0, height: -16 },
@@ -80,13 +84,20 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     flexDirection: 'row',
+    gap: Spacing.two,
     justifyContent: 'space-between',
   },
   closeButton: {
     alignItems: 'center',
+    flexShrink: 0,
     height: 40,
     justifyContent: 'center',
     width: 40,
+  },
+  title: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   body: {
     flexShrink: 1,

@@ -40,16 +40,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+    minWidth: 0,
   },
   marker: {
     width: 44,
     height: 44,
     borderRadius: 14,
     alignItems: 'center',
+    flexShrink: 0,
     justifyContent: 'center',
   },
   copy: {
     flex: 1,
+    flexShrink: 1,
     gap: Spacing.one,
+    minWidth: 0,
   },
 });

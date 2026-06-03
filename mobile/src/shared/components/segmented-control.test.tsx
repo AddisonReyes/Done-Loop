@@ -55,4 +55,26 @@ describe('SegmentedControl', () => {
 
     expect(screen.toJSON()).toBeTruthy();
   });
+
+  it('wraps many options without rendering an absolute indicator', () => {
+    const options = [
+      { label: 'Daily', value: 'daily' },
+      { label: 'Weekly', value: 'weekly' },
+      { label: 'Monthly', value: 'monthly' },
+      { label: 'Custom interval', value: 'custom' },
+    ];
+    const { UNSAFE_queryByProps } = render(
+      <SegmentedControl value="custom" onChange={jest.fn()} options={options} />
+    );
+
+    const root = screen.getByTestId('segmented-control');
+    act(() => {
+      root.props.onLayout({ nativeEvent: { layout: { width: 288 } } });
+    });
+
+    const rootStyle = StyleSheet.flatten(root.props.style);
+
+    expect(rootStyle?.flexWrap).toBe('wrap');
+    expect(UNSAFE_queryByProps({ pointerEvents: 'none' })).toBeNull();
+  });
 });

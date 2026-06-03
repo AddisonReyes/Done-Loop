@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     gap: Spacing.two,
+    minWidth: 0,
     padding: Spacing.three,
   },
 });
