@@ -68,7 +68,13 @@ export function TimePickerField({ label, onChange, value }: TimePickerFieldProps
         ) : null}
       </View>
       {showPicker ? (
-        <DateTimePicker value={timeToDate(value)} mode="time" display="default" onChange={handleChange} />
+        <DateTimePicker
+          value={timeToDate(value)}
+          mode="time"
+          display="default"
+          accentColor={theme.accent}
+          onChange={handleChange}
+        />
       ) : null}
     </View>
   );

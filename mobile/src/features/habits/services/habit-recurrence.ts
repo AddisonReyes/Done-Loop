@@ -15,6 +15,16 @@ function getDayOfMonth(dateKey: string): number {
   return Number(dateKey.slice(8, 10));
 }
 
+function getIsoWeekday(dateKey: string): number | null {
+  if (!isDateKey(dateKey)) {
+    return null;
+  }
+
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const weekday = new Date(year, month - 1, day).getDay();
+  return weekday === 0 ? 7 : weekday;
+}
+
 function getLastDayOfMonth(dateKey: string): number {
   const [year, month] = dateKey.split('-').map(Number);
   return new Date(year, month, 0).getDate();
@@ -47,6 +57,11 @@ export function isHabitDueOnDate(habit: Habit, dateKey: string): boolean {
   }
 
   if (habit.recurrenceType === 'weekly') {
+    if (habit.weeklyDays && habit.weeklyDays.length > 0) {
+      const isoWeekday = getIsoWeekday(dateKey);
+      return isoWeekday !== null && habit.weeklyDays.includes(isoWeekday);
+    }
+
     return daysSinceStart % 7 === 0;
   }
 
@@ -59,9 +74,11 @@ export function isHabitDueOnDate(habit: Habit, dateKey: string): boolean {
     return false;
   }
 
-  const startDayOfMonth = getDayOfMonth(startDateKey);
-  const dueDayOfMonth = Math.min(startDayOfMonth, getLastDayOfMonth(dateKey));
-  return getDayOfMonth(dateKey) === dueDayOfMonth;
+  const monthlyDays =
+    habit.monthlyDays && habit.monthlyDays.length > 0 ? habit.monthlyDays : [getDayOfMonth(startDateKey)];
+  const lastDayOfMonth = getLastDayOfMonth(dateKey);
+  const dueDaysOfMonth = new Set(monthlyDays.map((day) => Math.min(day, lastDayOfMonth)));
+  return dueDaysOfMonth.has(getDayOfMonth(dateKey));
 }
 
 export function getHabitsDueOnDate(habits: Habit[], dateKey: string): Habit[] {

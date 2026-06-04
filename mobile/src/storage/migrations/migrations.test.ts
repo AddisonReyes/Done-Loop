@@ -8,6 +8,7 @@ import { migration006AddHabitNotificationId } from './migration-006-add-habit-no
 import { migration007AddAppBackgroundSetting } from './migration-007-add-app-background-setting';
 import { migration008AddAnimationsEnabledSetting } from './migration-008-add-animations-enabled-setting';
 import { migration009AddSolarAppBackground } from './migration-009-add-solar-app-background';
+import { migration010AddHabitRecurrenceDays } from './migration-010-add-habit-recurrence-days';
 
 function createMigrationDatabase(appliedIds: number[] = []) {
   const rows = appliedIds.map((id) => ({ id }));
@@ -43,7 +44,7 @@ describe('migrations', () => {
 
     await runMigrationsAsync(database as unknown as SQLiteDatabase);
 
-    expect(database.withTransactionAsync).toHaveBeenCalledTimes(9);
+    expect(database.withTransactionAsync).toHaveBeenCalledTimes(10);
     expect(database.runAsync).toHaveBeenCalledWith(
       'INSERT INTO schema_migrations (id, name, applied_at) VALUES (?, ?, ?);',
       1,
@@ -53,7 +54,7 @@ describe('migrations', () => {
   });
 
   it('skips migrations that are already applied', async () => {
-    const database = createMigrationDatabase([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    const database = createMigrationDatabase([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
     await runMigrationsAsync(database as unknown as SQLiteDatabase);
 
@@ -68,6 +69,8 @@ describe('migrations', () => {
       'notification_id',
       'app_background',
       'animations_enabled',
+      'weekly_days',
+      'monthly_days',
     ]);
 
     await migration002AddLanguageSetting.up(database as unknown as SQLiteDatabase);
@@ -76,6 +79,7 @@ describe('migrations', () => {
     await migration006AddHabitNotificationId.up(database as unknown as SQLiteDatabase);
     await migration007AddAppBackgroundSetting.up(database as unknown as SQLiteDatabase);
     await migration008AddAnimationsEnabledSetting.up(database as unknown as SQLiteDatabase);
+    await migration010AddHabitRecurrenceDays.up(database as unknown as SQLiteDatabase);
 
     expect(database.execAsync).not.toHaveBeenCalled();
   });
@@ -94,5 +98,14 @@ describe('migrations', () => {
     await migration009AddSolarAppBackground.up(database as unknown as SQLiteDatabase);
 
     expect(database.execAsync).toHaveBeenCalledWith(expect.stringContaining("'none', 'gradient', 'grid', 'solar'"));
+  });
+
+  it('adds habit recurrence day columns when they are missing', async () => {
+    const database = createTableInfoDatabase(['notification_id']);
+
+    await migration010AddHabitRecurrenceDays.up(database as unknown as SQLiteDatabase);
+
+    expect(database.execAsync).toHaveBeenCalledWith(expect.stringContaining('ADD COLUMN weekly_days'));
+    expect(database.execAsync).toHaveBeenCalledWith(expect.stringContaining('ADD COLUMN monthly_days'));
   });
 });

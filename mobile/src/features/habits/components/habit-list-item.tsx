@@ -10,11 +10,14 @@ import { useTheme } from '@/hooks/use-theme';
 import { useThemePreference } from '@/hooks/use-theme-preference';
 import { useTranslation } from '@/i18n';
 
+import { getHabitRecurrenceDetail } from '../services/habit-recurrence-labels';
 import type { Habit } from '../types';
 
 type HabitListItemProps = {
   habit: Habit;
   completedToday: boolean;
+  completionDisabled?: boolean;
+  statusLabel?: string;
   onToggleToday: () => void;
   onStartEdit: () => void;
   onDelete: () => void;
@@ -23,6 +26,8 @@ type HabitListItemProps = {
 export function HabitListItem({
   habit,
   completedToday,
+  completionDisabled = false,
+  statusLabel: statusLabelOverride,
   onToggleToday,
   onStartEdit,
   onDelete,
@@ -30,8 +35,9 @@ export function HabitListItem({
   const theme = useTheme();
   const { animationsEnabled } = useThemePreference();
   const { t } = useTranslation();
-  const statusLabel = completedToday ? t('habits.completedToday') : t('habits.pendingToday');
+  const statusLabel = statusLabelOverride ?? (completedToday ? t('habits.completedToday') : t('habits.pendingToday'));
   const recurrenceLabel = t(`habits.recurrences.${habit.recurrenceType}`);
+  const recurrenceDetail = getHabitRecurrenceDetail(habit, t);
   const cardScale = useSharedValue(1);
   const cardAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: cardScale.value }],
@@ -63,10 +69,12 @@ export function HabitListItem({
         <View style={styles.titleGroup}>
           <Pressable
             accessibilityRole="checkbox"
-            accessibilityState={{ checked: completedToday }}
+            accessibilityState={{ checked: completedToday, disabled: completionDisabled }}
+            disabled={completionDisabled}
             onPress={onToggleToday}
             style={[
               styles.check,
+              completionDisabled && styles.disabledCheck,
               {
                 borderColor: completedToday ? theme.accentStrong : theme.border,
                 backgroundColor: completedToday ? theme.accent : theme.backgroundSelected,
@@ -94,8 +102,8 @@ export function HabitListItem({
         <View style={styles.details}>
           <DetailRow label={t('habits.detail.status')} value={statusLabel} />
           <DetailRow label={t('habits.detail.recurrence')} value={recurrenceLabel} />
-          {habit.recurrenceType === 'custom' && habit.customIntervalDays ? (
-            <DetailRow label={t('habits.detail.interval')} value={String(habit.customIntervalDays)} />
+          {recurrenceDetail ? (
+            <DetailRow label={recurrenceDetail.label} value={recurrenceDetail.value} />
           ) : null}
           <DetailRow
             label={t('habits.detail.reminder')}
@@ -210,6 +218,9 @@ const styles = StyleSheet.create({
   },
   checkText: {
     color: '#FFFFFF',
+  },
+  disabledCheck: {
+    opacity: 0.48,
   },
   body: {
     gap: Spacing.two,

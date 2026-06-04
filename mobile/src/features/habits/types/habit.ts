@@ -6,6 +6,8 @@ export type Habit = {
   description?: string;
   recurrenceType: HabitRecurrenceType;
   customIntervalDays?: number;
+  weeklyDays?: number[];
+  monthlyDays?: number[];
   reminderTime?: string;
   remindersEnabled: boolean;
   notificationId?: string;
@@ -20,6 +22,8 @@ export type CreateHabitInput = {
   description?: string;
   recurrenceType: HabitRecurrenceType;
   customIntervalDays?: number;
+  weeklyDays?: number[];
+  monthlyDays?: number[];
   reminderTime?: string;
   remindersEnabled?: boolean;
   notificationId?: string;

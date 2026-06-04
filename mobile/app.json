@@ -2,14 +2,14 @@
   "expo": {
     "name": "Done Loop",
     "slug": "done-loop",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "doneloop",
     "userInterfaceStyle": "automatic",
     "android": {
       "package": "app.dakotitah.doneloop",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#08080A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

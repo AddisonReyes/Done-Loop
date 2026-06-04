@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { HabitEditorModal } from '@/features/habits/components/habit-editor-modal';
@@ -16,33 +16,116 @@ import { EmptyState } from '@/shared/components/empty-state';
 import { SectionCard } from '@/shared/components/section-card';
 import { ScreenScaffold } from '@/shared/components/screen-scaffold';
 import { AnimatedListItem } from '@/shared/components/animated-list-item';
+import { formatDateKey } from '@/shared/utils/date';
 
 const animatedListItemLimit = 24;
 
 export default function HabitsScreen() {
   const theme = useTheme();
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
+  const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>();
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const {
-    completedHabitIds,
     createHabitFromDraft,
     deleteHabit,
     errorMessage,
     filter,
+    getCompletedHabitIdsForDate,
+    getHabitsForDate,
     goToNextMonth,
     goToPreviousMonth,
     isLoading,
     monthHistoryDays,
     monthLabel,
+    monthlyHabitDateKeys,
     pendingCount,
     setFilter,
-    toggleTodayCompletion,
+    todayKey,
+    toggleCompletionForDate,
     totalCompletedToday,
     visibleHabits,
     habits,
     updateHabitFromDraft,
   } = useHabits();
+  const selectedHabits = useMemo(
+    () => (selectedDateKey ? getHabitsForDate(selectedDateKey) : []),
+    [getHabitsForDate, selectedDateKey]
+  );
+  const hasSelectedDateFilter = !!selectedDateKey;
+  const listedDateKey = selectedDateKey ?? todayKey;
+  const completedHabitIdsForListedDate = useMemo(
+    () => getCompletedHabitIdsForDate(listedDateKey),
+    [getCompletedHabitIdsForDate, listedDateKey]
+  );
+  const listedHabits = useMemo(() => {
+    if (!hasSelectedDateFilter) {
+      return visibleHabits;
+    }
+
+    if (filter === 'completedToday') {
+      return selectedHabits.filter((habit) => completedHabitIdsForListedDate.has(habit.id));
+    }
+
+    if (filter === 'pendingToday') {
+      return selectedHabits.filter((habit) => !completedHabitIdsForListedDate.has(habit.id));
+    }
+
+    return selectedHabits;
+  }, [completedHabitIdsForListedDate, filter, hasSelectedDateFilter, selectedHabits, visibleHabits]);
+  const dueHabitIdsForListedDate = useMemo(() => {
+    if (hasSelectedDateFilter) {
+      return new Set(selectedHabits.map((habit) => habit.id));
+    }
+
+    return new Set(getHabitsForDate(listedDateKey).map((habit) => habit.id));
+  }, [getHabitsForDate, hasSelectedDateFilter, listedDateKey, selectedHabits]);
+
+  const selectedDateEmptyMessage = hasSelectedDateFilter && selectedHabits.length === 0
+    ? 'calendar.noHabitsForDay'
+    : 'habits.emptyFilter';
+
+  const listedStatusLabel = useCallback(
+    (habit: Habit) => {
+      if (!dueHabitIdsForListedDate.has(habit.id)) {
+        return t('habits.notScheduledToday');
+      }
+
+      if (!hasSelectedDateFilter || listedDateKey === todayKey) {
+        return undefined;
+      }
+
+      return completedHabitIdsForListedDate.has(habit.id) ? t('habits.completed') : t('habits.pending');
+    },
+    [completedHabitIdsForListedDate, dueHabitIdsForListedDate, hasSelectedDateFilter, listedDateKey, t, todayKey]
+  );
+
+  const handleToggleHabit = useCallback(
+    (habitId: string) => {
+      if (!dueHabitIdsForListedDate.has(habitId)) {
+        return;
+      }
+
+      void toggleCompletionForDate(habitId, listedDateKey);
+    },
+    [dueHabitIdsForListedDate, listedDateKey, toggleCompletionForDate]
+  );
+
+  const selectedDateLabel = selectedDateKey ? formatDateKey(selectedDateKey, locale, 'long') : '';
+
+  const handleSelectDate = useCallback((dateKey: string) => {
+    setSelectedDateKey((current) => (current === dateKey ? undefined : dateKey));
+  }, []);
+
+  const handlePreviousMonth = useCallback(() => {
+    setSelectedDateKey(undefined);
+    goToPreviousMonth();
+  }, [goToPreviousMonth]);
+
+  const handleNextMonth = useCallback(() => {
+    setSelectedDateKey(undefined);
+    goToNextMonth();
+  }, [goToNextMonth]);
 
   const confirmDeleteHabit = (habit: Habit) => {
     Alert.alert(t('habits.delete'), habit.name, [
@@ -91,14 +174,41 @@ export default function HabitsScreen() {
           <HabitFilterTabs value={filter} onChange={setFilter} />
         </SectionCard>
 
-        <SectionCard title={t('calendar.habits')}>
+        <View style={styles.calendarSection}>
+          <ThemedText type="smallBold" themeColor="accentStrong">
+            {t('calendar.habits')}
+          </ThemedText>
           <HabitMonthHistory
             monthLabel={monthLabel}
             days={monthHistoryDays}
-            onPreviousMonth={goToPreviousMonth}
-            onNextMonth={goToNextMonth}
+            monthlyMarkedDateKeys={monthlyHabitDateKeys}
+            selectedDateKey={selectedDateKey}
+            onSelectDate={handleSelectDate}
+            onPreviousMonth={handlePreviousMonth}
+            onNextMonth={handleNextMonth}
           />
-        </SectionCard>
+        </View>
+
+        {selectedDateKey ? (
+          <View
+            style={[
+              styles.selectedDayContainer,
+              { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+            ]}>
+            <ThemedText type="smallBold" themeColor="accentStrong" style={styles.selectedDayText}>
+              {t('calendar.selectedDay', { date: selectedDateLabel })}
+            </ThemedText>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('calendar.clearSelection')}
+              onPress={() => setSelectedDateKey(undefined)}
+              style={[styles.clearButton, { backgroundColor: theme.backgroundSelected, borderColor: theme.border }]}>
+              <ThemedText type="smallBold" themeColor="textSecondary">
+                {t('common.clear')}
+              </ThemedText>
+            </Pressable>
+          </View>
+        ) : null}
 
         {errorMessage ? (
           <ThemedText type="small" themeColor="warning">
@@ -120,18 +230,20 @@ export default function HabitsScreen() {
           />
         ) : null}
 
-        {!isLoading && habits.length > 0 && visibleHabits.length === 0 ? (
-          <EmptyState message={t('habits.emptyFilter')} />
+        {!isLoading && habits.length > 0 && listedHabits.length === 0 ? (
+          <EmptyState message={t(selectedDateEmptyMessage)} />
         ) : null}
 
         <View style={styles.list}>
-          {visibleHabits.map((habit, index) => (
+          {listedHabits.map((habit, index) => (
             <AnimatedListItem key={habit.id} animate={index < animatedListItemLimit} delay={index * 18}>
               <HabitListItem
                 habit={habit}
-                completedToday={completedHabitIds.has(habit.id)}
+                completedToday={completedHabitIdsForListedDate.has(habit.id)}
+                completionDisabled={!dueHabitIdsForListedDate.has(habit.id)}
+                statusLabel={listedStatusLabel(habit)}
                 onToggleToday={() => {
-                  void toggleTodayCompletion(habit.id);
+                  handleToggleHabit(habit.id);
                 }}
                 onStartEdit={() => setEditingHabit(habit)}
                 onDelete={() => confirmDeleteHabit(habit)}
@@ -191,5 +303,30 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: Spacing.two,
+  },
+  calendarSection: {
+    gap: Spacing.two,
+  },
+  selectedDayContainer: {
+    alignItems: 'center',
+    borderRadius: 18,
+    borderWidth: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+    justifyContent: 'space-between',
+    minHeight: 64,
+    padding: Spacing.three,
+  },
+  selectedDayText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  clearButton: {
+    borderRadius: 14,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: 40,
+    paddingHorizontal: Spacing.three,
   },
 });

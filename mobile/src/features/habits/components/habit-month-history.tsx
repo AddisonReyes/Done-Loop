@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
@@ -12,13 +11,19 @@ export type HabitDayActivity = 'none' | 'partial' | 'complete';
 type HabitMonthHistoryProps = {
   monthLabel: string;
   days: { dateKey: string; dayNumber: number; activity: HabitDayActivity }[];
+  monthlyMarkedDateKeys?: Set<string>;
+  selectedDateKey?: string;
+  onSelectDate?: (dateKey: string) => void;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
 };
 
 export function HabitMonthHistory({
   monthLabel,
+  monthlyMarkedDateKeys,
+  selectedDateKey,
   days,
+  onSelectDate,
   onPreviousMonth,
   onNextMonth,
 }: HabitMonthHistoryProps) {
@@ -58,35 +63,61 @@ export function HabitMonthHistory({
         style={[styles.grid, { gap: cellGap }]}
         onLayout={(event) => setGridWidth(event.nativeEvent.layout.width)}>
         {days.map((day) => {
+          const monthlyMarked = monthlyMarkedDateKeys?.has(day.dateKey) ?? false;
+          const selected = selectedDateKey === day.dateKey;
           const backgroundColor =
             day.activity === 'complete'
               ? theme.historyComplete
               : day.activity === 'partial'
                 ? theme.historyPartial
                 : theme.historyEmpty;
+          const dayTextActive = day.activity !== 'none';
 
           return (
-            <ThemedView
+            <Pressable
               key={day.dateKey}
+              accessibilityRole={onSelectDate ? 'button' : undefined}
+              accessibilityState={onSelectDate ? { selected } : undefined}
               accessibilityLabel={t('habits.history.dayActivity', {
                 date: day.dateKey,
                 activity: t(`habits.history.${day.activity}`),
               })}
+              disabled={!onSelectDate}
+              onPress={() => onSelectDate?.(day.dateKey)}
               style={[
                 styles.day,
                 {
-                  backgroundColor,
-                  borderColor: day.activity === 'none' ? theme.border : theme.borderStrong,
+                  backgroundColor: selected && day.activity === 'none' ? theme.accentSoft : backgroundColor,
+                  borderColor: selected
+                    ? theme.accentStrong
+                    : day.activity === 'none'
+                      ? theme.border
+                      : theme.borderStrong,
                   height: cellSize || undefined,
                   width: cellSize || undefined,
                 },
               ]}>
+              {monthlyMarked ? (
+                <View
+                  style={[
+                    styles.monthlyMarker,
+                    {
+                      backgroundColor: theme.accentStrong,
+                      borderColor: day.activity !== 'none' ? '#FFFFFF' : theme.backgroundElement,
+                    },
+                  ]}
+                />
+              ) : null}
               <ThemedText
                 type="code"
-                style={[styles.dayNumber, day.activity !== 'none' && styles.activeDayText]}>
+                style={[
+                  styles.dayNumber,
+                  dayTextActive && styles.activeDayText,
+                  selected && !dayTextActive && { color: theme.accentStrong },
+                ]}>
                 {day.dayNumber}
               </ThemedText>
-            </ThemedView>
+            </Pressable>
           );
         })}
       </View>
@@ -149,6 +180,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  monthlyMarker: {
+    borderRadius: 5,
+    borderWidth: 1,
+    height: 10,
+    position: 'absolute',
+    right: 5,
+    top: 5,
+    width: 10,
   },
   dayNumber: {
     textAlign: 'center',

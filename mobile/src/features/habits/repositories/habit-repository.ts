@@ -15,6 +15,8 @@ type HabitRow = {
   description: string | null;
   recurrence_type: HabitRecurrenceType;
   custom_interval_days: number | null;
+  weekly_days?: string | null;
+  monthly_days?: string | null;
   reminder_time: string | null;
   reminders_enabled: number;
   notification_id?: string | null;
@@ -24,6 +26,25 @@ type HabitRow = {
   deleted_at: string | null;
 };
 
+function serializeNumberList(values: number[] | undefined): string | null {
+  return values && values.length > 0 ? JSON.stringify(values) : null;
+}
+
+function parseNumberList(value: string | null | undefined): number[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.every((item) => Number.isInteger(item))
+      ? parsed
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function mapHabitRow(row: HabitRow): Habit {
   return {
     id: row.id,
@@ -31,6 +52,8 @@ function mapHabitRow(row: HabitRow): Habit {
     description: optionalString(row.description),
     recurrenceType: row.recurrence_type,
     customIntervalDays: row.custom_interval_days ?? undefined,
+    weeklyDays: parseNumberList(row.weekly_days),
+    monthlyDays: parseNumberList(row.monthly_days),
     reminderTime: optionalString(row.reminder_time),
     remindersEnabled: fromSQLiteBoolean(row.reminders_enabled),
     notificationId: optionalString(row.notification_id ?? null),
@@ -51,6 +74,8 @@ export const HabitRepository = {
       description: input.description,
       recurrenceType: input.recurrenceType,
       customIntervalDays: input.customIntervalDays,
+      weeklyDays: input.weeklyDays,
+      monthlyDays: input.monthlyDays,
       reminderTime: input.reminderTime,
       remindersEnabled: input.remindersEnabled ?? false,
       notificationId: input.notificationId,
@@ -66,6 +91,8 @@ export const HabitRepository = {
         description,
         recurrence_type,
         custom_interval_days,
+        weekly_days,
+        monthly_days,
         reminder_time,
         reminders_enabled,
         notification_id,
@@ -73,12 +100,14 @@ export const HabitRepository = {
         created_at,
         updated_at,
         deleted_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       habit.id,
       habit.name,
       nullableString(habit.description),
       habit.recurrenceType,
       habit.customIntervalDays ?? null,
+      serializeNumberList(habit.weeklyDays),
+      serializeNumberList(habit.monthlyDays),
       nullableString(habit.reminderTime),
       toSQLiteBoolean(habit.remindersEnabled),
       nullableString(habit.notificationId),
@@ -134,6 +163,8 @@ export const HabitRepository = {
            description = ?,
            recurrence_type = ?,
            custom_interval_days = ?,
+           weekly_days = ?,
+           monthly_days = ?,
            reminder_time = ?,
            reminders_enabled = ?,
            notification_id = ?,
@@ -145,6 +176,8 @@ export const HabitRepository = {
       nullableString(next.description),
       next.recurrenceType,
       next.customIntervalDays ?? null,
+      serializeNumberList(next.weeklyDays),
+      serializeNumberList(next.monthlyDays),
       nullableString(next.reminderTime),
       toSQLiteBoolean(next.remindersEnabled),
       nullableString(next.notificationId),

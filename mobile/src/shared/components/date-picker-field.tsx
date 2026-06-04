@@ -13,9 +13,22 @@ type DatePickerFieldProps = {
   value?: string;
   dateFormat: 'iso' | 'mdy' | 'dmy' | 'long';
   onChange: (value?: string) => void;
+  minimumDate?: Date;
+  maximumDate?: Date;
+  clearable?: boolean;
+  hideLabel?: boolean;
 };
 
-export function DatePickerField({ dateFormat, label, onChange, value }: DatePickerFieldProps) {
+export function DatePickerField({
+  clearable = true,
+  dateFormat,
+  hideLabel = false,
+  label,
+  maximumDate,
+  minimumDate,
+  onChange,
+  value,
+}: DatePickerFieldProps) {
   const theme = useTheme();
   const { locale, t } = useTranslation();
   const [showPicker, setShowPicker] = useState(false);
@@ -33,7 +46,7 @@ export function DatePickerField({ dateFormat, label, onChange, value }: DatePick
 
   return (
     <View style={styles.container}>
-      <ThemedText type="smallBold">{label}</ThemedText>
+      {!hideLabel ? <ThemedText type="smallBold">{label}</ThemedText> : null}
       <View style={styles.row}>
         <Pressable
           accessibilityLabel={`${label}: ${displayValue}`}
@@ -47,7 +60,7 @@ export function DatePickerField({ dateFormat, label, onChange, value }: DatePick
             {displayValue}
           </ThemedText>
         </Pressable>
-        {value ? (
+        {clearable && value ? (
           <Pressable
             accessibilityLabel={`${t('common.clear')} ${label}`}
             accessibilityRole="button"
@@ -60,7 +73,15 @@ export function DatePickerField({ dateFormat, label, onChange, value }: DatePick
         ) : null}
       </View>
       {showPicker ? (
-        <DateTimePicker value={selectedDate} mode="date" display="default" onChange={handleChange} />
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          accentColor={theme.accent}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+          onChange={handleChange}
+        />
       ) : null}
     </View>
   );

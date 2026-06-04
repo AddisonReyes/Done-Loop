@@ -20,14 +20,58 @@ describe('habit draft normalization', () => {
         description: '  Daily pages  ',
         recurrenceType: 'custom',
         customIntervalDays: 3,
+        weeklyDays: [1, 2],
+        monthlyDays: [15],
         reminderTime: '07:30',
       })
     ).toMatchObject({
       name: 'Read',
       description: 'Daily pages',
       customIntervalDays: 3,
+      weeklyDays: undefined,
+      monthlyDays: undefined,
       reminderTime: '07:30',
       isActive: true,
+    });
+  });
+
+  it('normalizes selected recurrence days and clears fields for other recurrence types', () => {
+    expect(
+      normalizeHabitCreateDraft({
+        name: 'Gym',
+        recurrenceType: 'weekly',
+        customIntervalDays: 5,
+        weeklyDays: [5, 1, 5, 8, 0, 3],
+        monthlyDays: [15],
+      })
+    ).toMatchObject({
+      customIntervalDays: undefined,
+      weeklyDays: [1, 3, 5],
+      monthlyDays: undefined,
+    });
+
+    expect(
+      normalizeHabitUpdateDraft({
+        recurrenceType: 'monthly',
+        weeklyDays: [1],
+        monthlyDays: [31, 15, 31, 32, -1],
+      })
+    ).toMatchObject({
+      weeklyDays: undefined,
+      monthlyDays: [15, 31],
+    });
+
+    expect(
+      normalizeHabitUpdateDraft({
+        recurrenceType: 'daily',
+        customIntervalDays: 2,
+        weeklyDays: [1],
+        monthlyDays: [1],
+      })
+    ).toMatchObject({
+      customIntervalDays: undefined,
+      weeklyDays: undefined,
+      monthlyDays: undefined,
     });
   });
 
@@ -41,5 +85,10 @@ describe('habit draft normalization', () => {
       })
     ).toMatchObject({ customIntervalDays: undefined, reminderTime: undefined });
   });
-});
 
+  it('leaves unrelated partial update fields untouched', () => {
+    expect(normalizeHabitUpdateDraft({ notificationId: 'notification_1' })).toEqual({
+      notificationId: 'notification_1',
+    });
+  });
+});
