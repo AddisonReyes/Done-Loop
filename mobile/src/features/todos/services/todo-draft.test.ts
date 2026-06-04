@@ -22,5 +22,19 @@ describe('todo draft normalization', () => {
       normalizeTodoUpdateDraft({ title: 'Valid', priority: 1, dueAt: '2026-02-31' })
     ).toMatchObject({ dueAt: undefined });
   });
-});
 
+  it('preserves omitted fields on partial updates', () => {
+    expect(normalizeTodoUpdateDraft({ notificationId: 'notification_1' })).toEqual({
+      notificationId: 'notification_1',
+    });
+    expect(normalizeTodoUpdateDraft({ status: 'completed' })).toEqual({
+      status: 'completed',
+    });
+  });
+
+  it('allows explicit optional date clearing on updates', () => {
+    expect(normalizeTodoUpdateDraft({ dueAt: undefined })).toEqual({
+      dueAt: undefined,
+    });
+  });
+});

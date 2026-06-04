@@ -31,11 +31,19 @@ export function normalizeTodoUpdateDraft(input: UpdateTodoInput): UpdateTodoInpu
     return null;
   }
 
-  return {
-    ...input,
-    title,
-    description: description || undefined,
-    dueAt,
-  };
-}
+  const draft: UpdateTodoInput = { ...input };
 
+  if ('title' in input) {
+    draft.title = title;
+  }
+
+  if ('description' in input) {
+    draft.description = description || undefined;
+  }
+
+  if ('dueAt' in input) {
+    draft.dueAt = dueAt;
+  }
+
+  return draft;
+}

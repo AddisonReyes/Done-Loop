@@ -1,22 +1,22 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useState } from "react";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { HabitEditorModal } from '@/features/habits/components/habit-editor-modal';
-import { HabitFilterTabs } from '@/features/habits/components/habit-filter-tabs';
-import { HabitListItem } from '@/features/habits/components/habit-list-item';
-import { HabitMonthHistory } from '@/features/habits/components/habit-month-history';
-import { useHabits } from '@/features/habits/hooks/use-habits';
-import type { Habit } from '@/features/habits/types';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { useTranslation } from '@/i18n';
-import { FloatingCreateButton } from '@/shared/components/floating-create-button';
-import { EmptyState } from '@/shared/components/empty-state';
-import { SectionCard } from '@/shared/components/section-card';
-import { ScreenScaffold } from '@/shared/components/screen-scaffold';
-import { AnimatedListItem } from '@/shared/components/animated-list-item';
-import { formatDateKey } from '@/shared/utils/date';
+import { ThemedText } from "@/components/themed-text";
+import { Spacing } from "@/constants/theme";
+import { HabitEditorModal } from "@/features/habits/components/habit-editor-modal";
+import { HabitFilterTabs } from "@/features/habits/components/habit-filter-tabs";
+import { HabitListItem } from "@/features/habits/components/habit-list-item";
+import { HabitMonthHistory } from "@/features/habits/components/habit-month-history";
+import { useHabits } from "@/features/habits/hooks/use-habits";
+import type { Habit } from "@/features/habits/types";
+import { useTheme } from "@/hooks/use-theme";
+import { useTranslation } from "@/i18n";
+import { AnimatedListItem } from "@/shared/components/animated-list-item";
+import { EmptyState } from "@/shared/components/empty-state";
+import { FloatingCreateButton } from "@/shared/components/floating-create-button";
+import { ScreenScaffold } from "@/shared/components/screen-scaffold";
+import { SectionCard } from "@/shared/components/section-card";
+import { formatDateKey } from "@/shared/utils/date";
 
 const animatedListItemLimit = 24;
 
@@ -50,29 +50,39 @@ export default function HabitsScreen() {
   } = useHabits();
   const selectedHabits = useMemo(
     () => (selectedDateKey ? getHabitsForDate(selectedDateKey) : []),
-    [getHabitsForDate, selectedDateKey]
+    [getHabitsForDate, selectedDateKey],
   );
   const hasSelectedDateFilter = !!selectedDateKey;
   const listedDateKey = selectedDateKey ?? todayKey;
   const completedHabitIdsForListedDate = useMemo(
     () => getCompletedHabitIdsForDate(listedDateKey),
-    [getCompletedHabitIdsForDate, listedDateKey]
+    [getCompletedHabitIdsForDate, listedDateKey],
   );
   const listedHabits = useMemo(() => {
     if (!hasSelectedDateFilter) {
       return visibleHabits;
     }
 
-    if (filter === 'completedToday') {
-      return selectedHabits.filter((habit) => completedHabitIdsForListedDate.has(habit.id));
+    if (filter === "completedToday") {
+      return selectedHabits.filter((habit) =>
+        completedHabitIdsForListedDate.has(habit.id),
+      );
     }
 
-    if (filter === 'pendingToday') {
-      return selectedHabits.filter((habit) => !completedHabitIdsForListedDate.has(habit.id));
+    if (filter === "pendingToday") {
+      return selectedHabits.filter(
+        (habit) => !completedHabitIdsForListedDate.has(habit.id),
+      );
     }
 
     return selectedHabits;
-  }, [completedHabitIdsForListedDate, filter, hasSelectedDateFilter, selectedHabits, visibleHabits]);
+  }, [
+    completedHabitIdsForListedDate,
+    filter,
+    hasSelectedDateFilter,
+    selectedHabits,
+    visibleHabits,
+  ]);
   const dueHabitIdsForListedDate = useMemo(() => {
     if (hasSelectedDateFilter) {
       return new Set(selectedHabits.map((habit) => habit.id));
@@ -81,23 +91,33 @@ export default function HabitsScreen() {
     return new Set(getHabitsForDate(listedDateKey).map((habit) => habit.id));
   }, [getHabitsForDate, hasSelectedDateFilter, listedDateKey, selectedHabits]);
 
-  const selectedDateEmptyMessage = hasSelectedDateFilter && selectedHabits.length === 0
-    ? 'calendar.noHabitsForDay'
-    : 'habits.emptyFilter';
+  const selectedDateEmptyMessage =
+    hasSelectedDateFilter && selectedHabits.length === 0
+      ? "calendar.noHabitsForDay"
+      : "habits.emptyFilter";
 
   const listedStatusLabel = useCallback(
     (habit: Habit) => {
       if (!dueHabitIdsForListedDate.has(habit.id)) {
-        return t('habits.notScheduledToday');
+        return t("habits.notScheduledToday");
       }
 
       if (!hasSelectedDateFilter || listedDateKey === todayKey) {
         return undefined;
       }
 
-      return completedHabitIdsForListedDate.has(habit.id) ? t('habits.completed') : t('habits.pending');
+      return completedHabitIdsForListedDate.has(habit.id)
+        ? t("habits.completed")
+        : t("habits.pending");
     },
-    [completedHabitIdsForListedDate, dueHabitIdsForListedDate, hasSelectedDateFilter, listedDateKey, t, todayKey]
+    [
+      completedHabitIdsForListedDate,
+      dueHabitIdsForListedDate,
+      hasSelectedDateFilter,
+      listedDateKey,
+      t,
+      todayKey,
+    ],
   );
 
   const handleToggleHabit = useCallback(
@@ -108,13 +128,17 @@ export default function HabitsScreen() {
 
       void toggleCompletionForDate(habitId, listedDateKey);
     },
-    [dueHabitIdsForListedDate, listedDateKey, toggleCompletionForDate]
+    [dueHabitIdsForListedDate, listedDateKey, toggleCompletionForDate],
   );
 
-  const selectedDateLabel = selectedDateKey ? formatDateKey(selectedDateKey, locale, 'long') : '';
+  const selectedDateLabel = selectedDateKey
+    ? formatDateKey(selectedDateKey, locale, "long")
+    : "";
 
   const handleSelectDate = useCallback((dateKey: string) => {
-    setSelectedDateKey((current) => (current === dateKey ? undefined : dateKey));
+    setSelectedDateKey((current) =>
+      current === dateKey ? undefined : dateKey,
+    );
   }, []);
 
   const handlePreviousMonth = useCallback(() => {
@@ -128,11 +152,11 @@ export default function HabitsScreen() {
   }, [goToNextMonth]);
 
   const confirmDeleteHabit = (habit: Habit) => {
-    Alert.alert(t('habits.delete'), habit.name, [
-      { text: t('habits.cancel'), style: 'cancel' },
+    Alert.alert(t("habits.delete"), habit.name, [
+      { text: t("habits.cancel"), style: "cancel" },
       {
-        text: t('habits.delete'),
-        style: 'destructive',
+        text: t("habits.delete"),
+        style: "destructive",
         onPress: () => {
           void deleteHabit(habit.id);
         },
@@ -142,30 +166,35 @@ export default function HabitsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenScaffold title={t('habits.title')}>
+      <ScreenScaffold title={t("habits.title")}>
         <View style={styles.summary}>
           <View
             style={[
               styles.summaryItem,
-              { backgroundColor: theme.accentSoft, borderColor: theme.borderStrong },
-            ]}>
+              {
+                backgroundColor: theme.accentSoft,
+                borderColor: theme.borderStrong,
+              },
+            ]}
+          >
             <ThemedText type="subtitle" style={styles.summaryNumber}>
               {totalCompletedToday}
             </ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {t('habits.completedSummary')}
+              {t("habits.completedSummary")}
             </ThemedText>
           </View>
           <View
             style={[
               styles.summaryItem,
               { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
-            ]}>
+            ]}
+          >
             <ThemedText type="subtitle" style={styles.summaryNumber}>
               {pendingCount}
             </ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {t('habits.pendingSummary')}
+              {t("habits.pendingSummary")}
             </ThemedText>
           </View>
         </View>
@@ -176,7 +205,7 @@ export default function HabitsScreen() {
 
         <View style={styles.calendarSection}>
           <ThemedText type="smallBold" themeColor="accentStrong">
-            {t('calendar.habits')}
+            {t("calendar.habits")}
           </ThemedText>
           <HabitMonthHistory
             monthLabel={monthLabel}
@@ -194,17 +223,29 @@ export default function HabitsScreen() {
             style={[
               styles.selectedDayContainer,
               { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
-            ]}>
-            <ThemedText type="smallBold" themeColor="accentStrong" style={styles.selectedDayText}>
-              {t('calendar.selectedDay', { date: selectedDateLabel })}
+            ]}
+          >
+            <ThemedText
+              type="smallBold"
+              themeColor="accentStrong"
+              style={styles.selectedDayText}
+            >
+              {t("calendar.selectedDay", { date: selectedDateLabel })}
             </ThemedText>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={t('calendar.clearSelection')}
+              accessibilityLabel={t("calendar.clearSelection")}
               onPress={() => setSelectedDateKey(undefined)}
-              style={[styles.clearButton, { backgroundColor: theme.backgroundSelected, borderColor: theme.border }]}>
+              style={[
+                styles.clearButton,
+                {
+                  backgroundColor: theme.backgroundSelected,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
               <ThemedText type="smallBold" themeColor="textSecondary">
-                {t('common.clear')}
+                {t("common.clear")}
               </ThemedText>
             </Pressable>
           </View>
@@ -218,14 +259,14 @@ export default function HabitsScreen() {
 
         {isLoading ? (
           <ThemedText type="small" themeColor="textSecondary">
-            {t('habits.loading')}
+            {t("habits.loading")}
           </ThemedText>
         ) : null}
 
         {!isLoading && habits.length === 0 ? (
           <EmptyState
-            message={t('habits.empty')}
-            actionLabel={t('habits.create')}
+            message={t("habits.empty")}
+            actionLabel={t("habits.create")}
             onAction={() => setIsCreateModalVisible(true)}
           />
         ) : null}
@@ -236,7 +277,11 @@ export default function HabitsScreen() {
 
         <View style={styles.list}>
           {listedHabits.map((habit, index) => (
-            <AnimatedListItem key={habit.id} animate={index < animatedListItemLimit} delay={index * 18}>
+            <AnimatedListItem
+              key={habit.id}
+              animate={index < animatedListItemLimit}
+              delay={index * 18}
+            >
               <HabitListItem
                 habit={habit}
                 completedToday={completedHabitIdsForListedDate.has(habit.id)}
@@ -266,7 +311,10 @@ export default function HabitsScreen() {
         visible={!!editingHabit}
         onClose={() => setEditingHabit(null)}
         onSubmit={async (draft) => {
-          if (editingHabit && (await updateHabitFromDraft(editingHabit.id, draft))) {
+          if (
+            editingHabit &&
+            (await updateHabitFromDraft(editingHabit.id, draft))
+          ) {
             setEditingHabit(null);
           }
         }}
@@ -281,12 +329,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summary: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
   summaryItem: {
-    flexBasis: '48%',
+    flexBasis: "48%",
     flex: 1,
     minHeight: 92,
     minWidth: 136,
@@ -294,7 +342,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: Spacing.three,
     gap: Spacing.one,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   summaryNumber: {
     fontSize: 28,
@@ -308,13 +356,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   selectedDayContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 18,
     borderWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     minHeight: 64,
     padding: Spacing.three,
   },
@@ -325,7 +373,7 @@ const styles = StyleSheet.create({
   clearButton: {
     borderRadius: 14,
     borderWidth: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     minHeight: 40,
     paddingHorizontal: Spacing.three,
   },

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const { spawn, spawnSync } = require('node:child_process');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
+const { spawn, spawnSync } = require("node:child_process");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
 
 const bootTimeoutMs = 300_000;
 
@@ -18,15 +18,15 @@ function loadEnvFile(filePath) {
     return;
   }
 
-  const lines = fs.readFileSync(filePath, 'utf8').split('\n');
+  const lines = fs.readFileSync(filePath, "utf8").split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) {
+    if (!trimmed || trimmed.startsWith("#")) {
       continue;
     }
 
-    const separatorIndex = trimmed.indexOf('=');
+    const separatorIndex = trimmed.indexOf("=");
     if (separatorIndex === -1) {
       continue;
     }
@@ -35,7 +35,7 @@ function loadEnvFile(filePath) {
     const rawValue = trimmed
       .slice(separatorIndex + 1)
       .trim()
-      .replace(/^['"]|['"]$/g, '');
+      .replace(/^['"]|['"]$/g, "");
     const value = expandHomePath(rawValue);
 
     if (key && process.env[key] === undefined) {
@@ -44,18 +44,22 @@ function loadEnvFile(filePath) {
   }
 }
 
-loadEnvFile(path.resolve(__dirname, '..', '.env.local'));
+loadEnvFile(path.resolve(__dirname, "..", ".env.local"));
 
 function resolveExecutable(name, relativeCandidates) {
-  const direct = spawnSync('sh', ['-lc', `command -v ${name}`], { encoding: 'utf8' });
+  const direct = spawnSync("sh", ["-lc", `command -v ${name}`], {
+    encoding: "utf8",
+  });
   const directPath = direct.stdout.trim();
 
   if (directPath) {
     return directPath;
   }
 
-  const sdkRoots = [process.env.ANDROID_HOME, process.env.ANDROID_SDK_ROOT]
-    .filter(Boolean);
+  const sdkRoots = [
+    process.env.ANDROID_HOME,
+    process.env.ANDROID_SDK_ROOT,
+  ].filter(Boolean);
 
   for (const sdkRoot of sdkRoots) {
     for (const candidate of relativeCandidates) {
@@ -71,8 +75,8 @@ function resolveExecutable(name, relativeCandidates) {
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
-    encoding: 'utf8',
-    stdio: options.stdio ?? 'pipe',
+    encoding: "utf8",
+    stdio: options.stdio ?? "pipe",
   });
 
   if (result.error) {
@@ -87,29 +91,37 @@ function hasBootedDevice(adbPath) {
     return false;
   }
 
-  const bootState = run(adbPath, ['shell', 'getprop', 'sys.boot_completed']).stdout.trim();
-  const bootAnimation = run(adbPath, ['shell', 'getprop', 'init.svc.bootanim']).stdout.trim();
-  return bootState === '1' && bootAnimation === 'stopped';
+  const bootState = run(adbPath, [
+    "shell",
+    "getprop",
+    "sys.boot_completed",
+  ]).stdout.trim();
+  const bootAnimation = run(adbPath, [
+    "shell",
+    "getprop",
+    "init.svc.bootanim",
+  ]).stdout.trim();
+  return bootState === "1" && bootAnimation === "stopped";
 }
 
 function hasConnectedDevice(adbPath) {
-  return run(adbPath, ['devices']).stdout
-    .split('\n')
+  return run(adbPath, ["devices"])
+    .stdout.split("\n")
     .slice(1)
     .some((line) => /\tdevice$/.test(line.trim()));
 }
 
 function listAvds(emulatorPath) {
-  return run(emulatorPath, ['-list-avds']).stdout
-    .split('\n')
+  return run(emulatorPath, ["-list-avds"])
+    .stdout.split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
 }
 
 function startEmulator(emulatorPath, avdName) {
-  const child = spawn(emulatorPath, ['-avd', avdName], {
+  const child = spawn(emulatorPath, ["-avd", avdName], {
     detached: true,
-    stdio: 'ignore',
+    stdio: "ignore",
   });
   child.unref();
 }
@@ -132,15 +144,23 @@ async function waitForBoot(adbPath) {
     await new Promise((resolve) => setTimeout(resolve, 2_000));
   }
 
-  throw new Error('Android emulator did not finish booting in time. If it is still opening, run npm run dev again.');
+  throw new Error(
+    "Android emulator did not finish booting in time. If it is still opening, run npm run dev again.",
+  );
 }
 
 async function ensureAndroidDevice() {
-  const adbPath = resolveExecutable('adb', [path.join('platform-tools', 'adb')]);
-  const emulatorPath = resolveExecutable('emulator', [path.join('emulator', 'emulator')]);
+  const adbPath = resolveExecutable("adb", [
+    path.join("platform-tools", "adb"),
+  ]);
+  const emulatorPath = resolveExecutable("emulator", [
+    path.join("emulator", "emulator"),
+  ]);
 
   if (!adbPath) {
-    throw new Error('adb was not found. Set ANDROID_HOME or ANDROID_SDK_ROOT to your Android SDK path.');
+    throw new Error(
+      "adb was not found. Set ANDROID_HOME or ANDROID_SDK_ROOT to your Android SDK path.",
+    );
   }
 
   if (hasBootedDevice(adbPath)) {
@@ -148,12 +168,16 @@ async function ensureAndroidDevice() {
   }
 
   if (!emulatorPath) {
-    throw new Error('Android emulator was not found. Set ANDROID_HOME or ANDROID_SDK_ROOT to your Android SDK path.');
+    throw new Error(
+      "Android emulator was not found. Set ANDROID_HOME or ANDROID_SDK_ROOT to your Android SDK path.",
+    );
   }
 
   const avds = listAvds(emulatorPath);
   if (avds.length === 0) {
-    throw new Error('No Android Virtual Devices found. Create one in Android Studio first.');
+    throw new Error(
+      "No Android Virtual Devices found. Create one in Android Studio first.",
+    );
   }
 
   console.log(`Starting Android emulator: ${avds[0]}`);
@@ -164,13 +188,13 @@ async function ensureAndroidDevice() {
 async function main() {
   await ensureAndroidDevice();
 
-  const npmCommand = os.platform() === 'win32' ? 'npx.cmd' : 'npx';
-  const expo = spawn(npmCommand, ['expo', 'start', '--android'], {
-    stdio: 'inherit',
+  const npmCommand = os.platform() === "win32" ? "npx.cmd" : "npx";
+  const expo = spawn(npmCommand, ["expo", "start", "--android"], {
+    stdio: "inherit",
     shell: false,
   });
 
-  expo.on('exit', (code) => {
+  expo.on("exit", (code) => {
     process.exit(code ?? 0);
   });
 }

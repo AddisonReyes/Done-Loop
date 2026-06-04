@@ -109,7 +109,8 @@ export function useTodos() {
         const settings = await SettingsRepository.get();
         const nextTitle = draft.title ?? todo.title;
         const nextDueAt = 'dueAt' in input ? draft.dueAt : todo.dueAt;
-        const notificationId = settings.notificationsEnabled && todo.status === 'pending'
+        const nextStatus = draft.status ?? todo.status;
+        const notificationId = settings.notificationsEnabled && nextStatus === 'pending'
           ? await NotificationService.scheduleTodoReminderAsync({
               title: nextTitle,
               dueAt: nextDueAt,

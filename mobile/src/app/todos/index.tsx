@@ -1,31 +1,31 @@
-import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useState } from "react";
+import { Alert, StyleSheet, View } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { TodoEditorModal } from '@/features/todos/components/todo-editor-modal';
-import { TodoListItem } from '@/features/todos/components/todo-list-item';
-import { useTodos } from '@/features/todos/hooks/use-todos';
-import type { TodoSort, TodoViewMode } from '@/features/todos/hooks/use-todos';
-import type { Todo } from '@/features/todos/types';
-import { Spacing } from '@/constants/theme';
-import { useTranslation } from '@/i18n';
-import { FloatingCreateButton } from '@/shared/components/floating-create-button';
-import { EmptyState } from '@/shared/components/empty-state';
-import { ScreenScaffold } from '@/shared/components/screen-scaffold';
-import { SectionCard } from '@/shared/components/section-card';
-import { SegmentedControl } from '@/shared/components/segmented-control';
-import { AnimatedListItem } from '@/shared/components/animated-list-item';
-import { formatDateKey, isDateKey } from '@/shared/utils/date';
+import { ThemedText } from "@/components/themed-text";
+import { Spacing } from "@/constants/theme";
+import { TodoEditorModal } from "@/features/todos/components/todo-editor-modal";
+import { TodoListItem } from "@/features/todos/components/todo-list-item";
+import type { TodoSort, TodoViewMode } from "@/features/todos/hooks/use-todos";
+import { useTodos } from "@/features/todos/hooks/use-todos";
+import type { Todo } from "@/features/todos/types";
+import { useTranslation } from "@/i18n";
+import { AnimatedListItem } from "@/shared/components/animated-list-item";
+import { EmptyState } from "@/shared/components/empty-state";
+import { FloatingCreateButton } from "@/shared/components/floating-create-button";
+import { ScreenScaffold } from "@/shared/components/screen-scaffold";
+import { SectionCard } from "@/shared/components/section-card";
+import { SegmentedControl } from "@/shared/components/segmented-control";
+import { formatDateKey, isDateKey } from "@/shared/utils/date";
 
 const sorts: { value: TodoSort; labelKey: string }[] = [
-  { value: 'priority', labelKey: 'todos.sorts.priority' },
-  { value: 'dueAt', labelKey: 'todos.sorts.dueAt' },
-  { value: 'createdAt', labelKey: 'todos.sorts.createdAt' },
+  { value: "priority", labelKey: "todos.sorts.priority" },
+  { value: "dueAt", labelKey: "todos.sorts.dueAt" },
+  { value: "createdAt", labelKey: "todos.sorts.createdAt" },
 ];
 
 const modes: { value: TodoViewMode; labelKey: string }[] = [
-  { value: 'list', labelKey: 'todos.modes.list' },
-  { value: 'calendar', labelKey: 'todos.modes.calendar' },
+  { value: "list", labelKey: "todos.modes.list" },
+  { value: "calendar", labelKey: "todos.modes.calendar" },
 ];
 const animatedListItemLimit = 24;
 
@@ -36,11 +36,11 @@ export default function TodosScreen() {
   const todos = useTodos();
 
   const confirmDeleteTodo = (todo: Todo) => {
-    Alert.alert(t('todos.actions.delete'), todo.title, [
-      { text: t('todos.actions.cancel'), style: 'cancel' },
+    Alert.alert(t("todos.actions.delete"), todo.title, [
+      { text: t("todos.actions.cancel"), style: "cancel" },
       {
-        text: t('todos.actions.delete'),
-        style: 'destructive',
+        text: t("todos.actions.delete"),
+        style: "destructive",
         onPress: () => {
           void todos.deleteTodo(todo);
         },
@@ -50,17 +50,23 @@ export default function TodosScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenScaffold title={t('todos.title')}>
+      <ScreenScaffold title={t("todos.title")}>
         <SectionCard>
           <SegmentedControl
             value={todos.viewMode}
             onChange={todos.setViewMode}
-            options={modes.map((mode) => ({ value: mode.value, label: t(mode.labelKey) }))}
+            options={modes.map((mode) => ({
+              value: mode.value,
+              label: t(mode.labelKey),
+            }))}
           />
           <SegmentedControl
             value={todos.sort}
             onChange={todos.setSort}
-            options={sorts.map((sort) => ({ value: sort.value, label: t(sort.labelKey) }))}
+            options={sorts.map((sort) => ({
+              value: sort.value,
+              label: t(sort.labelKey),
+            }))}
           />
         </SectionCard>
 
@@ -72,19 +78,25 @@ export default function TodosScreen() {
 
         {todos.isLoading ? (
           <ThemedText type="small" themeColor="textSecondary">
-            {t('todos.loading')}
+            {t("todos.loading")}
           </ThemedText>
         ) : null}
 
-        {todos.viewMode === 'calendar' ? (
+        {todos.viewMode === "calendar" ? (
           <View style={styles.list}>
             {todos.calendarGroups.map(([dateKey, groupedTodos]) => (
               <View key={dateKey} style={styles.calendarGroup}>
                 <ThemedText type="smallBold" themeColor="accent">
-                  {isDateKey(dateKey) ? formatDateKey(dateKey, locale, todos.dateFormat) : dateKey}
+                  {isDateKey(dateKey)
+                    ? formatDateKey(dateKey, locale, todos.dateFormat)
+                    : dateKey}
                 </ThemedText>
                 {groupedTodos.map((todo, index) => (
-                  <AnimatedListItem key={todo.id} animate={index < animatedListItemLimit} delay={index * 18}>
+                  <AnimatedListItem
+                    key={todo.id}
+                    animate={index < animatedListItemLimit}
+                    delay={index * 18}
+                  >
                     <TodoListItem
                       todo={todo}
                       dateLabel={todos.getTodoDateLabel(todo)}
@@ -101,7 +113,11 @@ export default function TodosScreen() {
         ) : (
           <View style={styles.list}>
             {todos.sortedTodos.map((todo, index) => (
-              <AnimatedListItem key={todo.id} animate={index < animatedListItemLimit} delay={index * 18}>
+              <AnimatedListItem
+                key={todo.id}
+                animate={index < animatedListItemLimit}
+                delay={index * 18}
+              >
                 <TodoListItem
                   todo={todo}
                   dateLabel={todos.getTodoDateLabel(todo)}
@@ -117,8 +133,8 @@ export default function TodosScreen() {
 
         {!todos.isLoading && todos.sortedTodos.length === 0 ? (
           <EmptyState
-            message={t('todos.empty')}
-            actionLabel={t('todos.form.create')}
+            message={t("todos.empty")}
+            actionLabel={t("todos.form.create")}
             onAction={() => setIsCreateModalVisible(true)}
           />
         ) : null}
@@ -139,7 +155,10 @@ export default function TodosScreen() {
         visible={!!editingTodo}
         onClose={() => setEditingTodo(null)}
         onSubmit={async (draft) => {
-          if (editingTodo && (await todos.updateTodoFromDraft(editingTodo, draft))) {
+          if (
+            editingTodo &&
+            (await todos.updateTodoFromDraft(editingTodo, draft))
+          ) {
             setEditingTodo(null);
           }
         }}

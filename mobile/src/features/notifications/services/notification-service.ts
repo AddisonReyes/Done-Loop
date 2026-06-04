@@ -5,6 +5,7 @@ import { AppState } from 'react-native';
 import { HabitCompletionRepository, HabitRepository } from '@/features/habits/repositories';
 import { getHabitsDueOnDate } from '@/features/habits/services/habit-recurrence';
 import type { Habit } from '@/features/habits/types';
+import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
 import type { UserLanguagePreference } from '@/features/settings/types';
 import { translations } from '@/i18n/translations';
 import { emitAppEvent } from '@/shared/events/app-events';
@@ -164,6 +165,12 @@ async function dismissNotificationAsync(
   }
 }
 
+function hasDismissAllNotificationsAsync(
+  notifications: NotificationsModule
+): notifications is NotificationsModule & { dismissAllNotificationsAsync: () => Promise<void> | void } {
+  return typeof (notifications as { dismissAllNotificationsAsync?: unknown }).dismissAllNotificationsAsync === 'function';
+}
+
 async function handleHabitCompletionActionAsync(
   notifications: NotificationsModule,
   habitId: string,
@@ -183,6 +190,13 @@ async function handleHabitCompletionActionAsync(
     completed: true,
   });
   await dismissNotificationAsync(notifications, notificationId);
+  const settings = await SettingsRepository.get();
+  if (!settings.notificationsEnabled) {
+    await HabitRepository.update(habitId, { notificationId: undefined });
+    emitAppEvent('habitsChanged');
+    return;
+  }
+
   const nextNotificationId = await NotificationService.scheduleHabitReminderAsync({
     habit,
     language,
@@ -209,12 +223,17 @@ async function handleHabitSnoozeActionAsync(
     return;
   }
 
+  await dismissNotificationAsync(notifications, notificationId);
+  const settings = await SettingsRepository.get();
+  if (!settings.notificationsEnabled) {
+    await HabitRepository.update(habitId, { notificationId: undefined });
+    return;
+  }
+
   const snoozeNotificationId = await NotificationService.scheduleHabitSnoozeReminderAsync({
     habit,
     language,
   });
-
-  await dismissNotificationAsync(notifications, notificationId);
 
   if (snoozeNotificationId) {
     await HabitRepository.update(habitId, { notificationId: snoozeNotificationId });
@@ -416,6 +435,9 @@ export const NotificationService = {
     }
 
     await notifications.cancelAllScheduledNotificationsAsync();
+    if (hasDismissAllNotificationsAsync(notifications)) {
+      await Promise.resolve(notifications.dismissAllNotificationsAsync()).catch(() => undefined);
+    }
   },
 };
 

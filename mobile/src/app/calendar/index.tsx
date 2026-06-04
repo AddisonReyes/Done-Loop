@@ -1,18 +1,18 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { HabitMonthHistory } from '@/features/habits/components/habit-month-history';
-import { useHabits } from '@/features/habits/hooks/use-habits';
-import { getHabitRecurrenceDetail } from '@/features/habits/services/habit-recurrence-labels';
-import type { Habit } from '@/features/habits/types';
-import { TodoListItem } from '@/features/todos/components/todo-list-item';
-import { useTodos } from '@/features/todos/hooks/use-todos';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { useTranslation } from '@/i18n';
-import { ScreenScaffold } from '@/shared/components/screen-scaffold';
-import { formatDateKey, isDateKey } from '@/shared/utils/date';
+import { ThemedText } from "@/components/themed-text";
+import { Spacing } from "@/constants/theme";
+import { HabitMonthHistory } from "@/features/habits/components/habit-month-history";
+import { useHabits } from "@/features/habits/hooks/use-habits";
+import { getHabitRecurrenceDetail } from "@/features/habits/services/habit-recurrence-labels";
+import type { Habit } from "@/features/habits/types";
+import { TodoListItem } from "@/features/todos/components/todo-list-item";
+import { useTodos } from "@/features/todos/hooks/use-todos";
+import { useTheme } from "@/hooks/use-theme";
+import { useTranslation } from "@/i18n";
+import { ScreenScaffold } from "@/shared/components/screen-scaffold";
+import { formatDateKey, isDateKey } from "@/shared/utils/date";
 
 export default function CalendarScreen() {
   const { locale, t } = useTranslation();
@@ -29,12 +29,16 @@ export default function CalendarScreen() {
     : monthlyTodoGroups;
   const selectedHabits = useMemo(
     () => (selectedDateKey ? habits.getHabitsForDate(selectedDateKey) : []),
-    [habits, selectedDateKey]
+    [habits, selectedDateKey],
   );
-  const selectedDateLabel = selectedDateKey ? formatDateKey(selectedDateKey, locale, todos.dateFormat) : '';
+  const selectedDateLabel = selectedDateKey
+    ? formatDateKey(selectedDateKey, locale, todos.dateFormat)
+    : "";
 
   const handleSelectDate = useCallback((dateKey: string) => {
-    setSelectedDateKey((current) => (current === dateKey ? undefined : dateKey));
+    setSelectedDateKey((current) =>
+      current === dateKey ? undefined : dateKey,
+    );
   }, []);
 
   const goToPreviousMonth = useCallback(() => {
@@ -48,10 +52,10 @@ export default function CalendarScreen() {
   }, [habits]);
 
   return (
-    <ScreenScaffold title={t('calendar.title')}>
+    <ScreenScaffold title={t("calendar.title")}>
       <View style={styles.section}>
         <ThemedText type="smallBold" themeColor="accentStrong">
-          {t('calendar.habits')}
+          {t("calendar.habits")}
         </ThemedText>
         <HabitMonthHistory
           monthLabel={habits.monthLabel}
@@ -67,17 +71,29 @@ export default function CalendarScreen() {
             style={[
               styles.selectedDayBar,
               { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
-            ]}>
-            <ThemedText type="smallBold" themeColor="accentStrong" style={styles.selectedDayText}>
-              {t('calendar.selectedDay', { date: selectedDateLabel })}
+            ]}
+          >
+            <ThemedText
+              type="smallBold"
+              themeColor="accentStrong"
+              style={styles.selectedDayText}
+            >
+              {t("calendar.selectedDay", { date: selectedDateLabel })}
             </ThemedText>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={t('calendar.clearSelection')}
+              accessibilityLabel={t("calendar.clearSelection")}
               onPress={() => setSelectedDateKey(undefined)}
-              style={[styles.clearButton, { backgroundColor: theme.backgroundSelected, borderColor: theme.border }]}>
+              style={[
+                styles.clearButton,
+                {
+                  backgroundColor: theme.backgroundSelected,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
               <ThemedText type="smallBold" themeColor="textSecondary">
-                {t('common.clear')}
+                {t("common.clear")}
               </ThemedText>
             </Pressable>
           </View>
@@ -85,7 +101,7 @@ export default function CalendarScreen() {
         {selectedDateKey ? (
           selectedHabits.length === 0 ? (
             <ThemedText type="small" themeColor="textSecondary">
-              {t('calendar.noHabitsForDay')}
+              {t("calendar.noHabitsForDay")}
             </ThemedText>
           ) : (
             <View style={styles.group}>
@@ -99,11 +115,11 @@ export default function CalendarScreen() {
 
       <View style={styles.section}>
         <ThemedText type="smallBold" themeColor="accentStrong">
-          {t('calendar.tasks')}
+          {t("calendar.tasks")}
         </ThemedText>
         {visibleTodoGroups.length === 0 ? (
           <ThemedText type="small" themeColor="textSecondary">
-            {t(selectedDateKey ? 'calendar.noTasksForDay' : 'calendar.noTasks')}
+            {t(selectedDateKey ? "calendar.noTasksForDay" : "calendar.noTasks")}
           </ThemedText>
         ) : (
           visibleTodoGroups.map(([dateKey, groupedTodos]) => (
@@ -135,7 +151,12 @@ function CalendarHabitItem({ habit }: { habit: Habit }) {
   const recurrenceDetail = getHabitRecurrenceDetail(habit, t);
 
   return (
-    <View style={[styles.habitItem, { backgroundColor: theme.surfaceSoft, borderColor: theme.border }]}>
+    <View
+      style={[
+        styles.habitItem,
+        { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+      ]}
+    >
       <View style={styles.habitItemCopy}>
         <ThemedText type="smallBold">{habit.name}</ThemedText>
         {habit.description ? (
@@ -145,11 +166,19 @@ function CalendarHabitItem({ habit }: { habit: Habit }) {
         ) : null}
       </View>
       <View style={styles.habitMeta}>
-        <ThemedText type="smallBold" themeColor="accentStrong" style={styles.habitMetaText}>
+        <ThemedText
+          type="smallBold"
+          themeColor="accentStrong"
+          style={styles.habitMetaText}
+        >
           {t(`habits.recurrences.${habit.recurrenceType}`)}
         </ThemedText>
         {recurrenceDetail ? (
-          <ThemedText type="small" themeColor="textSecondary" style={styles.habitMetaText}>
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            style={styles.habitMetaText}
+          >
             {recurrenceDetail.value}
           </ThemedText>
         ) : null}
@@ -163,13 +192,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   selectedDayBar: {
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 18,
     borderWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     minHeight: 64,
     padding: Spacing.three,
   },
@@ -180,7 +209,7 @@ const styles = StyleSheet.create({
   clearButton: {
     borderRadius: 14,
     borderWidth: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     minHeight: 40,
     paddingHorizontal: Spacing.three,
   },
@@ -188,13 +217,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   habitItem: {
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
     borderRadius: 16,
     borderWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     minHeight: 64,
     padding: Spacing.three,
   },
@@ -204,11 +233,11 @@ const styles = StyleSheet.create({
     minWidth: 128,
   },
   habitMeta: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     gap: Spacing.one,
     minWidth: 88,
   },
   habitMetaText: {
-    textAlign: 'right',
+    textAlign: "right",
   },
 });

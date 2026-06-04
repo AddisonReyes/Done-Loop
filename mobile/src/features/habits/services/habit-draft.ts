@@ -104,11 +104,16 @@ export function normalizeHabitCreateDraft(input: CreateHabitInput): CreateHabitI
     return null;
   }
 
+  const recurrence = normalizeCreateRecurrence(input);
+  if (input.recurrenceType === 'custom' && !recurrence.customIntervalDays) {
+    return null;
+  }
+
   return {
     ...input,
     name,
     description: description || undefined,
-    ...normalizeCreateRecurrence(input),
+    ...recurrence,
     reminderTime: isReminderTime(input.reminderTime) ? input.reminderTime : undefined,
     isActive: input.isActive ?? true,
   };
@@ -122,9 +127,14 @@ export function normalizeHabitUpdateDraft(input: UpdateHabitInput): UpdateHabitI
     return null;
   }
 
+  const recurrence = normalizeUpdateRecurrence(input);
+  if (input.recurrenceType === 'custom' && !recurrence.customIntervalDays) {
+    return null;
+  }
+
   const draft: UpdateHabitInput = {
     ...input,
-    ...normalizeUpdateRecurrence(input),
+    ...recurrence,
   };
 
   if ('name' in input) {

@@ -86,6 +86,56 @@ describe('habit draft normalization', () => {
     ).toMatchObject({ customIntervalDays: undefined, reminderTime: undefined });
   });
 
+  it('rejects custom recurrence drafts without a valid interval', () => {
+    expect(
+      normalizeHabitCreateDraft({
+        name: 'Stretch',
+        recurrenceType: 'custom',
+      })
+    ).toBeNull();
+    expect(
+      normalizeHabitCreateDraft({
+        name: 'Stretch',
+        recurrenceType: 'custom',
+        customIntervalDays: 0,
+      })
+    ).toBeNull();
+    expect(
+      normalizeHabitUpdateDraft({
+        recurrenceType: 'custom',
+        customIntervalDays: -1,
+      })
+    ).toBeNull();
+    expect(
+      normalizeHabitUpdateDraft({
+        recurrenceType: 'custom',
+        customIntervalDays: 1.5,
+      })
+    ).toBeNull();
+  });
+
+  it('preserves valid custom recurrence intervals', () => {
+    expect(
+      normalizeHabitCreateDraft({
+        name: 'Stretch',
+        recurrenceType: 'custom',
+        customIntervalDays: 4,
+      })
+    ).toMatchObject({
+      recurrenceType: 'custom',
+      customIntervalDays: 4,
+    });
+    expect(
+      normalizeHabitUpdateDraft({
+        recurrenceType: 'custom',
+        customIntervalDays: 2,
+      })
+    ).toMatchObject({
+      recurrenceType: 'custom',
+      customIntervalDays: 2,
+    });
+  });
+
   it('leaves unrelated partial update fields untouched', () => {
     expect(normalizeHabitUpdateDraft({ notificationId: 'notification_1' })).toEqual({
       notificationId: 'notification_1',

@@ -133,7 +133,7 @@ function HabitEditorForm({ habit, onSubmit }: Pick<HabitEditorModalProps, 'habit
     remindersEnabled: habit?.remindersEnabled ?? false,
     reminderTime: habit?.reminderTime,
   });
-  const disabled = draft.name.trim().length === 0;
+  const disabled = draft.name.trim().length === 0 || (draft.remindersEnabled && !draft.reminderTime);
   const monthlyLimitReached = draft.monthlyDays.length >= maxMonthlyRecurrenceItems;
   const recurrenceOptions = recurrenceTypes.map((recurrenceType) => ({
     value: recurrenceType,
@@ -219,6 +219,13 @@ function HabitEditorForm({ habit, onSubmit }: Pick<HabitEditorModalProps, 'habit
       const nextMonthlyDays = current.monthlyDays.filter((_, currentIndex) => currentIndex !== index);
       return { ...current, monthlyDays: nextMonthlyDays.length > 0 ? nextMonthlyDays : current.monthlyDays };
     });
+  };
+
+  const setReminderEnabled = (remindersEnabled: boolean) => {
+    setDraft((current) => ({
+      ...current,
+      remindersEnabled,
+    }));
   };
 
   return (
@@ -369,7 +376,7 @@ function HabitEditorForm({ habit, onSubmit }: Pick<HabitEditorModalProps, 'habit
             thumbColor={draft.remindersEnabled ? theme.accent : theme.textMuted}
             trackColor={{ false: theme.backgroundSelected, true: theme.accentSoft }}
             value={draft.remindersEnabled}
-            onValueChange={(remindersEnabled) => setDraft((current) => ({ ...current, remindersEnabled }))}
+            onValueChange={setReminderEnabled}
             style={styles.switchControl}
           />
         </View>
