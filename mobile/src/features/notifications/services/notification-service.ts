@@ -110,6 +110,11 @@ async function findHabitReminderDatesAsync(
   limit = habitReminderScheduledOccurrences
 ): Promise<Date[]> {
   const reminderDates: Date[] = [];
+  const completedDateKeys = await HabitCompletionRepository.listCompletedDateKeysByHabitId(
+    habit.id,
+    toDateKey(fromDate),
+    toDateKey(addDays(fromDate, habitReminderLookaheadDays))
+  ).catch(() => new Set<string>());
 
   for (let offset = 0; offset <= habitReminderLookaheadDays && reminderDates.length < limit; offset += 1) {
     const candidate = addDays(fromDate, offset);
@@ -122,7 +127,7 @@ async function findHabitReminderDatesAsync(
     const reminderDate = new Date(candidate);
     reminderDate.setHours(reminderTime.hour, reminderTime.minute, 0, 0);
 
-    if (reminderDate.getTime() <= Date.now() || (await isHabitCompletedOnDate(habit.id, dateKey))) {
+    if (reminderDate.getTime() <= Date.now() || completedDateKeys.has(dateKey)) {
       continue;
     }
 
@@ -197,6 +202,23 @@ function getScheduledNotificationData(notification: unknown): Record<string, unk
 function getScheduledNotificationId(notification: unknown): string | null {
   const identifier = (notification as { identifier?: unknown }).identifier;
   return typeof identifier === 'string' ? identifier : null;
+}
+
+function getScheduledHabitReminderCounts(scheduledNotifications: unknown[]): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const notification of scheduledNotifications) {
+    const data = getScheduledNotificationData(notification);
+    const habitId = data?.habitId;
+
+    if (data?.type !== 'habit_reminder' || typeof habitId !== 'string') {
+      continue;
+    }
+
+    counts.set(habitId, (counts.get(habitId) ?? 0) + 1);
+  }
+
+  return counts;
 }
 
 async function dismissNotificationAsync(
@@ -349,6 +371,10 @@ async function clearLastNotificationResponseAsync(notifications: NotificationsMo
 }
 
 export const NotificationService = {
+  getHabitReminderScheduledOccurrenceTarget(): number {
+    return habitReminderScheduledOccurrences;
+  },
+
   async configureForegroundHandlingAsync(): Promise<boolean> {
     const notifications = await getNotificationsModuleAsync();
     if (!notifications) {
@@ -577,6 +603,24 @@ export const NotificationService = {
         await Promise.resolve(notifications.cancelScheduledNotificationAsync(notificationId)).catch(() => undefined);
       })
     );
+  },
+
+  async getScheduledHabitReminderCountsAsync(): Promise<Map<string, number>> {
+    const notifications = await getNotificationsModuleAsync();
+    if (!notifications) {
+      return new Map<string, number>();
+    }
+
+    const getAllScheduled = (notifications as NotificationsModule & {
+      getAllScheduledNotificationsAsync?: () => Promise<unknown[]>;
+    }).getAllScheduledNotificationsAsync;
+
+    if (typeof getAllScheduled !== 'function') {
+      return new Map<string, number>();
+    }
+
+    const scheduledNotifications = await getAllScheduled.call(notifications).catch(() => []);
+    return getScheduledHabitReminderCounts(scheduledNotifications);
   },
 
   async cancelAllAsync(): Promise<void> {

@@ -101,6 +101,27 @@ describe('HabitCompletionRepository', () => {
     );
   });
 
+  it('lists completed date keys for one habit in a date range', async () => {
+    const database = {
+      getAllAsync: jest.fn(async () => [
+        { date: '2026-05-02' },
+        { date: '2026-05-03' },
+        { date: 'not-a-date' },
+      ]),
+    };
+    mockedGetDatabaseAsync.mockResolvedValue(database as never);
+
+    await expect(
+      HabitCompletionRepository.listCompletedDateKeysByHabitId('habit_1', '2026-05-01', '2026-05-31')
+    ).resolves.toEqual(new Set(['2026-05-02', '2026-05-03']));
+    expect(database.getAllAsync).toHaveBeenCalledWith(
+      expect.stringContaining('AND completed = 1'),
+      'habit_1',
+      '2026-05-01',
+      '2026-05-31'
+    );
+  });
+
   it('rejects invalid completion dates before writing', async () => {
     await expect(
       HabitCompletionRepository.upsert({

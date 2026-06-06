@@ -12,8 +12,33 @@ import { useTodos } from "@/features/todos/hooks/use-todos";
 import type { Todo } from "@/features/todos/types";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n";
-import { ScreenScaffold } from "@/shared/components/screen-scaffold";
+import { VirtualizedScreenScaffold } from "@/shared/components/virtualized-screen-scaffold";
 import { formatDateKey, isDateKey } from "@/shared/utils/date";
+
+type CalendarRow =
+  | {
+      type: "habit";
+      habit: Habit;
+    }
+  | {
+      type: "message";
+      id: string;
+      text: string;
+      themeColor?: "textSecondary" | "warning";
+    }
+  | {
+      type: "sectionTitle";
+      id: string;
+      text: string;
+    }
+  | {
+      type: "todo";
+      todo: Todo;
+    }
+  | {
+      type: "todoGroupTitle";
+      dateKey: string;
+    };
 
 export default function CalendarScreen() {
   const { locale, t } = useTranslation();
@@ -21,13 +46,21 @@ export default function CalendarScreen() {
   const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>();
   const habits = useHabits();
   const todos = useTodos();
-  const monthDateKeys = new Set(habits.monthDateKeys);
-  const monthlyTodoGroups = todos.calendarGroups.filter(([dateKey]) => {
-    return isDateKey(dateKey) && monthDateKeys.has(dateKey);
-  });
-  const visibleTodoGroups = selectedDateKey
-    ? monthlyTodoGroups.filter(([dateKey]) => dateKey === selectedDateKey)
-    : monthlyTodoGroups;
+  const monthDateKeys = useMemo(() => new Set(habits.monthDateKeys), [habits.monthDateKeys]);
+  const monthlyTodoGroups = useMemo(
+    () =>
+      todos.calendarGroups.filter(([dateKey]) => {
+        return isDateKey(dateKey) && monthDateKeys.has(dateKey);
+      }),
+    [monthDateKeys, todos.calendarGroups]
+  );
+  const visibleTodoGroups = useMemo(
+    () =>
+      selectedDateKey
+        ? monthlyTodoGroups.filter(([dateKey]) => dateKey === selectedDateKey)
+        : monthlyTodoGroups,
+    [monthlyTodoGroups, selectedDateKey]
+  );
   const isLoading = habits.isLoading || todos.isLoading;
   const errorMessage = habits.errorMessage ?? todos.errorMessage;
   const selectedHabits = useMemo(
@@ -75,106 +108,192 @@ export default function CalendarScreen() {
     [t, todos],
   );
 
-  return (
-    <ScreenScaffold title={t("calendar.title")}>
-      <View style={styles.section}>
-        <ThemedText type="smallBold" themeColor="accentStrong">
-          {t("calendar.habits")}
-        </ThemedText>
-        <HabitMonthHistory
-          monthLabel={habits.monthLabel}
-          days={habits.monthHistoryDays}
-          monthlyMarkedDateKeys={habits.monthlyHabitDateKeys}
-          selectedDateKey={selectedDateKey}
-          onSelectDate={handleSelectDate}
-          onPreviousMonth={goToPreviousMonth}
-          onNextMonth={goToNextMonth}
-        />
-        {selectedDateKey ? (
-          <View
+  const rows = useMemo<CalendarRow[]>(() => {
+    const nextRows: CalendarRow[] = [];
+
+    if (selectedDateKey && !isLoading) {
+      if (selectedHabits.length === 0) {
+        nextRows.push({
+          type: "message",
+          id: "no-habits",
+          text: t("calendar.noHabitsForDay"),
+          themeColor: "textSecondary",
+        });
+      } else {
+        for (const habit of selectedHabits) {
+          nextRows.push({ type: "habit", habit });
+        }
+      }
+    }
+
+    nextRows.push({
+      type: "sectionTitle",
+      id: "tasks",
+      text: t("calendar.tasks"),
+    });
+
+    if (errorMessage) {
+      nextRows.push({
+        type: "message",
+        id: "tasks-error",
+        text: errorMessage,
+        themeColor: "warning",
+      });
+    }
+
+    if (isLoading) {
+      nextRows.push({
+        type: "message",
+        id: "tasks-loading",
+        text: t("todos.loading"),
+        themeColor: "textSecondary",
+      });
+      return nextRows;
+    }
+
+    if (visibleTodoGroups.length === 0) {
+      nextRows.push({
+        type: "message",
+        id: "no-tasks",
+        text: t(selectedDateKey ? "calendar.noTasksForDay" : "calendar.noTasks"),
+        themeColor: "textSecondary",
+      });
+      return nextRows;
+    }
+
+    for (const [dateKey, groupedTodos] of visibleTodoGroups) {
+      nextRows.push({ type: "todoGroupTitle", dateKey });
+      for (const todo of groupedTodos) {
+        nextRows.push({ type: "todo", todo });
+      }
+    }
+
+    return nextRows;
+  }, [errorMessage, isLoading, selectedDateKey, selectedHabits, t, visibleTodoGroups]);
+
+  const listHeader = (
+    <View style={styles.section}>
+      <ThemedText type="smallBold" themeColor="accentStrong">
+        {t("calendar.habits")}
+      </ThemedText>
+      <HabitMonthHistory
+        monthLabel={habits.monthLabel}
+        days={habits.monthHistoryDays}
+        monthlyMarkedDateKeys={habits.monthlyHabitDateKeys}
+        selectedDateKey={selectedDateKey}
+        onSelectDate={handleSelectDate}
+        onPreviousMonth={goToPreviousMonth}
+        onNextMonth={goToNextMonth}
+      />
+      {selectedDateKey ? (
+        <View
+          style={[
+            styles.selectedDayBar,
+            { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+          ]}
+        >
+          <ThemedText
+            type="smallBold"
+            themeColor="accentStrong"
+            style={styles.selectedDayText}
+          >
+            {t("calendar.selectedDay", { date: selectedDateLabel })}
+          </ThemedText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("calendar.clearSelection")}
+            onPress={() => setSelectedDateKey(undefined)}
             style={[
-              styles.selectedDayBar,
-              { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+              styles.clearButton,
+              {
+                backgroundColor: theme.backgroundSelected,
+                borderColor: theme.border,
+              },
             ]}
           >
-            <ThemedText
-              type="smallBold"
-              themeColor="accentStrong"
-              style={styles.selectedDayText}
-            >
-              {t("calendar.selectedDay", { date: selectedDateLabel })}
+            <ThemedText type="smallBold" themeColor="textSecondary">
+              {t("common.clear")}
             </ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("calendar.clearSelection")}
-              onPress={() => setSelectedDateKey(undefined)}
-              style={[
-                styles.clearButton,
-                {
-                  backgroundColor: theme.backgroundSelected,
-                  borderColor: theme.border,
-                },
-              ]}
-            >
-              <ThemedText type="smallBold" themeColor="textSecondary">
-                {t("common.clear")}
-              </ThemedText>
-            </Pressable>
-          </View>
-        ) : null}
-        {selectedDateKey ? (
-          isLoading ? null : selectedHabits.length === 0 ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              {t("calendar.noHabitsForDay")}
-            </ThemedText>
-          ) : (
-            <View style={styles.group}>
-              {selectedHabits.map((habit) => (
-                <CalendarHabitItem key={habit.id} habit={habit} />
-              ))}
-            </View>
-          )
-        ) : null}
-      </View>
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
+  );
 
-      <View style={styles.section}>
-        <ThemedText type="smallBold" themeColor="accentStrong">
-          {t("calendar.tasks")}
-        </ThemedText>
-        {errorMessage ? (
-          <ThemedText type="small" themeColor="warning">
-            {errorMessage}
-          </ThemedText>
-        ) : null}
-        {isLoading ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t("todos.loading")}
-          </ThemedText>
-        ) : visibleTodoGroups.length === 0 ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t(selectedDateKey ? "calendar.noTasksForDay" : "calendar.noTasks")}
-          </ThemedText>
-        ) : (
-          visibleTodoGroups.map(([dateKey, groupedTodos]) => (
-            <View key={dateKey} style={styles.group}>
-              <ThemedText type="smallBold" themeColor="accent">
-                {formatDateKey(dateKey, locale, todos.dateFormat)}
-              </ThemedText>
-              {groupedTodos.map((todo) => (
-                <TodoListItem
-                  key={todo.id}
-                  todo={todo}
-                  dateLabel={todos.getTodoDateLabel(todo)}
-                  onComplete={() => void todos.completeTodo(todo)}
-                  onReopen={() => void todos.reopenTodo(todo)}
-                  onDelete={() => confirmDeleteTodo(todo)}
-                />
-              ))}
-            </View>
-          ))
-        )}
-      </View>
-    </ScreenScaffold>
+  const renderRow = useCallback(
+    ({ item }: { item: CalendarRow }) => {
+      if (item.type === "habit") {
+        return (
+          <View>
+            <CalendarHabitItem habit={item.habit} />
+          </View>
+        );
+      }
+
+      if (item.type === "message") {
+        return (
+          <View>
+            <ThemedText type="small" themeColor={item.themeColor ?? "textSecondary"}>
+              {item.text}
+            </ThemedText>
+          </View>
+        );
+      }
+
+      if (item.type === "sectionTitle") {
+        return (
+          <View>
+            <ThemedText type="smallBold" themeColor="accentStrong">
+              {item.text}
+            </ThemedText>
+          </View>
+        );
+      }
+
+      if (item.type === "todoGroupTitle") {
+        return (
+          <View>
+            <ThemedText type="smallBold" themeColor="accent">
+              {formatDateKey(item.dateKey, locale, todos.dateFormat)}
+            </ThemedText>
+          </View>
+        );
+      }
+
+      return (
+        <View>
+          <TodoListItem
+            todo={item.todo}
+            dateLabel={todos.getTodoDateLabel(item.todo)}
+            onComplete={() => void todos.completeTodo(item.todo)}
+            onReopen={() => void todos.reopenTodo(item.todo)}
+            onDelete={() => confirmDeleteTodo(item.todo)}
+          />
+        </View>
+      );
+    },
+    [confirmDeleteTodo, locale, todos]
+  );
+
+  return (
+    <VirtualizedScreenScaffold
+      title={t("calendar.title")}
+      data={rows}
+      keyExtractor={(item) => {
+        if (item.type === "habit") {
+          return `habit-${item.habit.id}`;
+        }
+        if (item.type === "todo") {
+          return `todo-${item.todo.id}`;
+        }
+        if (item.type === "todoGroupTitle") {
+          return `todo-group-${item.dateKey}`;
+        }
+        return `${item.type}-${item.id}`;
+      }}
+      listHeader={listHeader}
+      renderItem={renderRow}
+    />
   );
 }
 
@@ -245,9 +364,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 44,
     paddingHorizontal: Spacing.three,
-  },
-  group: {
-    gap: Spacing.two,
   },
   habitItem: {
     alignItems: "flex-start",

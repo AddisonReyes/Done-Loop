@@ -6,7 +6,7 @@ import { SettingsRepository } from '@/features/settings/repositories/settings-re
 import { TodoRepository } from '@/features/todos/repositories';
 import type { CreateTodoInput, Todo, UpdateTodoInput } from '@/features/todos/types';
 import { useTranslation } from '@/i18n';
-import { emitAppEvent, subscribeToAppEvent } from '@/shared/events/app-events';
+import { createAppEventSource, emitAppEvent, subscribeToAppEvent } from '@/shared/events/app-events';
 import { useCurrentDateKey } from '@/shared/hooks/use-current-date-key';
 import { formatDateKey, isBeforeDateKey, isDateKey, toDateKey } from '@/shared/utils/date';
 import { normalizeTodoCreateDraft, normalizeTodoUpdateDraft } from '../services/todo-draft';
@@ -25,6 +25,7 @@ export function useTodos() {
   const [sort, setSort] = useState<TodoSort>('priority');
   const [viewMode, setViewMode] = useState<TodoViewMode>('list');
   const hasLoadedTodosRef = useRef(false);
+  const eventSourceRef = useRef(createAppEventSource('todos'));
   const dateFormat = useDateFormatPreference();
   const todayKey = useCurrentDateKey();
 
@@ -58,7 +59,11 @@ export function useTodos() {
   }, [loadTodos]);
 
   useEffect(() => {
-    return subscribeToAppEvent('todosChanged', () => {
+    return subscribeToAppEvent('todosChanged', (payload) => {
+      if (payload.source === eventSourceRef.current) {
+        return;
+      }
+
       void loadTodos({ silent: true });
     });
   }, [loadTodos]);
@@ -86,7 +91,7 @@ export function useTodos() {
           notificationId,
         });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged');
+        emitAppEvent('todosChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
@@ -120,7 +125,7 @@ export function useTodos() {
 
         await TodoRepository.update(todo.id, { ...draft, notificationId });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged');
+        emitAppEvent('todosChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
@@ -143,7 +148,7 @@ export function useTodos() {
           notificationId: undefined,
         });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged');
+        emitAppEvent('todosChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
@@ -173,7 +178,7 @@ export function useTodos() {
           notificationId,
         });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged');
+        emitAppEvent('todosChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
@@ -190,7 +195,7 @@ export function useTodos() {
         await NotificationService.cancelAsync(todo.notificationId);
         await TodoRepository.deleteById(todo.id);
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged');
+        emitAppEvent('todosChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));

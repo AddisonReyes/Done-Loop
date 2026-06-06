@@ -5,6 +5,7 @@ import { SettingsRepository } from '@/features/settings/repositories/settings-re
 import { TodoRepository } from '@/features/todos/repositories';
 import type { Todo } from '@/features/todos/types';
 import { createTestTranslator as mockCreateTestTranslator } from '@/test/test-utils';
+import { emitAppEvent } from '@/shared/events/app-events';
 
 import { useTodos } from './use-todos';
 
@@ -148,6 +149,7 @@ describe('useTodos', () => {
     expect(TodoRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Pay rent', notificationId: 'notification_created' })
     );
+    expect(TodoRepository.listActive).toHaveBeenCalledTimes(2);
     expect(result.current.sortedTodos).toHaveLength(1);
   });
 
@@ -184,5 +186,116 @@ describe('useTodos', () => {
 
     expect(result.current.calendarGroups[0]?.[0]).toBe('2026-06-03');
     expect(result.current.getTodoDateLabel(activeTodos[0])).toBe('Completed 03/06/2026');
+  });
+
+  it('sorts todos by priority, due date, and newest created date', async () => {
+    activeTodos = [
+      { ...pendingTodo, id: 'todo_low', priority: 3, dueAt: '2026-06-08', createdAt: '2026-06-01T00:00:00.000Z' },
+      { ...pendingTodo, id: 'todo_high', priority: 1, dueAt: '2026-06-10', createdAt: '2026-06-02T00:00:00.000Z' },
+      { ...pendingTodo, id: 'todo_mid', priority: 2, dueAt: '2026-06-04', createdAt: '2026-06-03T00:00:00.000Z' },
+    ];
+    const { result } = await renderUseTodos();
+
+    expect(result.current.sortedTodos.map((todo) => todo.id)).toEqual(['todo_high', 'todo_mid', 'todo_low']);
+
+    act(() => {
+      result.current.setSort('dueAt');
+    });
+    expect(result.current.sortedTodos.map((todo) => todo.id)).toEqual(['todo_mid', 'todo_low', 'todo_high']);
+
+    act(() => {
+      result.current.setSort('createdAt');
+    });
+    expect(result.current.sortedTodos.map((todo) => todo.id)).toEqual(['todo_mid', 'todo_high', 'todo_low']);
+  });
+
+  it('updates todos by replacing stale notifications', async () => {
+    activeTodos = [pendingTodo];
+    const { result } = await renderUseTodos();
+
+    await act(async () => {
+      await expect(
+        result.current.updateTodoFromDraft(pendingTodo, {
+          title: 'Pay rent now',
+          priority: 1,
+          dueAt: '2026-06-05',
+        })
+      ).resolves.toBe(true);
+    });
+
+    expect(NotificationService.cancelAsync).toHaveBeenCalledWith('notification_1');
+    expect(NotificationService.scheduleTodoReminderAsync).toHaveBeenCalledWith({
+      title: 'Pay rent now',
+      dueAt: '2026-06-05',
+      language: 'en',
+    });
+    expect(TodoRepository.update).toHaveBeenCalledWith(
+      'todo_1',
+      expect.objectContaining({ title: 'Pay rent now', notificationId: 'notification_created' })
+    );
+  });
+
+  it('reopens completed todos and restores due-date reminders', async () => {
+    const completedTodo: Todo = {
+      ...pendingTodo,
+      status: 'completed',
+      completedAt: '2026-06-03T12:00:00.000Z',
+      completedDate: '2026-06-03',
+      notificationId: undefined,
+    };
+    activeTodos = [completedTodo];
+    const { result } = await renderUseTodos();
+
+    await act(async () => {
+      await expect(result.current.reopenTodo(completedTodo)).resolves.toBe(true);
+    });
+
+    expect(NotificationService.scheduleTodoReminderAsync).toHaveBeenCalledWith({
+      title: 'Pay rent',
+      dueAt: '2026-06-03',
+      language: 'en',
+    });
+    expect(TodoRepository.update).toHaveBeenCalledWith(
+      'todo_1',
+      expect.objectContaining({ status: 'pending', completedAt: undefined, completedDate: undefined })
+    );
+  });
+
+  it('deletes todos after cancelling existing notifications', async () => {
+    activeTodos = [pendingTodo];
+    const { result } = await renderUseTodos();
+
+    await act(async () => {
+      await expect(result.current.deleteTodo(pendingTodo)).resolves.toBe(true);
+    });
+
+    expect(NotificationService.cancelAsync).toHaveBeenCalledWith('notification_1');
+    expect(TodoRepository.deleteById).toHaveBeenCalledWith('todo_1');
+  });
+
+  it('surfaces initial load errors without crashing consumers', async () => {
+    jest.mocked(TodoRepository.listActive).mockRejectedValueOnce(new Error('database offline'));
+
+    const rendered = renderHook(() => useTodos());
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(rendered.result.current.errorMessage).toBe('database offline'));
+    expect(rendered.result.current.isLoading).toBe(false);
+  });
+
+  it('reloads silently when another hook source emits a todos change', async () => {
+    activeTodos = [];
+    const { result } = await renderUseTodos();
+    activeTodos = [pendingTodo];
+
+    await act(async () => {
+      emitAppEvent('todosChanged', { source: 'external_source' });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(result.current.sortedTodos).toEqual([pendingTodo]));
   });
 });

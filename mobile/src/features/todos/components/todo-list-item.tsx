@@ -169,6 +169,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: Spacing.three,
     gap: Spacing.two,
+    minWidth: 0,
+    width: '100%',
   },
   header: {
     alignItems: 'center',
@@ -211,6 +213,7 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     flex: 1,
+    flexShrink: 1,
     minWidth: 96,
   },
   detailValue: {

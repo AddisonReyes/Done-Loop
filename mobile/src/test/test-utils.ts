@@ -1,4 +1,7 @@
 import { Colors } from '@/constants/theme';
+import type { UserSettings } from '@/features/settings/types';
+import type { Habit } from '@/features/habits/types';
+import type { Todo } from '@/features/todos/types';
 import { translations } from '@/i18n/translations';
 
 export const mockTheme = {
@@ -33,5 +36,46 @@ export function createTestTranslator(language: keyof typeof translations = 'en')
 
     const template = typeof value === 'string' ? value : key;
     return template.replace(/\{\{(\w+)\}\}/g, (_, paramKey: string) => String(params?.[paramKey] ?? ''));
+  };
+}
+
+export const mockSafeAreaInsets = { bottom: 0, left: 0, right: 0, top: 0 };
+
+export const defaultTestSettings: UserSettings = {
+  animationsEnabled: false,
+  accentColor: 'purple',
+  appBackground: 'none',
+  dateFormat: 'dmy',
+  language: 'en',
+  notificationsEnabled: false,
+  privacyPolicyUrl: 'https://done-loop.com/privacy',
+  termsUrl: 'https://done-loop.pages.dev/terms',
+  theme: 'system',
+};
+
+export function createTestHabit(input: Partial<Habit> = {}): Habit {
+  return {
+    id: 'habit_1',
+    name: 'Read',
+    recurrenceType: 'daily',
+    remindersEnabled: false,
+    isActive: true,
+    startDate: '2026-06-01',
+    createdAt: '2026-06-01T00:00:00.000Z',
+    updatedAt: '2026-06-01T00:00:00.000Z',
+    ...input,
+  };
+}
+
+export function createTestTodo(input: Partial<Todo> = {}): Todo {
+  return {
+    id: 'todo_1',
+    title: 'Buy milk',
+    priority: 2,
+    status: 'pending',
+    dueAt: '2026-06-06',
+    createdAt: '2026-06-01T00:00:00.000Z',
+    updatedAt: '2026-06-01T00:00:00.000Z',
+    ...input,
   };
 }

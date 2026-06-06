@@ -13,7 +13,7 @@ import {
 } from '@/shared/utils/date';
 import { useTranslation } from '@/i18n';
 import { useCurrentDateKey } from '@/shared/hooks/use-current-date-key';
-import { emitAppEvent, subscribeToAppEvent } from '@/shared/events/app-events';
+import { createAppEventSource, emitAppEvent, subscribeToAppEvent } from '@/shared/events/app-events';
 import { normalizeHabitCreateDraft, normalizeHabitUpdateDraft } from '../services/habit-draft';
 import { getHabitsDueOnDate } from '../services/habit-recurrence';
 import { sortHabitsByRecurrenceDisplayOrder } from '../services/habit-sort';
@@ -57,6 +57,7 @@ export function useHabits() {
   const [displayedMonth, setDisplayedMonth] = useState(() => startOfMonth(new Date()));
   const [monthCompletions, setMonthCompletions] = useState<HabitCompletion[]>([]);
   const hasLoadedHabitsRef = useRef(false);
+  const eventSourceRef = useRef(createAppEventSource('habits'));
 
   const todayKey = useCurrentDateKey();
   const monthDateKeys = useMemo(() => getMonthDateKeys(displayedMonth), [displayedMonth]);
@@ -152,7 +153,11 @@ export function useHabits() {
   }, [loadMonthHistory]);
 
   useEffect(() => {
-    return subscribeToAppEvent('habitsChanged', () => {
+    return subscribeToAppEvent('habitsChanged', (payload) => {
+      if (payload.source === eventSourceRef.current) {
+        return;
+      }
+
       void loadHabits({ silent: true });
       void loadMonthHistory();
     });
@@ -198,7 +203,7 @@ export function useHabits() {
         }
         await loadHabits({ silent: true });
         await loadMonthHistory();
-        emitAppEvent('habitsChanged');
+        emitAppEvent('habitsChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
@@ -245,7 +250,7 @@ export function useHabits() {
         }
         await loadHabits({ silent: true });
         await loadMonthHistory();
-        emitAppEvent('habitsChanged');
+        emitAppEvent('habitsChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
@@ -266,7 +271,7 @@ export function useHabits() {
         await HabitRepository.deleteById(habitId);
         await loadHabits({ silent: true });
         await loadMonthHistory();
-        emitAppEvent('habitsChanged');
+        emitAppEvent('habitsChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
@@ -304,7 +309,7 @@ export function useHabits() {
           await HabitRepository.update(habitId, { notificationId });
         }
         await Promise.all([loadHabits({ silent: true }), loadMonthHistory()]);
-        emitAppEvent('habitsChanged');
+        emitAppEvent('habitsChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));
@@ -347,7 +352,7 @@ export function useHabits() {
         }
 
         await Promise.all([loadHabits({ silent: true }), loadMonthHistory()]);
-        emitAppEvent('habitsChanged');
+        emitAppEvent('habitsChanged', { source: eventSourceRef.current });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('habits.saveError'));

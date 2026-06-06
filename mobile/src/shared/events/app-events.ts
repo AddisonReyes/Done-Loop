@@ -1,11 +1,20 @@
 type AppEventName = 'habitsChanged' | 'todosChanged';
-type AppEventListener = () => void;
+type AppEventPayload = {
+  source?: string;
+};
+type AppEventListener = (payload: AppEventPayload) => void;
 
 const listenersByEvent = new Map<AppEventName, Set<AppEventListener>>();
+let nextEventSourceId = 0;
 
-export function emitAppEvent(eventName: AppEventName): void {
+export function createAppEventSource(prefix: string): string {
+  nextEventSourceId += 1;
+  return `${prefix}_${nextEventSourceId}`;
+}
+
+export function emitAppEvent(eventName: AppEventName, payload: AppEventPayload = {}): void {
   listenersByEvent.get(eventName)?.forEach((listener) => {
-    listener();
+    listener(payload);
   });
 }
 

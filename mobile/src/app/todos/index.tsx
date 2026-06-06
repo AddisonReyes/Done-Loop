@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
 import { TodoEditorModal } from "@/features/todos/components/todo-editor-modal";
 import { TodoListItem } from "@/features/todos/components/todo-list-item";
 import type { TodoSort, TodoViewMode } from "@/features/todos/hooks/use-todos";
@@ -12,9 +11,9 @@ import { useTranslation } from "@/i18n";
 import { AnimatedListItem } from "@/shared/components/animated-list-item";
 import { EmptyState } from "@/shared/components/empty-state";
 import { FloatingCreateButton } from "@/shared/components/floating-create-button";
-import { ScreenScaffold } from "@/shared/components/screen-scaffold";
 import { SectionCard } from "@/shared/components/section-card";
 import { SegmentedControl } from "@/shared/components/segmented-control";
+import { VirtualizedScreenScaffold } from "@/shared/components/virtualized-screen-scaffold";
 import { formatDateKey, isDateKey } from "@/shared/utils/date";
 
 const sorts: { value: TodoSort; labelKey: string }[] = [
@@ -29,13 +28,24 @@ const modes: { value: TodoViewMode; labelKey: string }[] = [
 ];
 const animatedListItemLimit = 24;
 
+type TodoRow =
+  | {
+      type: "calendarHeading";
+      dateKey: string;
+    }
+  | {
+      type: "todo";
+      animationIndex: number;
+      todo: Todo;
+    };
+
 export default function TodosScreen() {
   const { locale, t } = useTranslation();
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const todos = useTodos();
 
-  const confirmDeleteTodo = (todo: Todo) => {
+  const confirmDeleteTodo = useCallback((todo: Todo) => {
     Alert.alert(t("todos.actions.delete"), todo.title, [
       { text: t("todos.actions.cancel"), style: "cancel" },
       {
@@ -46,99 +56,124 @@ export default function TodosScreen() {
         },
       },
     ]);
-  };
+  }, [t, todos]);
+
+  const rows = useMemo<TodoRow[]>(() => {
+    if (todos.viewMode === "calendar") {
+      let animationIndex = 0;
+      const calendarRows: TodoRow[] = [];
+
+      for (const [dateKey, groupedTodos] of todos.calendarGroups) {
+        calendarRows.push({ type: "calendarHeading", dateKey });
+        for (const todo of groupedTodos) {
+          calendarRows.push({ type: "todo", animationIndex, todo });
+          animationIndex += 1;
+        }
+      }
+
+      return calendarRows;
+    }
+
+    return todos.sortedTodos.map((todo, animationIndex) => ({
+      type: "todo",
+      animationIndex,
+      todo,
+    }));
+  }, [todos.calendarGroups, todos.sortedTodos, todos.viewMode]);
+
+  const listHeader = (
+    <>
+      <SectionCard>
+        <SegmentedControl
+          value={todos.viewMode}
+          onChange={todos.setViewMode}
+          options={modes.map((mode) => ({
+            value: mode.value,
+            label: t(mode.labelKey),
+          }))}
+        />
+        <SegmentedControl
+          value={todos.sort}
+          onChange={todos.setSort}
+          options={sorts.map((sort) => ({
+            value: sort.value,
+            label: t(sort.labelKey),
+          }))}
+        />
+      </SectionCard>
+
+      {todos.errorMessage ? (
+        <ThemedText type="small" themeColor="warning">
+          {todos.errorMessage}
+        </ThemedText>
+      ) : null}
+
+      {todos.isLoading ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t("todos.loading")}
+        </ThemedText>
+      ) : null}
+    </>
+  );
+
+  const listFooter =
+    !todos.isLoading && todos.sortedTodos.length === 0 ? (
+      <EmptyState
+        message={t("todos.empty")}
+        actionLabel={t("todos.form.create")}
+        onAction={() => setIsCreateModalVisible(true)}
+      />
+    ) : null;
+
+  const renderRow = useCallback(
+    ({ item }: { item: TodoRow }) => {
+      if (item.type === "calendarHeading") {
+        return (
+          <View>
+            <ThemedText type="smallBold" themeColor="accent">
+              {isDateKey(item.dateKey)
+                ? formatDateKey(item.dateKey, locale, todos.dateFormat)
+                : item.dateKey}
+            </ThemedText>
+          </View>
+        );
+      }
+
+      return (
+        <View>
+          <AnimatedListItem
+            animate={item.animationIndex < animatedListItemLimit}
+            delay={item.animationIndex * 18}
+          >
+            <TodoListItem
+              todo={item.todo}
+              dateLabel={todos.getTodoDateLabel(item.todo)}
+              onComplete={() => void todos.completeTodo(item.todo)}
+              onReopen={() => void todos.reopenTodo(item.todo)}
+              onDelete={() => confirmDeleteTodo(item.todo)}
+              onStartEdit={() => setEditingTodo(item.todo)}
+            />
+          </AnimatedListItem>
+        </View>
+      );
+    },
+    [confirmDeleteTodo, locale, todos],
+  );
 
   return (
     <View style={styles.screen}>
-      <ScreenScaffold title={t("todos.title")}>
-        <SectionCard>
-          <SegmentedControl
-            value={todos.viewMode}
-            onChange={todos.setViewMode}
-            options={modes.map((mode) => ({
-              value: mode.value,
-              label: t(mode.labelKey),
-            }))}
-          />
-          <SegmentedControl
-            value={todos.sort}
-            onChange={todos.setSort}
-            options={sorts.map((sort) => ({
-              value: sort.value,
-              label: t(sort.labelKey),
-            }))}
-          />
-        </SectionCard>
-
-        {todos.errorMessage ? (
-          <ThemedText type="small" themeColor="warning">
-            {todos.errorMessage}
-          </ThemedText>
-        ) : null}
-
-        {todos.isLoading ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t("todos.loading")}
-          </ThemedText>
-        ) : null}
-
-        {todos.viewMode === "calendar" ? (
-          <View style={styles.list}>
-            {todos.calendarGroups.map(([dateKey, groupedTodos]) => (
-              <View key={dateKey} style={styles.calendarGroup}>
-                <ThemedText type="smallBold" themeColor="accent">
-                  {isDateKey(dateKey)
-                    ? formatDateKey(dateKey, locale, todos.dateFormat)
-                    : dateKey}
-                </ThemedText>
-                {groupedTodos.map((todo, index) => (
-                  <AnimatedListItem
-                    key={todo.id}
-                    animate={index < animatedListItemLimit}
-                    delay={index * 18}
-                  >
-                    <TodoListItem
-                      todo={todo}
-                      dateLabel={todos.getTodoDateLabel(todo)}
-                      onComplete={() => void todos.completeTodo(todo)}
-                      onReopen={() => void todos.reopenTodo(todo)}
-                      onDelete={() => confirmDeleteTodo(todo)}
-                      onStartEdit={() => setEditingTodo(todo)}
-                    />
-                  </AnimatedListItem>
-                ))}
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.list}>
-            {todos.sortedTodos.map((todo, index) => (
-              <AnimatedListItem
-                key={todo.id}
-                animate={index < animatedListItemLimit}
-                delay={index * 18}
-              >
-                <TodoListItem
-                  todo={todo}
-                  dateLabel={todos.getTodoDateLabel(todo)}
-                  onComplete={() => void todos.completeTodo(todo)}
-                  onReopen={() => void todos.reopenTodo(todo)}
-                  onDelete={() => confirmDeleteTodo(todo)}
-                  onStartEdit={() => setEditingTodo(todo)}
-                />
-              </AnimatedListItem>
-            ))}
-          </View>
-        )}
-
-        {!todos.isLoading && todos.sortedTodos.length === 0 ? (
-          <EmptyState
-            message={t("todos.empty")}
-            actionLabel={t("todos.form.create")}
-            onAction={() => setIsCreateModalVisible(true)}
-          />
-        ) : null}
-      </ScreenScaffold>
+      <VirtualizedScreenScaffold
+        title={t("todos.title")}
+        data={rows}
+        keyExtractor={(item) =>
+          item.type === "calendarHeading"
+            ? `heading-${item.dateKey}`
+            : `todo-${item.todo.id}`
+        }
+        listHeader={listHeader}
+        listFooter={listFooter}
+        renderItem={renderRow}
+      />
       <TodoEditorModal
         dateFormat={todos.dateFormat}
         visible={isCreateModalVisible}
@@ -171,11 +206,5 @@ export default function TodosScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-  },
-  list: {
-    gap: Spacing.two,
-  },
-  calendarGroup: {
-    gap: Spacing.two,
   },
 });

@@ -10,12 +10,13 @@ import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import AppTabs from "@/components/app-tabs";
 import { NotificationService } from "@/features/notifications/services/notification-service";
 import { SettingsRepository } from "@/features/settings/repositories/settings-repository";
-import { rescheduleExistingRemindersAsync } from "@/features/settings/services/notification-settings";
+import { reconcileExistingRemindersAsync } from "@/features/settings/services/notification-settings";
 import {
   ThemePreferenceProvider,
   useThemePreference,
 } from "@/hooks/use-theme-preference";
 import { I18nProvider } from "@/i18n";
+import { CurrentDateProvider } from "@/shared/hooks/use-current-date-key";
 import { configureDefaultFonts } from "@/shared/utils/configure-default-fonts";
 import { toDateKey } from "@/shared/utils/date";
 
@@ -25,7 +26,9 @@ export default function TabLayout() {
   return (
     <ThemePreferenceProvider>
       <I18nProvider>
-        <ThemedNavigation />
+        <CurrentDateProvider>
+          <ThemedNavigation />
+        </CurrentDateProvider>
       </I18nProvider>
     </ThemePreferenceProvider>
   );
@@ -54,7 +57,7 @@ function ThemedNavigation() {
       lastReminderSyncDateKeyRef.current = currentDateKey;
       void SettingsRepository.get().then((settings) => {
         if (settings.notificationsEnabled) {
-          return rescheduleExistingRemindersAsync(settings.language).catch(
+          return reconcileExistingRemindersAsync(settings.language).catch(
             () => undefined,
           );
         }

@@ -36,6 +36,44 @@ export async function rescheduleExistingRemindersAsync(language: UserLanguagePre
   ]);
 }
 
+export async function reconcileExistingRemindersAsync(language: UserLanguagePreference): Promise<void> {
+  const [habits, todos, scheduledHabitReminderCounts] = await Promise.all([
+    HabitRepository.listActive(),
+    TodoRepository.listActive(),
+    NotificationService.getScheduledHabitReminderCountsAsync(),
+  ]);
+  const targetHabitReminderCount = NotificationService.getHabitReminderScheduledOccurrenceTarget();
+
+  await Promise.all([
+    ...habits
+      .filter((habit) => habit.remindersEnabled)
+      .map(async (habit) => {
+        const scheduledCount = scheduledHabitReminderCounts.get(habit.id) ?? 0;
+
+        if (habit.notificationId && scheduledCount >= targetHabitReminderCount) {
+          return;
+        }
+
+        await NotificationService.cancelHabitRemindersAsync(habit.id, habit.notificationId);
+        const notificationId = await NotificationService.scheduleHabitReminderAsync({
+          habit,
+          language,
+        });
+        await HabitRepository.update(habit.id, { notificationId });
+      }),
+    ...todos
+      .filter((todo) => todo.status === 'pending' && !todo.notificationId)
+      .map(async (todo) => {
+        const notificationId = await NotificationService.scheduleTodoReminderAsync({
+          title: todo.title,
+          dueAt: todo.dueAt,
+          language,
+        });
+        await TodoRepository.update(todo.id, { notificationId });
+      }),
+  ]);
+}
+
 export async function setNotificationsEnabledPreferenceAsync(
   enabled: boolean,
   language: UserLanguagePreference

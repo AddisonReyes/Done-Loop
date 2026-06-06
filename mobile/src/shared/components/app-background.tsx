@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useMemo } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 
@@ -19,6 +20,16 @@ export function AppBackground({ accent, background, preference, resolvedTheme, s
   const { height, width } = useWindowDimensions();
   const gridLineColor = resolvedTheme === 'dark' ? 'rgba(255, 255, 255, 0.075)' : 'rgba(0, 0, 0, 0.075)';
   const solarLineColor = resolvedTheme === 'dark' ? 'rgba(255, 255, 255, 0.105)' : 'rgba(0, 0, 0, 0.105)';
+  const gridColumns = useMemo(() => Array.from({ length: Math.ceil(width / GridSize) + 1 }, (_, index) => index), [width]);
+  const gridRows = useMemo(() => Array.from({ length: Math.ceil(height / GridSize) + 1 }, (_, index) => index), [height]);
+  const solarRings = useMemo(() => {
+    const maxSolarDiameter = Math.ceil(Math.sqrt(width ** 2 + height ** 2) * 2);
+
+    return Array.from(
+      { length: Math.ceil((maxSolarDiameter - SolarInitialRingSize) / SolarRingSpacing) + 1 },
+      (_, index) => SolarInitialRingSize + index * SolarRingSpacing
+    );
+  }, [height, width]);
 
   if (preference === 'gradient') {
     return (
@@ -33,9 +44,6 @@ export function AppBackground({ accent, background, preference, resolvedTheme, s
   }
 
   if (preference === 'grid') {
-    const columns = Math.ceil(width / GridSize) + 1;
-    const rows = Math.ceil(height / GridSize) + 1;
-
     return (
       <View pointerEvents="none" style={[styles.backgroundLayer, style]}>
         <CircularGlow
@@ -48,13 +56,13 @@ export function AppBackground({ accent, background, preference, resolvedTheme, s
           opacity={resolvedTheme === 'dark' ? 0.085 : 0.062}
           style={styles.bottomLeftGlow}
         />
-        {Array.from({ length: columns }).map((_, index) => (
+        {gridColumns.map((index) => (
           <View
             key={`vertical-${index}`}
             style={[styles.gridVerticalLine, { backgroundColor: gridLineColor, left: index * GridSize }]}
           />
         ))}
-        {Array.from({ length: rows }).map((_, index) => (
+        {gridRows.map((index) => (
           <View
             key={`horizontal-${index}`}
             style={[styles.gridHorizontalLine, { backgroundColor: gridLineColor, top: index * GridSize }]}
@@ -65,12 +73,6 @@ export function AppBackground({ accent, background, preference, resolvedTheme, s
   }
 
   if (preference === 'solar') {
-    const maxSolarDiameter = Math.ceil(Math.sqrt(width ** 2 + height ** 2) * 2);
-    const solarRings = Array.from(
-      { length: Math.ceil((maxSolarDiameter - SolarInitialRingSize) / SolarRingSpacing) + 1 },
-      (_, index) => SolarInitialRingSize + index * SolarRingSpacing
-    );
-
     return (
       <View pointerEvents="none" style={[styles.backgroundLayer, { backgroundColor: background }, style]}>
         <CircularGlow
@@ -132,13 +134,13 @@ function CircularGlow({
   );
 }
 
-const GridSize = 32;
+const GridSize = 40;
 const GlowSize = 520;
-const GlowRingCount = 32;
+const GlowRingCount = 16;
 const SolarCenterRight = 0;
 const SolarCenterTop = 0;
 const SolarInitialRingSize = 128;
-const SolarRingSpacing = 42;
+const SolarRingSpacing = 64;
 const GlowRings = Array.from({ length: GlowRingCount }, (_, index) => {
   const progress = index / (GlowRingCount - 1);
 

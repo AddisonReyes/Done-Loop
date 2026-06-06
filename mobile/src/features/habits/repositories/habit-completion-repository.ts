@@ -109,6 +109,27 @@ export const HabitCompletionRepository = {
     return rows.map(mapHabitCompletionRow);
   },
 
+  async listCompletedDateKeysByHabitId(habitId: string, startDate: string, endDate: string): Promise<Set<string>> {
+    if (!isDateKey(startDate) || !isDateKey(endDate)) {
+      throw new Error('Invalid habit completion date range.');
+    }
+
+    const database = await getDatabaseAsync();
+    const rows = await database.getAllAsync<{ date: string }>(
+      `SELECT date FROM habit_completions
+       WHERE habit_id = ?
+         AND date >= ?
+         AND date <= ?
+         AND completed = 1
+       ORDER BY date ASC;`,
+      habitId,
+      startDate,
+      endDate
+    );
+
+    return new Set(rows.map((row) => row.date).filter(isDateKey));
+  },
+
   async deleteById(id: string): Promise<boolean> {
     const database = await getDatabaseAsync();
     const result = await database.runAsync('DELETE FROM habit_completions WHERE id = ?;', id);

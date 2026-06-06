@@ -5,6 +5,7 @@ import type { Habit, HabitCompletion } from '@/features/habits/types';
 import { NotificationService } from '@/features/notifications/services/notification-service';
 import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
 import { createTestTranslator as mockCreateTestTranslator } from '@/test/test-utils';
+import { emitAppEvent } from '@/shared/events/app-events';
 
 import { getHabitDayIntensity, useHabits } from './use-habits';
 
@@ -194,6 +195,7 @@ describe('useHabits', () => {
       language: 'en',
     });
     expect(HabitRepository.update).toHaveBeenCalledWith('habit_created', { notificationId: 'habit_notification' });
+    expect(HabitRepository.listActive).toHaveBeenCalledTimes(2);
   });
 
   it('toggles today completion and skips today when rescheduling reminders', async () => {
@@ -215,6 +217,90 @@ describe('useHabits', () => {
       language: 'en',
       skipDateKeys: ['2026-06-03'],
     });
+  });
+
+  it('filters visible habits by completed and pending state for today', async () => {
+    const secondHabit = createDailyHabit('habit_2');
+    activeHabits = [dailyHabit, secondHabit];
+    completions = [createCompletion('habit_1', '2026-06-03')];
+    const { result } = await renderUseHabits();
+
+    act(() => {
+      result.current.setFilter('completedToday');
+    });
+
+    expect(result.current.visibleHabits.map((habit) => habit.id)).toEqual(['habit_1']);
+
+    act(() => {
+      result.current.setFilter('pendingToday');
+    });
+
+    expect(result.current.visibleHabits.map((habit) => habit.id)).toEqual(['habit_2']);
+  });
+
+  it('updates habits by cancelling stale reminders and storing the new reminder id', async () => {
+    activeHabits = [{ ...dailyHabit, notificationId: 'old_notification' }];
+    const { result } = await renderUseHabits();
+
+    await act(async () => {
+      await expect(
+        result.current.updateHabitFromDraft('habit_1', {
+          name: 'Read more',
+          recurrenceType: 'daily',
+          reminderTime: '09:00',
+          remindersEnabled: true,
+        })
+      ).resolves.toBe(true);
+    });
+
+    expect(NotificationService.cancelHabitRemindersAsync).toHaveBeenCalledWith('habit_1', 'old_notification');
+    expect(HabitRepository.update).toHaveBeenCalledWith(
+      'habit_1',
+      expect.objectContaining({ name: 'Read more', notificationId: undefined, reminderTime: '09:00' })
+    );
+    expect(NotificationService.scheduleHabitReminderAsync).toHaveBeenCalledWith({
+      habit: expect.objectContaining({ id: 'habit_1', name: 'Read more' }),
+      language: 'en',
+    });
+    expect(HabitRepository.update).toHaveBeenCalledWith('habit_1', { notificationId: 'habit_notification' });
+  });
+
+  it('deletes habits after cancelling scheduled reminders', async () => {
+    activeHabits = [{ ...dailyHabit, notificationId: 'old_notification' }];
+    const { result } = await renderUseHabits();
+
+    await act(async () => {
+      await expect(result.current.deleteHabit('habit_1')).resolves.toBe(true);
+    });
+
+    expect(NotificationService.cancelHabitRemindersAsync).toHaveBeenCalledWith('habit_1', 'old_notification');
+    expect(HabitRepository.deleteById).toHaveBeenCalledWith('habit_1');
+  });
+
+  it('surfaces initial load errors without crashing consumers', async () => {
+    jest.mocked(HabitRepository.listActive).mockRejectedValueOnce(new Error('database offline'));
+
+    const rendered = renderHook(() => useHabits());
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(rendered.result.current.errorMessage).toBe('database offline'));
+    expect(rendered.result.current.isLoading).toBe(false);
+  });
+
+  it('reloads silently when another hook source emits a habits change', async () => {
+    activeHabits = [];
+    const { result } = await renderUseHabits();
+    activeHabits = [dailyHabit];
+
+    await act(async () => {
+      emitAppEvent('habitsChanged', { source: 'external_source' });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(result.current.habits).toEqual([dailyHabit]));
   });
 
   it.each([

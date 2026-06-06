@@ -14,8 +14,8 @@ import { useTranslation } from "@/i18n";
 import { AnimatedListItem } from "@/shared/components/animated-list-item";
 import { EmptyState } from "@/shared/components/empty-state";
 import { FloatingCreateButton } from "@/shared/components/floating-create-button";
-import { ScreenScaffold } from "@/shared/components/screen-scaffold";
 import { SectionCard } from "@/shared/components/section-card";
+import { VirtualizedScreenScaffold } from "@/shared/components/virtualized-screen-scaffold";
 import { formatDateKey } from "@/shared/utils/date";
 
 const animatedListItemLimit = 24;
@@ -151,7 +151,7 @@ export default function HabitsScreen() {
     goToNextMonth();
   }, [goToNextMonth]);
 
-  const confirmDeleteHabit = (habit: Habit) => {
+  const confirmDeleteHabit = useCallback((habit: Habit) => {
     Alert.alert(t("habits.delete"), habit.name, [
       { text: t("habits.cancel"), style: "cancel" },
       {
@@ -162,141 +162,159 @@ export default function HabitsScreen() {
         },
       },
     ]);
-  };
+  }, [deleteHabit, t]);
 
-  return (
-    <View style={styles.screen}>
-      <ScreenScaffold title={t("habits.title")}>
-        <View style={styles.summary}>
-          <View
+  const listHeader = (
+    <>
+      <View style={styles.summary}>
+        <View
+          style={[
+            styles.summaryItem,
+            {
+              backgroundColor: theme.accentSoft,
+              borderColor: theme.borderStrong,
+            },
+          ]}
+        >
+          <ThemedText type="subtitle" style={styles.summaryNumber}>
+            {totalCompletedToday}
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t("habits.completedSummary")}
+          </ThemedText>
+        </View>
+        <View
+          style={[
+            styles.summaryItem,
+            { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+          ]}
+        >
+          <ThemedText type="subtitle" style={styles.summaryNumber}>
+            {pendingCount}
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t("habits.pendingSummary")}
+          </ThemedText>
+        </View>
+      </View>
+
+      <SectionCard>
+        <HabitFilterTabs value={filter} onChange={setFilter} />
+      </SectionCard>
+
+      <View style={styles.calendarSection}>
+        <ThemedText type="smallBold" themeColor="accentStrong">
+          {t("calendar.habits")}
+        </ThemedText>
+        <HabitMonthHistory
+          monthLabel={monthLabel}
+          days={monthHistoryDays}
+          monthlyMarkedDateKeys={monthlyHabitDateKeys}
+          selectedDateKey={selectedDateKey}
+          onSelectDate={handleSelectDate}
+          onPreviousMonth={handlePreviousMonth}
+          onNextMonth={handleNextMonth}
+        />
+      </View>
+
+      {selectedDateKey ? (
+        <View
+          style={[
+            styles.selectedDayContainer,
+            { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
+          ]}
+        >
+          <ThemedText
+            type="smallBold"
+            themeColor="accentStrong"
+            style={styles.selectedDayText}
+          >
+            {t("calendar.selectedDay", { date: selectedDateLabel })}
+          </ThemedText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("calendar.clearSelection")}
+            onPress={() => setSelectedDateKey(undefined)}
             style={[
-              styles.summaryItem,
+              styles.clearButton,
               {
-                backgroundColor: theme.accentSoft,
-                borderColor: theme.borderStrong,
+                backgroundColor: theme.backgroundSelected,
+                borderColor: theme.border,
               },
             ]}
           >
-            <ThemedText type="subtitle" style={styles.summaryNumber}>
-              {totalCompletedToday}
+            <ThemedText type="smallBold" themeColor="textSecondary">
+              {t("common.clear")}
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t("habits.completedSummary")}
-            </ThemedText>
-          </View>
-          <View
-            style={[
-              styles.summaryItem,
-              { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
-            ]}
-          >
-            <ThemedText type="subtitle" style={styles.summaryNumber}>
-              {pendingCount}
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t("habits.pendingSummary")}
-            </ThemedText>
-          </View>
+          </Pressable>
         </View>
+      ) : null}
 
-        <SectionCard>
-          <HabitFilterTabs value={filter} onChange={setFilter} />
-        </SectionCard>
+      {errorMessage ? (
+        <ThemedText type="small" themeColor="warning">
+          {errorMessage}
+        </ThemedText>
+      ) : null}
 
-        <View style={styles.calendarSection}>
-          <ThemedText type="smallBold" themeColor="accentStrong">
-            {t("calendar.habits")}
-          </ThemedText>
-          <HabitMonthHistory
-            monthLabel={monthLabel}
-            days={monthHistoryDays}
-            monthlyMarkedDateKeys={monthlyHabitDateKeys}
-            selectedDateKey={selectedDateKey}
-            onSelectDate={handleSelectDate}
-            onPreviousMonth={handlePreviousMonth}
-            onNextMonth={handleNextMonth}
+      {isLoading ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t("habits.loading")}
+        </ThemedText>
+      ) : null}
+
+      {!isLoading && habits.length === 0 ? (
+        <EmptyState
+          message={t("habits.empty")}
+          actionLabel={t("habits.create")}
+          onAction={() => setIsCreateModalVisible(true)}
+        />
+      ) : null}
+
+      {!isLoading && habits.length > 0 && listedHabits.length === 0 ? (
+        <EmptyState message={t(selectedDateEmptyMessage)} />
+      ) : null}
+    </>
+  );
+
+  const renderHabit = useCallback(
+    ({ item, index }: { item: Habit; index: number }) => (
+      <View>
+        <AnimatedListItem
+          animate={index < animatedListItemLimit}
+          delay={index * 18}
+        >
+          <HabitListItem
+            habit={item}
+            completedToday={completedHabitIdsForListedDate.has(item.id)}
+            completionDisabled={!dueHabitIdsForListedDate.has(item.id)}
+            statusLabel={listedStatusLabel(item)}
+            onToggleToday={() => {
+              handleToggleHabit(item.id);
+            }}
+            onStartEdit={() => setEditingHabit(item)}
+            onDelete={() => confirmDeleteHabit(item)}
           />
-        </View>
+        </AnimatedListItem>
+      </View>
+    ),
+    [
+      completedHabitIdsForListedDate,
+      confirmDeleteHabit,
+      dueHabitIdsForListedDate,
+      handleToggleHabit,
+      listedStatusLabel,
+    ],
+  );
 
-        {selectedDateKey ? (
-          <View
-            style={[
-              styles.selectedDayContainer,
-              { backgroundColor: theme.surfaceSoft, borderColor: theme.border },
-            ]}
-          >
-            <ThemedText
-              type="smallBold"
-              themeColor="accentStrong"
-              style={styles.selectedDayText}
-            >
-              {t("calendar.selectedDay", { date: selectedDateLabel })}
-            </ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("calendar.clearSelection")}
-              onPress={() => setSelectedDateKey(undefined)}
-              style={[
-                styles.clearButton,
-                {
-                  backgroundColor: theme.backgroundSelected,
-                  borderColor: theme.border,
-                },
-              ]}
-            >
-              <ThemedText type="smallBold" themeColor="textSecondary">
-                {t("common.clear")}
-              </ThemedText>
-            </Pressable>
-          </View>
-        ) : null}
-
-        {errorMessage ? (
-          <ThemedText type="small" themeColor="warning">
-            {errorMessage}
-          </ThemedText>
-        ) : null}
-
-        {isLoading ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t("habits.loading")}
-          </ThemedText>
-        ) : null}
-
-        {!isLoading && habits.length === 0 ? (
-          <EmptyState
-            message={t("habits.empty")}
-            actionLabel={t("habits.create")}
-            onAction={() => setIsCreateModalVisible(true)}
-          />
-        ) : null}
-
-        {!isLoading && habits.length > 0 && listedHabits.length === 0 ? (
-          <EmptyState message={t(selectedDateEmptyMessage)} />
-        ) : null}
-
-        <View style={styles.list}>
-          {listedHabits.map((habit, index) => (
-            <AnimatedListItem
-              key={habit.id}
-              animate={index < animatedListItemLimit}
-              delay={index * 18}
-            >
-              <HabitListItem
-                habit={habit}
-                completedToday={completedHabitIdsForListedDate.has(habit.id)}
-                completionDisabled={!dueHabitIdsForListedDate.has(habit.id)}
-                statusLabel={listedStatusLabel(habit)}
-                onToggleToday={() => {
-                  handleToggleHabit(habit.id);
-                }}
-                onStartEdit={() => setEditingHabit(habit)}
-                onDelete={() => confirmDeleteHabit(habit)}
-              />
-            </AnimatedListItem>
-          ))}
-        </View>
-      </ScreenScaffold>
+  return (
+    <View style={styles.screen}>
+      <VirtualizedScreenScaffold
+        title={t("habits.title")}
+        data={listedHabits}
+        keyExtractor={(habit) => habit.id}
+        listHeader={listHeader}
+        renderItem={renderHabit}
+      />
       <HabitEditorModal
         visible={isCreateModalVisible}
         onClose={() => setIsCreateModalVisible(false)}
@@ -348,9 +366,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 34,
     minWidth: 0,
-  },
-  list: {
-    gap: Spacing.two,
   },
   calendarSection: {
     gap: Spacing.two,
