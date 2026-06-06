@@ -5,7 +5,7 @@ import type { useHabits } from '@/features/habits/hooks/use-habits';
 import type { useTodos } from '@/features/todos/hooks/use-todos';
 import { createTestHabit, createTestTodo, createTestTranslator as mockCreateTestTranslator, mockSafeAreaInsets, mockTheme } from '@/test/test-utils';
 
-import CalendarScreen from './index';
+import CalendarScreen from '@/app/calendar';
 
 type UseHabitsResult = ReturnType<typeof useHabits>;
 type UseTodosResult = ReturnType<typeof useTodos>;

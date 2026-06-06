@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 import type { useHabits } from '@/features/habits/hooks/use-habits';
 import { createTestHabit, createTestTranslator as mockCreateTestTranslator, mockSafeAreaInsets, mockTheme } from '@/test/test-utils';
 
-import HabitsScreen from './index';
+import HabitsScreen from '@/app/habits';
 
 type UseHabitsResult = ReturnType<typeof useHabits>;
 

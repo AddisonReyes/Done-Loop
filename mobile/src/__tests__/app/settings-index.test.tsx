@@ -4,7 +4,7 @@ import { Alert, Linking } from 'react-native';
 import type { useSettings } from '@/features/settings/hooks/use-settings';
 import { createTestTranslator as mockCreateTestTranslator, defaultTestSettings, mockSafeAreaInsets, mockTheme } from '@/test/test-utils';
 
-import SettingsScreen from './index';
+import SettingsScreen from '@/app/settings';
 
 type UseSettingsResult = ReturnType<typeof useSettings>;
 

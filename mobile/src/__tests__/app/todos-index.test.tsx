@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 import type { useTodos } from '@/features/todos/hooks/use-todos';
 import { createTestTodo, createTestTranslator as mockCreateTestTranslator, mockSafeAreaInsets, mockTheme } from '@/test/test-utils';
 
-import TodosScreen from './index';
+import TodosScreen from '@/app/todos';
 
 type UseTodosResult = ReturnType<typeof useTodos>;
 
