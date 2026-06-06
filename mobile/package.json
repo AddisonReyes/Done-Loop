@@ -1,7 +1,7 @@
 {
   "name": "done-loop",
   "main": "expo-router/entry",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "scripts": {
     "dev": "node ./scripts/dev-android.js",
     "start": "expo start",
