@@ -6,7 +6,8 @@ import { Footer } from "./shared/footer";
 import { LanguageSelect } from "./shared/language-select";
 import type { Language, Localized } from "./shared/types";
 
-const playStoreHref = "#google-play";
+const playStoreHref =
+  "https://play.google.com/store/apps/details?id=app.dakotitah.doneloop";
 
 type HomeCopy = {
   languageLabel: string;
@@ -31,9 +32,18 @@ const translations = {
     featureText:
       "A simple system for seeing what matters, checking it off, and returning tomorrow without noise.",
     features: [
-      ["One daily surface", "Habits, tasks, and calendar context stay in one calm place."],
-      ["Local reminders", "Use device notifications for habits and dated tasks without account setup."],
-      ["Personal rhythm", "Choose language, date format, theme, and accent color."],
+      [
+        "One daily surface",
+        "Habits, tasks, and calendar context stay in one calm place.",
+      ],
+      [
+        "Local reminders",
+        "Use device notifications for habits and dated tasks without account setup.",
+      ],
+      [
+        "Personal rhythm",
+        "Choose language, date format, theme, and accent color.",
+      ],
     ],
     finalTitle: "Start with one loop.",
     finalText: "Done Loop is available for Android on Google Play.",
@@ -48,9 +58,18 @@ const translations = {
     featureText:
       "Un sistema simple para ver lo importante, marcarlo como hecho y volver mañana sin ruido.",
     features: [
-      ["Una superficie diaria", "Hábitos, tareas y calendario conviven en un lugar tranquilo."],
-      ["Recordatorios locales", "Usa notificaciones del dispositivo para hábitos y tareas sin crear cuenta."],
-      ["Ritmo personal", "Elige idioma, formato de fecha, tema y color de acento."],
+      [
+        "Una superficie diaria",
+        "Hábitos, tareas y calendario conviven en un lugar tranquilo.",
+      ],
+      [
+        "Recordatorios locales",
+        "Usa notificaciones del dispositivo para hábitos y tareas sin crear cuenta.",
+      ],
+      [
+        "Ritmo personal",
+        "Elige idioma, formato de fecha, tema y color de acento.",
+      ],
     ],
     finalTitle: "Empieza con un ciclo.",
     finalText: "Done Loop está disponible para Android en Google Play.",
@@ -66,8 +85,14 @@ export default function Home() {
       <div className="ambient-background" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between gap-4">
-          <p className="font-serif text-xl font-semibold tracking-[-0.02em] text-accent-strong">Done Loop</p>
-          <LanguageSelect language={language} label={copy.languageLabel} onChange={setLanguage} />
+          <p className="font-serif text-xl font-semibold tracking-[-0.02em] text-accent-strong">
+            Done Loop
+          </p>
+          <LanguageSelect
+            language={language}
+            label={copy.languageLabel}
+            onChange={setLanguage}
+          />
         </div>
 
         <section className="flex flex-1 flex-col items-center justify-center py-16 text-center md:py-24">
@@ -75,9 +100,14 @@ export default function Home() {
             <h1 className="font-serif text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-[4.75rem]">
               {copy.heroTitle}
             </h1>
-            <p className="mx-auto mt-6 max-w-[46rem] text-lg leading-8 text-text-secondary sm:text-xl">{copy.heroText}</p>
+            <p className="mx-auto mt-6 max-w-[46rem] text-lg leading-8 text-text-secondary sm:text-xl">
+              {copy.heroText}
+            </p>
             <div className="mx-auto mt-8 max-w-sm">
-              <a className="block rounded-2xl bg-accent px-6 py-4 text-center font-bold text-white transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent-strong focus:ring-offset-2 focus:ring-offset-background" href={playStoreHref}>
+              <a
+                className="block rounded-2xl bg-accent px-6 py-4 text-center font-bold text-white transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent-strong focus:ring-offset-2 focus:ring-offset-background"
+                href={playStoreHref}
+              >
                 {copy.playCta}
               </a>
             </div>
@@ -86,26 +116,45 @@ export default function Home() {
 
         <section className="py-10 md:py-16">
           <div className="max-w-2xl">
-            <h2 className="font-serif text-4xl font-bold tracking-[-0.035em] sm:text-5xl">{copy.featureTitle}</h2>
-            <p className="mt-4 text-lg leading-8 text-text-secondary">{copy.featureText}</p>
+            <h2 className="font-serif text-4xl font-bold tracking-[-0.035em] sm:text-5xl">
+              {copy.featureTitle}
+            </h2>
+            <p className="mt-4 text-lg leading-8 text-text-secondary">
+              {copy.featureText}
+            </p>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {copy.features.map(([title, body]) => (
-              <article key={title} className="rounded-3xl border border-border bg-surface/82 p-6 shadow-[0_18px_58px_rgba(0,0,0,0.2)] backdrop-blur">
+              <article
+                key={title}
+                className="rounded-3xl border border-border bg-surface/82 p-6 shadow-[0_18px_58px_rgba(0,0,0,0.2)] backdrop-blur"
+              >
                 <span className="mb-5 block h-1.5 w-10 rounded-full bg-accent" />
-                <h3 className="font-serif text-2xl font-semibold leading-8">{title}</h3>
+                <h3 className="font-serif text-2xl font-semibold leading-8">
+                  {title}
+                </h3>
                 <p className="mt-3 leading-7 text-text-secondary">{body}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section id="google-play" className="my-10 flex flex-col gap-6 rounded-[2rem] border border-border-strong bg-surface p-7 shadow-[0_22px_70px_rgba(0,0,0,0.24)] md:flex-row md:items-center md:justify-between md:p-9">
+        <section
+          id="google-play"
+          className="my-10 flex flex-col gap-6 rounded-[2rem] border border-border-strong bg-surface p-7 shadow-[0_22px_70px_rgba(0,0,0,0.24)] md:flex-row md:items-center md:justify-between md:p-9"
+        >
           <div className="max-w-xl">
-            <h2 className="font-serif text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{copy.finalTitle}</h2>
-            <p className="mt-3 leading-7 text-text-secondary">{copy.finalText}</p>
+            <h2 className="font-serif text-3xl font-bold tracking-[-0.035em] sm:text-4xl">
+              {copy.finalTitle}
+            </h2>
+            <p className="mt-3 leading-7 text-text-secondary">
+              {copy.finalText}
+            </p>
           </div>
-          <a className="inline-flex justify-center rounded-2xl bg-accent px-6 py-4 font-bold text-white transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent-strong focus:ring-offset-2 focus:ring-offset-surface" href={playStoreHref}>
+          <a
+            className="inline-flex justify-center rounded-2xl bg-accent px-6 py-4 font-bold text-white transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent-strong focus:ring-offset-2 focus:ring-offset-surface"
+            href={playStoreHref}
+          >
             {copy.playCta}
           </a>
         </section>
