@@ -1,5 +1,6 @@
+import { userEvent } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { act, cleanup, fireEvent, renderRouter, screen, userEvent } from 'expo-router/testing-library';
+import { act, cleanup, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import { Alert, Text } from 'react-native';
 
 import HomeScreen from '@/app/index';
@@ -84,7 +85,7 @@ describe('Notes with actual Expo Router navigation', () => {
   });
 
   it('opens a direct note link with a Notes list back destination', async () => {
-    const navigation = renderNotesRouter('/notes/note_1');
+    const navigation = await renderNotesRouter('/notes/note_1');
     await finishLoading();
     expect(navigation.getPathname()).toBe('/notes/note_1');
     expect(screen.getByLabelText('Note content').props.value).toBe('Milk');
@@ -96,7 +97,7 @@ describe('Notes with actual Expo Router navigation', () => {
   });
 
   it('switches all five actual tab triggers and records their top-level routes', async () => {
-    const navigation = renderNotesRouter('/habits');
+    const navigation = await renderNotesRouter('/habits');
     await finishLoading();
     expect(screen.getAllByRole('tab').map((tab) => tab.props.accessibilityLabel)).toEqual(['Habits', 'Tasks', 'Notes', 'Calendar', 'Settings']);
     for (const [label, pathname] of [
@@ -113,7 +114,7 @@ describe('Notes with actual Expo Router navigation', () => {
   it('waits for a dirty editor save before switching tabs and returns to the Notes list', async () => {
     const writing = deferred<Note>();
     jest.mocked(NotesRepository.updateDraft).mockImplementationOnce(() => writing.promise);
-    const navigation = renderNotesRouter('/notes/note_1');
+    const navigation = await renderNotesRouter('/notes/note_1');
     await finishLoading();
     fireEvent.changeText(screen.getByLabelText('Note content'), 'Latest note before switching');
     await userEvent.press(screen.getByRole('tab', { name: 'Tasks' }));
@@ -137,7 +138,7 @@ describe('Notes with actual Expo Router navigation', () => {
 
   it('blocks tab changes after save failure, retains edits, and retries on a later attempt', async () => {
     jest.mocked(NotesRepository.updateDraft).mockRejectedValueOnce(new Error('Storage unavailable'));
-    const navigation = renderNotesRouter('/notes/note_1');
+    const navigation = await renderNotesRouter('/notes/note_1');
     await finishLoading();
     fireEvent.changeText(screen.getByLabelText('Note content'), 'Keep this draft');
     await userEvent.press(screen.getByRole('tab', { name: 'Tasks' }));
@@ -154,7 +155,7 @@ describe('Notes with actual Expo Router navigation', () => {
   it('uses the actual native stack removal guard for dirty Back navigation', async () => {
     const writing = deferred<Note>();
     jest.mocked(NotesRepository.updateDraft).mockImplementationOnce(() => writing.promise);
-    const navigation = renderNotesRouter('/notes/note_1');
+    const navigation = await renderNotesRouter('/notes/note_1');
     await finishLoading();
     fireEvent.changeText(screen.getByLabelText('Note content'), 'Native back draft');
     act(() => { router.back(); });
@@ -167,7 +168,7 @@ describe('Notes with actual Expo Router navigation', () => {
   });
 
   it('allows a missing-note deep link to leave through the actual Back action', async () => {
-    const navigation = renderNotesRouter('/notes/missing');
+    const navigation = await renderNotesRouter('/notes/missing');
     await finishLoading();
     expect(screen.getByText('This note could not be found.')).toBeTruthy();
     await userEvent.press(screen.getByLabelText('Back to Notes'));
@@ -179,7 +180,7 @@ describe('Notes with actual Expo Router navigation', () => {
 
   it('confirms deletion before leaving a cleared note and resets the Notes tab afterward', async () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-    const navigation = renderNotesRouter('/notes/note_1');
+    const navigation = await renderNotesRouter('/notes/note_1');
     await finishLoading();
     fireEvent.changeText(screen.getByLabelText('Note title'), '');
     fireEvent.changeText(screen.getByLabelText('Note content'), '');
@@ -202,7 +203,7 @@ describe('Notes with actual Expo Router navigation', () => {
   });
 
   it('rejects invalid new-note types and keeps the actual Back destination usable', async () => {
-    const navigation = renderNotesRouter('/notes/new?type=invalid');
+    const navigation = await renderNotesRouter('/notes/new?type=invalid');
     await finishLoading();
     expect(screen.queryByLabelText('Note content')).toBeNull();
     expect(screen.getByText('This note link is invalid.')).toBeTruthy();
@@ -214,7 +215,7 @@ describe('Notes with actual Expo Router navigation', () => {
 
   it.each(['/notes', '/habits', '/settings'] as const)('restores saved route %s through the actual startup screen', async (lastActiveRoute) => {
     jest.mocked(SettingsRepository.get).mockResolvedValue({ ...defaultTestSettings, lastActiveRoute });
-    const navigation = renderNotesRouter('/');
+    const navigation = await renderNotesRouter('/');
     await finishLoading();
     expect(navigation.getPathname()).toBe(lastActiveRoute);
     expect(screen.getAllByRole('tab')).toHaveLength(5);
@@ -226,7 +227,7 @@ describe('Notes with actual Expo Router navigation', () => {
     ['/notes/new', 'Text note', false],
     ['/notes/new?type=checklist', 'Checklist', true],
   ])('opens new-note route %s with its requested type', async (url, title, checklist) => {
-    const navigation = renderNotesRouter(url);
+    const navigation = await renderNotesRouter(url);
     await finishLoading();
     expect(navigation.getPathname()).toBe('/notes/new');
     expect(screen.getByText(title)).toBeTruthy();

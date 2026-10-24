@@ -14,7 +14,7 @@ let mockLanguage: 'en' | 'es' = 'en';
 let mockDateFormat: UserDateFormatPreference = 'dmy';
 
 jest.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: 'MaterialCommunityIcons' }));
-jest.mock('expo-router', () => ({ router: { push: (...args: unknown[]) => mockPush(...args) } }));
+jest.mock('expo-router', () => ({ useIsFocused: () => true, router: { push: (...args: unknown[]) => mockPush(...args) } }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => mockSafeAreaInsets }));
 jest.mock('@/hooks/use-theme', () => ({ useTheme: () => mockTheme }));
 jest.mock('@/hooks/use-theme-preference', () => ({ useThemePreference: () => ({ animationsEnabled: false, appBackground: 'none', resolvedTheme: 'light' }) }));

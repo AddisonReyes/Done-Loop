@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 
@@ -16,20 +16,23 @@ type AppBackgroundProps = AppBackgroundSnapshot & {
   style?: StyleProp<ViewStyle>;
 };
 
-export function AppBackground({ accent, background, preference, resolvedTheme, style }: AppBackgroundProps) {
+export const AppBackground = memo(function AppBackground({ accent, background, preference, resolvedTheme, style }: AppBackgroundProps) {
   const { height, width } = useWindowDimensions();
   const gridLineColor = resolvedTheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.105)';
   const solarLineColor = resolvedTheme === 'dark' ? 'rgba(255, 255, 255, 0.145)' : 'rgba(0, 0, 0, 0.13)';
-  const gridColumns = useMemo(() => Array.from({ length: Math.ceil(width / GridSize) + 1 }, (_, index) => index), [width]);
-  const gridRows = useMemo(() => Array.from({ length: Math.ceil(height / GridSize) + 1 }, (_, index) => index), [height]);
+  const gridColumns = useMemo(() => preference === 'grid'
+    ? Array.from({ length: Math.ceil(width / GridSize) + 1 }, (_, index) => index) : [], [preference, width]);
+  const gridRows = useMemo(() => preference === 'grid'
+    ? Array.from({ length: Math.ceil(height / GridSize) + 1 }, (_, index) => index) : [], [preference, height]);
   const solarRings = useMemo(() => {
+    if (preference !== 'solar') return [];
     const maxSolarDiameter = Math.ceil(Math.sqrt(width ** 2 + height ** 2) * 2);
 
     return Array.from(
       { length: Math.ceil((maxSolarDiameter - SolarInitialRingSize) / SolarRingSpacing) + 1 },
       (_, index) => SolarInitialRingSize + index * SolarRingSpacing
     );
-  }, [height, width]);
+  }, [preference, height, width]);
 
   if (preference === 'gradient') {
     return (
@@ -101,7 +104,7 @@ export function AppBackground({ accent, background, preference, resolvedTheme, s
   }
 
   return <View pointerEvents="none" style={[styles.backgroundLayer, { backgroundColor: background }, style]} />;
-}
+});
 
 function CircularGlow({
   color,

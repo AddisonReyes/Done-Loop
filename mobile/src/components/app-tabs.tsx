@@ -33,18 +33,18 @@ export default function AppTabs() {
 
 function AppTabNavigation() {
   const { t } = useTranslation();
-  const pathname = usePathname();
+  const theme = useTheme();
+  const route = getTopLevelRoute(usePathname());
 
   useEffect(() => {
-    const route = getTopLevelRoute(pathname);
     if (route) {
       void SettingsRepository.update({ lastActiveRoute: route }).catch(() => undefined);
     }
-  }, [pathname]);
+  }, [route]);
 
   return (
-    <Tabs>
-      <TabSlot style={{ height: '100%' }} />
+    <Tabs style={{ flex: 1, backgroundColor: theme.background }}>
+      <TabSlot style={{ height: '100%', backgroundColor: theme.background }} />
       <TabList asChild>
         <CustomTabList>
           {/* Headless tabs register screens through triggers, including startup. */}
@@ -86,7 +86,7 @@ export function TabButton({
   onPress,
   onLongPress,
   ...props
-}: TabTriggerSlotProps & { label: string; iconName: TabIconName }) {
+}: Omit<TabTriggerSlotProps, 'ref'> & Pick<ComponentProps<typeof Pressable>, 'ref'> & { label: string; iconName: TabIconName }) {
   const theme = useTheme();
   const { requestLeave } = useNotesNavigationGuard();
   const isNavigatingRef = useRef(false);

@@ -2,12 +2,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, type AccessibilityRole, type AccessibilityState, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useThemePreference } from '@/hooks/use-theme-preference';
+import { useDecorativeAnimations } from '@/shared/hooks/use-decorative-animations';
 import { useTranslation } from '@/i18n';
 
 import { getHabitRecurrenceDetail } from '../services/habit-recurrence-labels';
@@ -33,7 +33,7 @@ export function HabitListItem({
   onDelete,
 }: HabitListItemProps) {
   const theme = useTheme();
-  const { animationsEnabled } = useThemePreference();
+  const animationsEnabled = useDecorativeAnimations();
   const { t } = useTranslation();
   const statusLabel = statusLabelOverride ?? (completedToday ? t('habits.completedToday') : t('habits.pendingToday'));
   const isArchived = !habit.isActive && !habit.deletedAt;
@@ -46,14 +46,15 @@ export function HabitListItem({
 
   useEffect(() => {
     if (!animationsEnabled) {
-      cardScale.value = 1;
+      cardScale.set(1);
       return;
     }
 
-    cardScale.value = withSequence(
+    cardScale.set(withSequence(
       withTiming(0.985, { duration: 80 }),
       withSpring(1, { damping: 16, stiffness: 220 })
-    );
+    ));
+    return () => cancelAnimation(cardScale);
   }, [animationsEnabled, cardScale, completedToday]);
 
   return (
@@ -129,18 +130,19 @@ function IconAction({
   onPress,
 }: IconActionProps) {
   const theme = useTheme();
-  const { animationsEnabled } = useThemePreference();
+  const animationsEnabled = useDecorativeAnimations();
   const buttonScale = useSharedValue(1);
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
   }));
+  useEffect(() => () => cancelAnimation(buttonScale), [animationsEnabled, buttonScale]);
   const setPressed = (pressed: boolean) => {
     if (!animationsEnabled) {
-      buttonScale.value = 1;
+      buttonScale.set(1);
       return;
     }
 
-    buttonScale.value = withTiming(pressed ? 0.96 : 1, { duration: 100 });
+    buttonScale.set(withTiming(pressed ? 0.96 : 1, { duration: 100 }));
   };
 
   return (

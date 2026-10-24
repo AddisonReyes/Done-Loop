@@ -813,4 +813,17 @@ describe('NotificationService', () => {
     expect(notifications.dismissNotificationAsync).not.toHaveBeenCalledWith('task');
     expect(notifications.requestPermissionsAsync).not.toHaveBeenCalled();
   });
+
+  it('shares channel/category configuration across concurrent callers', async () => {
+    await Promise.all(Array.from({ length: 20 }, () => NotificationService.configureForegroundHandlingAsync()));
+    expect(notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(1);
+    expect(notifications.setNotificationCategoryAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries channel configuration after a native failure', async () => {
+    notifications.setNotificationChannelAsync.mockRejectedValueOnce(new Error('native busy'));
+    await expect(NotificationService.configureForegroundHandlingAsync()).resolves.toBe(false);
+    await expect(NotificationService.configureForegroundHandlingAsync()).resolves.toBe(true);
+    expect(notifications.setNotificationChannelAsync).toHaveBeenCalledTimes(2);
+  });
 });

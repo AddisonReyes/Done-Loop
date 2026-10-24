@@ -1,3 +1,4 @@
+import { useIsFocused } from 'expo-router';
 import { useCallback, useMemo, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 
@@ -39,10 +40,12 @@ type TodoRow =
     };
 
 export default function TodosScreen() {
+  const isFocused = useIsFocused();
   const { locale, t } = useTranslation();
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
-  const todos = useTodos();
+  const todos = useTodos({ isFocused });
+  const { completeTodo, reopenTodo, deleteTodo, getTodoDateLabel, dateFormat } = todos;
 
   const confirmDeleteTodo = useCallback((todo: Todo) => {
     Alert.alert(t("todos.actions.delete"), todo.title, [
@@ -51,11 +54,11 @@ export default function TodosScreen() {
         text: t("todos.actions.delete"),
         style: "destructive",
         onPress: () => {
-          void todos.deleteTodo(todo);
+          void deleteTodo(todo);
         },
       },
     ]);
-  }, [t, todos]);
+  }, [t, deleteTodo]);
 
   const rows = useMemo<TodoRow[]>(() => {
     if (todos.viewMode === "calendar") {
@@ -122,7 +125,7 @@ export default function TodosScreen() {
           <View>
             <ThemedText type="smallBold" themeColor="accent">
               {isDateKey(item.dateKey)
-                ? formatDateKey(item.dateKey, locale, todos.dateFormat)
+                ? formatDateKey(item.dateKey, locale, dateFormat)
                 : item.dateKey}
             </ThemedText>
           </View>
@@ -137,9 +140,9 @@ export default function TodosScreen() {
           >
             <TodoListItem
               todo={item.todo}
-              dateLabel={todos.getTodoDateLabel(item.todo)}
-              onComplete={() => void todos.completeTodo(item.todo)}
-              onReopen={() => void todos.reopenTodo(item.todo)}
+              dateLabel={getTodoDateLabel(item.todo)}
+              onComplete={() => void completeTodo(item.todo)}
+              onReopen={() => void reopenTodo(item.todo)}
               onDelete={() => confirmDeleteTodo(item.todo)}
               onStartEdit={() => setEditingTodo(item.todo)}
             />
@@ -147,12 +150,13 @@ export default function TodosScreen() {
         </View>
       );
     },
-    [confirmDeleteTodo, locale, todos],
+    [confirmDeleteTodo, locale, dateFormat, getTodoDateLabel, completeTodo, reopenTodo],
   );
 
   return (
     <View style={styles.screen}>
       <VirtualizedScreenScaffold
+        isFocused={isFocused}
         title={t("todos.title")}
         data={rows}
         keyExtractor={(item) =>
@@ -165,7 +169,7 @@ export default function TodosScreen() {
         renderItem={renderRow}
       />
       <TodoEditorModal
-        dateFormat={todos.dateFormat}
+        dateFormat={dateFormat}
         visible={isCreateModalVisible}
         onClose={() => setIsCreateModalVisible(false)}
         onSubmit={async (draft) => {
@@ -175,7 +179,7 @@ export default function TodosScreen() {
         }}
       />
       <TodoEditorModal
-        dateFormat={todos.dateFormat}
+        dateFormat={dateFormat}
         todo={editingTodo}
         visible={!!editingTodo}
         onClose={() => setEditingTodo(null)}

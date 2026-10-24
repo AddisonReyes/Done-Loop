@@ -18,7 +18,7 @@ type NoteAutosaveOptions = {
   save: (draft: NoteDraft, isPersisted: boolean) => Promise<void>;
   delete: (id: string) => Promise<boolean>;
   onChange: (state: NoteEditorState) => void;
-  onCommitted: () => void;
+  onCommitted: (id: string) => void;
 };
 
 export class NoteAutosave {
@@ -173,7 +173,7 @@ export class NoteAutosave {
       this.savedRevision = snapshotRevision;
       this.hasSaved = true;
       this.isSaving = false;
-      this.options.onCommitted();
+      this.options.onCommitted(snapshot.id);
       this.publish();
     }
 
@@ -189,7 +189,7 @@ export class NoteAutosave {
           this.hasError = true;
           return false;
         }
-        this.options.onCommitted();
+        this.options.onCommitted(this.draft.id);
       }
       this.isDeleted = true;
       this.isPersisted = false;

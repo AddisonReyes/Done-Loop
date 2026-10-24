@@ -1,7 +1,7 @@
 {
   "name": "done-loop",
   "main": "index.ts",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "scripts": {
     "dev": "node ./scripts/dev-android.js",
     "start": "expo start",
@@ -10,6 +10,7 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "benchmark": "node --expose-gc scripts/benchmark-performance.cjs",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --runInBand"
@@ -42,15 +43,17 @@
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
-    "@testing-library/react-native": "^14.1.0",
+    "@react-native/jest-preset": "^0.88.0",
+    "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
     "@types/react": "~19.3.0",
-    "eslint": "^10.13.0",
+    "eslint": "^9.39.1",
     "eslint-config-expo": "~58.0.4",
     "jest": "^30.5.2",
     "jest-expo": "~58.0.12",
     "react-test-renderer": "^19.3.1",
-    "typescript": "~7.0.2"
+    "typescript": "~6.0.3"
   },
   "jest": {
     "preset": "jest-expo",

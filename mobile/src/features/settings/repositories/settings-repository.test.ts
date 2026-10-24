@@ -31,11 +31,21 @@ describe('Notes route setting compatibility', () => {
   });
 
   it('persists the Notes root with a parameterized settings update', async () => {
+    mockDatabase.getFirstAsync.mockResolvedValue({ ...settingsRow, last_active_route: '/habits' });
     expect((await SettingsRepository.update({ lastActiveRoute: '/notes' })).lastActiveRoute).toBe('/notes');
     expect(mockDatabase.runAsync).toHaveBeenCalledWith(
       expect.stringContaining('last_active_route = excluded.last_active_route'),
       0, 1, 'dark', 'pink', 'grid', 'es', 'dmy', 'free', settingsRow.privacy_policy_url,
       settingsRow.terms_url, '/notes', expect.any(String), expect.any(String),
     );
+  });
+
+  it('does not write or notify subscribers when settings have not changed', async () => {
+    const listener = jest.fn();
+    const unsubscribe = SettingsRepository.subscribe(listener);
+    await SettingsRepository.update({ lastActiveRoute: '/notes' });
+    expect(mockDatabase.runAsync).not.toHaveBeenCalled();
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
   });
 });

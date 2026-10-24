@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { NotificationService } from '@/features/notifications/services/notification-service';
 import { useDateFormatPreference } from '@/features/settings/hooks/use-date-format-preference';
@@ -6,7 +6,8 @@ import { SettingsRepository } from '@/features/settings/repositories/settings-re
 import { TodoRepository } from '@/features/todos/repositories';
 import type { CreateTodoInput, Todo, UpdateTodoInput } from '@/features/todos/types';
 import { useTranslation } from '@/i18n';
-import { createAppEventSource, emitAppEvent, subscribeToAppEvent } from '@/shared/events/app-events';
+import { createAppEventSource, emitAppEvent } from '@/shared/events/app-events';
+import { useDomainRefresh } from '@/shared/hooks/use-domain-refresh';
 import { useCurrentDateKey } from '@/shared/hooks/use-current-date-key';
 import { formatDateKey, isBeforeDateKey, isDateKey, toDateKey } from '@/shared/utils/date';
 import { normalizeTodoCreateDraft, normalizeTodoUpdateDraft } from '../services/todo-draft';
@@ -17,7 +18,7 @@ type LoadOptions = {
   silent?: boolean;
 };
 
-export function useTodos() {
+export function useTodos({ isFocused = true }: { isFocused?: boolean } = {}) {
   const { language, locale, t } = useTranslation();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [status, setStatus] = useState<'loading' | 'idle' | 'error'>('loading');
@@ -25,7 +26,7 @@ export function useTodos() {
   const [sort, setSort] = useState<TodoSort>('priority');
   const [viewMode, setViewMode] = useState<TodoViewMode>('list');
   const hasLoadedTodosRef = useRef(false);
-  const eventSourceRef = useRef(createAppEventSource('todos'));
+  const [eventSource] = useState(() => createAppEventSource('todos'));
   const dateFormat = useDateFormatPreference();
   const todayKey = useCurrentDateKey();
 
@@ -48,25 +49,8 @@ export function useTodos() {
     }
   }, [t]);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      void loadTodos();
-    }, 0);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [loadTodos]);
-
-  useEffect(() => {
-    return subscribeToAppEvent('todosChanged', (payload) => {
-      if (payload.source === eventSourceRef.current) {
-        return;
-      }
-
-      void loadTodos({ silent: true });
-    });
-  }, [loadTodos]);
+  const refreshVisibleData = useCallback(() => loadTodos({ silent: true }), [loadTodos]);
+  useDomainRefresh('todosChanged', eventSource, isFocused, refreshVisibleData);
 
   const createTodoFromDraft = useCallback(
     async (input: Omit<CreateTodoInput, 'notificationId'>) => {
@@ -91,14 +75,14 @@ export function useTodos() {
           notificationId,
         });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged', { source: eventSourceRef.current });
+        emitAppEvent('todosChanged', { source: eventSource });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
         return false;
       }
     },
-    [language, loadTodos, t]
+    [eventSource, language, loadTodos, t]
   );
 
   const updateTodoFromDraft = useCallback(
@@ -125,14 +109,14 @@ export function useTodos() {
 
         await TodoRepository.update(todo.id, { ...draft, notificationId });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged', { source: eventSourceRef.current });
+        emitAppEvent('todosChanged', { source: eventSource });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
         return false;
       }
     },
-    [language, loadTodos, t]
+    [eventSource, language, loadTodos, t]
   );
 
   const completeTodo = useCallback(
@@ -148,14 +132,14 @@ export function useTodos() {
           notificationId: undefined,
         });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged', { source: eventSourceRef.current });
+        emitAppEvent('todosChanged', { source: eventSource });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
         return false;
       }
     },
-    [loadTodos, t, todayKey]
+    [eventSource, loadTodos, t, todayKey]
   );
 
   const reopenTodo = useCallback(
@@ -178,14 +162,14 @@ export function useTodos() {
           notificationId,
         });
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged', { source: eventSourceRef.current });
+        emitAppEvent('todosChanged', { source: eventSource });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
         return false;
       }
     },
-    [language, loadTodos, t]
+    [eventSource, language, loadTodos, t]
   );
 
   const deleteTodo = useCallback(
@@ -195,14 +179,14 @@ export function useTodos() {
         await NotificationService.cancelAsync(todo.notificationId);
         await TodoRepository.deleteById(todo.id);
         await loadTodos({ silent: true });
-        emitAppEvent('todosChanged', { source: eventSourceRef.current });
+        emitAppEvent('todosChanged', { source: eventSource });
         return true;
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : t('todos.saveError'));
         return false;
       }
     },
-    [loadTodos, t]
+    [eventSource, loadTodos, t]
   );
 
   const sortedTodos = useMemo(() => {

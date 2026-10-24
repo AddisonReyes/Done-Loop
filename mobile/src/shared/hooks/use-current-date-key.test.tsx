@@ -1,5 +1,5 @@
-import { render } from '@testing-library/react-native';
-import { Text, AppState } from 'react-native';
+import { act, renderHook, render } from '@testing-library/react-native';
+import { Text, AppState, type AppStateStatus } from 'react-native';
 
 import { CurrentDateProvider, useCurrentDateKey } from './use-current-date-key';
 
@@ -39,4 +39,26 @@ describe('CurrentDateProvider', () => {
 
     expect(remove).toHaveBeenCalledTimes(1);
   });
+});
+
+it('stops the midnight timer in background and restores the correct local date on return', () => {
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date(2026, 5, 3, 23, 59, 59));
+  let onState!: (state: AppStateStatus) => void;
+  jest.spyOn(AppState, 'addEventListener').mockImplementation((_event, listener) => {
+    onState = listener;
+    return { remove: jest.fn() };
+  });
+  const rendered = renderHook(() => useCurrentDateKey(), { wrapper: CurrentDateProvider });
+  expect(jest.getTimerCount()).toBe(1);
+  act(() => onState('background'));
+  expect(jest.getTimerCount()).toBe(0);
+  jest.setSystemTime(new Date(2026, 5, 5, 12));
+  act(() => onState('active'));
+  expect(rendered.result.current).toBe('2026-06-05');
+  expect(jest.getTimerCount()).toBe(1);
+  rendered.unmount();
+  expect(jest.getTimerCount()).toBe(0);
+  jest.restoreAllMocks();
+  jest.useRealTimers();
 });

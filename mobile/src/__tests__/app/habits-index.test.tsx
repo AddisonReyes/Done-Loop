@@ -10,6 +10,7 @@ type UseHabitsResult = ReturnType<typeof useHabits>;
 
 const mockUseHabits = jest.fn<UseHabitsResult, []>();
 
+jest.mock('expo-router', () => ({ useIsFocused: () => true }));
 jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
 }));

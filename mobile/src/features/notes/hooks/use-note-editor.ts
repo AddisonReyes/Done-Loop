@@ -33,7 +33,7 @@ export function useNoteEditor({ id, type = 'text' }: NoteEditorOptions) {
   const controllerRef = useRef<NoteAutosave | null>(null);
   const mountedRef = useRef(false);
   const loadGenerationRef = useRef(0);
-  const eventSourceRef = useRef(createAppEventSource('notes'));
+  const [eventSource] = useState(() => createAppEventSource('notes'));
 
   const reload = useCallback(async () => {
     if (controllerRef.current?.getState().isDirty) {
@@ -66,7 +66,7 @@ export function useNoteEditor({ id, type = 'text' }: NoteEditorOptions) {
           }
         },
         delete: NotesRepository.deleteById,
-        onCommitted: () => emitAppEvent('notesChanged', { source: eventSourceRef.current }),
+        onCommitted: (noteId) => emitAppEvent('notesChanged', { source: eventSource, id: noteId }),
         onChange: (editor) => {
           if (mountedRef.current && generation === loadGenerationRef.current) {
             setState({ editor, isLoading: false, loadError: false, notFound: false });
@@ -80,7 +80,7 @@ export function useNoteEditor({ id, type = 'text' }: NoteEditorOptions) {
         setState({ editor: null, isLoading: false, loadError: true, notFound: false });
       }
     }
-  }, [id, type]);
+  }, [eventSource, id, type]);
 
   useEffect(() => {
     mountedRef.current = true;

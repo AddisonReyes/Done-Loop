@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useIsFocused, usePreventRemove } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -38,9 +38,10 @@ export function NoteEditorScreen({ id, type }: NoteEditorScreenProps) {
   const [isLeaving, setIsLeaving] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const editorRef = useRef(editor);
-  editorRef.current = editor;
+  useLayoutEffect(() => { editorRef.current = editor; }, [editor]);
   const leavePromiseRef = useRef<Promise<boolean> | null>(null);
   const allowLeaveRef = useRef(false);
+  const [canLeave, setCanLeave] = useState(false);
   const deleteBusyRef = useRef(false);
   const checklistRef = useRef<FlatList<NoteChecklistItemDraft>>(null);
   const focusRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,13 +73,13 @@ export function NoteEditorScreen({ id, type }: NoteEditorScreenProps) {
           if (!approved) return false;
           const deleted = await editorRef.current.deleteNote();
           if (!deleted) setActionError(t('notes.deleteError'));
-          allowLeaveRef.current = deleted;
+          allowLeaveRef.current = deleted; setCanLeave(deleted);
           return deleted;
         };
         if (editorRef.current.getCurrentState()?.isCleared) return await deleteClearedNote();
         const saved = await editorRef.current.flush();
         if (!saved && editorRef.current.getCurrentState()?.isCleared) return await deleteClearedNote();
-        allowLeaveRef.current = saved;
+        allowLeaveRef.current = saved; setCanLeave(saved);
         return saved;
       } finally {
         setIsLeaving(false);
@@ -92,7 +93,7 @@ export function NoteEditorScreen({ id, type }: NoteEditorScreenProps) {
   useFocusEffect(useCallback(() => registerGuard(leave), [leave, registerGuard]));
 
   const disablePrevention = usePreventRemove(
-    isFocused && !allowLeaveRef.current && (editor.isDirty || editor.isCleared || editor.saveStatus === 'saving' || editor.saveStatus === 'error' || isLeaving || isConfirmingDelete || editor.isDeleting),
+    isFocused && !canLeave && (editor.isDirty || editor.isCleared || editor.saveStatus === 'saving' || editor.saveStatus === 'error' || isLeaving || isConfirmingDelete || editor.isDeleting),
     ({ repeat }) => {
       void requestLeave().then((allowed) => { if (allowed) repeat(); });
     },
@@ -108,7 +109,7 @@ export function NoteEditorScreen({ id, type }: NoteEditorScreenProps) {
   };
 
   const markEdited = () => {
-    allowLeaveRef.current = false;
+    allowLeaveRef.current = false; setCanLeave(false);
     setActionError(null);
   };
 
@@ -120,7 +121,7 @@ export function NoteEditorScreen({ id, type }: NoteEditorScreenProps) {
       const approved = await confirmAction(t('notes.deleteConfirmTitle'), t('notes.deleteConfirmMessage'), t('notes.delete'), t('notes.cancel'));
       if (!approved) return;
       if (await editorRef.current.deleteNote()) {
-        allowLeaveRef.current = true;
+        allowLeaveRef.current = true; setCanLeave(true);
         disablePrevention();
         router.dismissTo('/notes');
       } else {

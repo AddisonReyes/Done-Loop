@@ -96,3 +96,19 @@ export function isHabitDueOnDate(habit: Habit, dateKey: string): boolean {
 export function getHabitsDueOnDate(habits: Habit[], dateKey: string): Habit[] {
   return habits.filter((habit) => isHabitDueOnDate(habit, dateKey));
 }
+
+/** Each selector belongs to one immutable repository snapshot; retain at most two months. */
+export function createHabitCalendarSelector(habits: Habit[]) {
+  const dates = new Map<string, Habit[]>();
+  return (dateKey: string): Habit[] => {
+    const cached = dates.get(dateKey);
+    if (cached) return cached;
+    const result = getHabitsDueOnDate(habits, dateKey);
+    dates.set(dateKey, result);
+    if (dates.size > 62) {
+      const oldest = dates.keys().next().value;
+      if (oldest !== undefined) dates.delete(oldest);
+    }
+    return result;
+  };
+}

@@ -11,6 +11,7 @@ type UseTodosResult = ReturnType<typeof useTodos>;
 const mockUseTodos = jest.fn<UseTodosResult, []>();
 let mockLanguage: 'en' | 'es' = 'en';
 
+jest.mock('expo-router', () => ({ useIsFocused: () => true }));
 jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
 }));

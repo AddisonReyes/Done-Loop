@@ -10,7 +10,7 @@ import type { UserAccentColorPreference, UserAppBackgroundPreference } from '@/f
 import { AppBackground } from './app-background';
 
 jest.mock('expo-linear-gradient', () => ({
-  LinearGradient: (props: ComponentProps<typeof MockView>) => <MockView {...props} testID="gradient-layer" />,
+  LinearGradient: jest.fn((props: ComponentProps<typeof MockView>) => <MockView {...props} testID="gradient-layer" />),
 }));
 
 const themes = ['light', 'dark'] as const;
@@ -26,12 +26,25 @@ describe('AppBackground', () => {
   let windowDimensions: jest.SpiedFunction<typeof ReactNative.useWindowDimensions>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     const native = jest.requireActual<typeof import('react-native')>('react-native');
     windowDimensions = jest.spyOn(native, 'useWindowDimensions').mockReturnValue(dimensions[0]);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('does not rebuild static gradient layers for unchanged parent renders', async () => {
+    const { LinearGradient } = jest.requireMock<typeof import('expo-linear-gradient')>('expo-linear-gradient');
+    const background = <AppBackground accent="#7755aa" background="#ffffff" preference="gradient" resolvedTheme="light" />;
+    const rendered = render(background);
+    for (let index = 0; index < 20; index++) rendered.rerender(
+      <AppBackground accent="#7755aa" background="#ffffff" preference="gradient" resolvedTheme="light" />,
+    );
+    expect(LinearGradient).toHaveBeenCalledTimes(1);
+    rendered.rerender(<AppBackground accent="#1155aa" background="#ffffff" preference="gradient" resolvedTheme="light" />);
+    expect(LinearGradient).toHaveBeenCalledTimes(2);
   });
 
   it.each(themes.flatMap((theme) => preferences.map((preference) => ({ theme, preference }))))(
@@ -47,6 +60,7 @@ describe('AppBackground', () => {
       );
 
       const layer = rendered.toJSON();
+      if (Array.isArray(layer)) throw new Error('Expected one background root.');
       expect(layer?.props.pointerEvents).toBe('none');
       expect(StyleSheet.flatten(layer?.props.style)).toMatchObject({
         position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
@@ -90,11 +104,13 @@ describe('AppBackground', () => {
         />
       );
 
-      const vertical = rendered.root?.queryAll((node) => {
+      const vertical = rendered.root?.findAll((node) => {
+        if (typeof node.type !== 'string') return false;
         const style = StyleSheet.flatten(node.props.style);
         return style?.width === StyleSheet.hairlineWidth && style.top === 0 && style.bottom === 0;
       }) ?? [];
-      const horizontal = rendered.root?.queryAll((node) => {
+      const horizontal = rendered.root?.findAll((node) => {
+        if (typeof node.type !== 'string') return false;
         const style = StyleSheet.flatten(node.props.style);
         return style?.height === StyleSheet.hairlineWidth && style.left === 0 && style.right === 0;
       }) ?? [];

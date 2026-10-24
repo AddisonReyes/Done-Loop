@@ -4,10 +4,10 @@ import { AppState, Platform } from 'react-native';
 import { HabitCompletionRepository, HabitRepository } from '@/features/habits/repositories';
 import { getHabitsDueOnDate } from '@/features/habits/services/habit-recurrence';
 import type { Habit } from '@/features/habits/types';
-import { SettingsRepository } from '@/features/settings/repositories/settings-repository';
 import type { UserLanguagePreference } from '@/features/settings/types';
 import { translations } from '@/i18n/translations';
 import { dateKeyToLocalDate, toDateKey } from '@/shared/utils/date';
+import { createSharedReads } from '@/shared/services/shared-reads';
 import {
   createNotificationActionProcessor,
   habitReminderCategoryId,
@@ -44,6 +44,10 @@ let notificationsModuleLoader: NotificationsModuleLoader = () => import('expo-no
 let notificationsModulePromise: Promise<NotificationsModule | null> | null = null;
 let notificationResponseSubscription: { remove: () => void } | null = null;
 let appStateSubscription: { remove: () => void } | null = null;
+const nativeReads = createSharedReads();
+let channelConfiguration: Promise<void> | null = null;
+let categoryLanguage: UserLanguagePreference | null = null;
+let categoryConfiguration: Promise<void> = Promise.resolve();
 
 type NotificationResponse = Parameters<NotificationsModule['addNotificationResponseReceivedListener']>[0] extends (
   value: infer Response
@@ -78,11 +82,15 @@ async function configureAndroidReminderChannelAsync(notifications: Notifications
     return;
   }
 
-  await notifications.setNotificationChannelAsync(androidReminderChannelId, {
+  channelConfiguration ??= Promise.resolve(notifications.setNotificationChannelAsync(androidReminderChannelId, {
     name: 'Done Loop reminders',
     importance: notifications.AndroidImportance.DEFAULT,
     vibrationPattern: [0, 250, 250, 250],
+  })).then(() => undefined).catch((error: unknown) => {
+    channelConfiguration = null;
+    throw error;
   });
+  await channelConfiguration;
 }
 
 async function ensurePermissionsAsync(requestIfNeeded = true): Promise<boolean> {
@@ -93,7 +101,7 @@ async function ensurePermissionsAsync(requestIfNeeded = true): Promise<boolean> 
 
   await configureAndroidReminderChannelAsync(notifications);
 
-  const existing = await notifications.getPermissionsAsync();
+  const existing = await nativeReads.read('permissions', () => notifications.getPermissionsAsync());
   if (existing.granted) {
     return true;
   }
@@ -157,7 +165,9 @@ async function configureHabitReminderCategoryAsync(
     return;
   }
 
-  await notifications.setNotificationCategoryAsync(habitReminderCategoryId, [
+  const operation = categoryConfiguration.catch(() => undefined).then(async () => {
+    if (categoryLanguage === language) return;
+    await notifications.setNotificationCategoryAsync(habitReminderCategoryId, [
     {
       identifier: markHabitCompleteActionId,
       buttonTitle: translations[language].notifications.markHabitComplete,
@@ -168,7 +178,11 @@ async function configureHabitReminderCategoryAsync(
       buttonTitle: translations[language].notifications.remindIn30Minutes,
       options: { opensAppToForeground: false },
     },
-  ]);
+    ]);
+    categoryLanguage = language;
+  });
+  categoryConfiguration = operation;
+  await operation;
 }
 
 function getHabitNotificationData(habitId: string, language: UserLanguagePreference, dateKey: string) {
@@ -297,7 +311,7 @@ const actionProcessor = createNotificationActionProcessor({
   refresh: async (habit, action, enabled) => {
     const notifications = await getNotificationsModuleAsync();
     if (!notifications) throw new Error('Notifications are unavailable.');
-    const scheduled = await notifications.getAllScheduledNotificationsAsync();
+    const scheduled = await nativeReads.read('scheduled', () => notifications.getAllScheduledNotificationsAsync());
     // Remove this occurrence only. Future reminders remain scheduled even if replenishment fails.
     for (const request of scheduled) {
       if (request.content.data?.type === 'habit_reminder' && request.content.data.habitId === habit.id &&
@@ -333,7 +347,7 @@ export const NotificationService = {
       if (!notifications) return;
       await configureHabitReminderCategoryAsync(notifications, language);
       const pendingResponse = readNotificationResponse(await getLastNotificationResponseAsync(notifications));
-      const scheduled = await notifications.getAllScheduledNotificationsAsync();
+      const scheduled = await nativeReads.read('scheduled', () => notifications.getAllScheduledNotificationsAsync());
       for (const request of scheduled) {
         const data = request.content.data;
         if (data?.type !== 'habit_reminder' || data.actionVersion === 1) continue;
@@ -473,7 +487,7 @@ export const NotificationService = {
         return undefined;
       }
 
-      const scheduled = await notifications.getAllScheduledNotificationsAsync();
+      const scheduled = await nativeReads.read('scheduled', () => notifications.getAllScheduledNotificationsAsync());
       const existingByDate = new Map<string, string>();
       for (const request of scheduled) {
         const data = request.content.data;
@@ -529,7 +543,7 @@ export const NotificationService = {
       if (!(await ensureActionTaskAsync())) return undefined;
       const identifier = sourceNotificationId ? `snooze_${sourceNotificationId}` : undefined;
       if (identifier) {
-        const scheduled = await notifications.getAllScheduledNotificationsAsync();
+        const scheduled = await nativeReads.read('scheduled', () => notifications.getAllScheduledNotificationsAsync());
         if (scheduled.some((notification) => notification.identifier === identifier)) return identifier;
         const presented = await notifications.getPresentedNotificationsAsync();
         if (presented.some((notification) => notification.request.identifier === identifier)) return identifier;
@@ -685,6 +699,10 @@ export function setNotificationModuleLoaderForTests(loader: NotificationsModuleL
 }
 
 export function resetNotificationModuleLoaderForTests(): void {
+  nativeReads.invalidate();
+  channelConfiguration = null;
+  categoryLanguage = null;
+  categoryConfiguration = Promise.resolve();
   actionProcessor.reset();
   notificationsModuleLoader = () => import('expo-notifications');
   notificationsModulePromise = null;

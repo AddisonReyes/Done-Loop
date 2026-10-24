@@ -3,14 +3,17 @@ import { useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import { useAppActive } from '@/shared/hooks/use-app-active';
+import { useDecorativeAnimations } from '@/shared/hooks/use-decorative-animations';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
 
 export function AnimatedSplashOverlay({ animationsEnabled = true }: { animationsEnabled?: boolean }) {
   const [visible, setVisible] = useState(true);
+  const active = useAppActive();
 
-  if (!visible || !animationsEnabled) return null;
+  if (!visible || !animationsEnabled || !active) return null;
 
   const splashKeyframe = new Keyframe({
     0: {
@@ -81,14 +84,15 @@ const glowKeyframe = new Keyframe({
 });
 
 export function AnimatedIcon() {
+  const animationsEnabled = useDecorativeAnimations();
   return (
     <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
+      {animationsEnabled ? <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
         <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
-      </Animated.View>
+      </Animated.View> : <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />}
 
-      <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
-      <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
+      <Animated.View entering={animationsEnabled ? keyframe.duration(DURATION) : undefined} style={styles.background} />
+      <Animated.View style={styles.imageContainer} entering={animationsEnabled ? logoKeyframe.duration(DURATION) : undefined}>
         <Image style={styles.image} source={require('@/assets/images/splash-icon.png')} />
       </Animated.View>
     </View>

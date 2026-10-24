@@ -1,7 +1,8 @@
 import { PropsWithChildren } from 'react';
+import { View } from 'react-native';
 import Animated, { FadeInUp, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 
-import { useThemePreference } from '@/hooks/use-theme-preference';
+import { useDecorativeAnimations } from '@/shared/hooks/use-decorative-animations';
 
 type AnimatedListItemProps = PropsWithChildren<{
   animate?: boolean;
@@ -9,8 +10,9 @@ type AnimatedListItemProps = PropsWithChildren<{
 }>;
 
 export function AnimatedListItem({ animate = true, children, delay = 0 }: AnimatedListItemProps) {
-  const { animationsEnabled } = useThemePreference();
+  const animationsEnabled = useDecorativeAnimations();
   const shouldAnimate = animationsEnabled && animate;
+  if (!shouldAnimate) return <View>{children}</View>;
 
   return (
     <Animated.View

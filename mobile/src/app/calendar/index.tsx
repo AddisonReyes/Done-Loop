@@ -1,3 +1,4 @@
+import { useIsFocused } from 'expo-router';
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 
@@ -41,11 +42,12 @@ type CalendarRow =
     };
 
 export default function CalendarScreen() {
+  const isFocused = useIsFocused();
   const { locale, t } = useTranslation();
   const theme = useTheme();
   const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>();
-  const habits = useHabits();
-  const todos = useTodos();
+  const habits = useHabits({ isFocused });
+  const todos = useTodos({ isFocused });
   const monthDateKeys = useMemo(() => new Set(habits.monthDateKeys), [habits.monthDateKeys]);
   const monthlyTodoGroups = useMemo(
     () =>
@@ -277,6 +279,7 @@ export default function CalendarScreen() {
 
   return (
     <VirtualizedScreenScaffold
+        isFocused={isFocused}
       title={t("calendar.title")}
       data={rows}
       keyExtractor={(item) => {

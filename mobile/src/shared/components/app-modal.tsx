@@ -6,7 +6,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useThemePreference } from '@/hooks/use-theme-preference';
+import { useDecorativeAnimations } from '@/shared/hooks/use-decorative-animations';
 import { useTranslation } from '@/i18n';
 
 type AppModalProps = PropsWithChildren<{
@@ -17,7 +17,7 @@ type AppModalProps = PropsWithChildren<{
 
 export function AppModal({ children, onClose, title, visible }: AppModalProps) {
   const theme = useTheme();
-  const { animationsEnabled } = useThemePreference();
+  const animationsEnabled = useDecorativeAnimations();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 

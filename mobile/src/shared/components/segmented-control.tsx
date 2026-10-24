@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, cancelAnimation, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useThemePreference } from '@/hooks/use-theme-preference';
+import { useDecorativeAnimations } from '@/shared/hooks/use-decorative-animations';
 
 type SegmentOption<T extends string> = {
   label: string;
@@ -20,7 +20,7 @@ type SegmentedControlProps<T extends string> = {
 
 export function SegmentedControl<T extends string>({ options, onChange, value }: SegmentedControlProps<T>) {
   const theme = useTheme();
-  const { animationsEnabled } = useThemePreference();
+  const animationsEnabled = useDecorativeAnimations();
   const [containerWidth, setContainerWidth] = useState(0);
   const hasOptions = options.length > 0;
   const wrapsOptions = options.length >= 4;
@@ -36,14 +36,15 @@ export function SegmentedControl<T extends string>({ options, onChange, value }:
     const nextX = selectedIndex * optionWidth;
 
     if (!animationsEnabled) {
-      indicatorX.value = nextX;
+      indicatorX.set(nextX);
       return;
     }
 
-    indicatorX.value = withTiming(nextX, {
+    indicatorX.set(withTiming(nextX, {
       duration: 180,
       easing: Easing.out(Easing.cubic),
-    });
+    }));
+    return () => cancelAnimation(indicatorX);
   }, [animationsEnabled, indicatorX, optionWidth, selectedIndex]);
 
   return (

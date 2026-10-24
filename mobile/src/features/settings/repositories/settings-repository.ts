@@ -1,3 +1,4 @@
+import { createSharedReads } from '@/shared/services/shared-reads';
 import {
   fromSQLiteBoolean,
   nullableString,
@@ -72,6 +73,76 @@ function mapUserSettingsRow(row: UserSettingsRow): UserSettings {
   };
 }
 
+const settingsReads = createSharedReads();
+let settingsWrites: Promise<void> = Promise.resolve();
+
+async function updateSettings(input: UpdateUserSettingsInput): Promise<UserSettings> {
+  const database = await getDatabaseAsync();
+  const existingRow = await database.getFirstAsync<UserSettingsRow>(
+    `SELECT notifications_enabled, animations_enabled, theme, accent_color, app_background, language, date_format, privacy_policy_url, terms_url, last_active_route
+     FROM user_settings
+     WHERE id = 1;`
+  );
+  const existing = existingRow ? mapUserSettingsRow(existingRow) : defaultSettings;
+  const next: UserSettings = {
+    ...existing,
+    ...input,
+  };
+  if (existingRow && (Object.keys(next) as (keyof UserSettings)[]).every((key) => next[key] === existing[key])) {
+    return existing;
+  }
+  const now = new Date().toISOString();
+
+  await database.runAsync(
+    `INSERT INTO user_settings (
+      id,
+      notifications_enabled,
+      animations_enabled,
+      theme,
+      accent_color,
+      app_background,
+      language,
+      date_format,
+      plan,
+      privacy_policy_url,
+      terms_url,
+      last_active_route,
+      created_at,
+      updated_at
+    ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      notifications_enabled = excluded.notifications_enabled,
+      animations_enabled = excluded.animations_enabled,
+      theme = excluded.theme,
+      accent_color = excluded.accent_color,
+      app_background = excluded.app_background,
+      language = excluded.language,
+      date_format = excluded.date_format,
+      plan = excluded.plan,
+      privacy_policy_url = excluded.privacy_policy_url,
+      terms_url = excluded.terms_url,
+      last_active_route = excluded.last_active_route,
+      updated_at = excluded.updated_at;`,
+    toSQLiteBoolean(next.notificationsEnabled),
+    toSQLiteBoolean(next.animationsEnabled),
+    next.theme,
+    next.accentColor,
+    next.appBackground,
+    next.language,
+    next.dateFormat,
+    FreePlan,
+    nullableString(next.privacyPolicyUrl),
+    nullableString(next.termsUrl),
+    next.lastActiveRoute,
+    now,
+    now
+  );
+
+  settingsListeners.forEach((listener) => listener(next));
+
+  return next;
+}
+
 export const SettingsRepository = {
   subscribe(listener: (settings: UserSettings) => void): () => void {
     settingsListeners.add(listener);
@@ -81,82 +152,31 @@ export const SettingsRepository = {
   },
 
   async get(): Promise<UserSettings> {
-    const database = await getDatabaseAsync();
-    const row = await database.getFirstAsync<UserSettingsRow>(
-      `SELECT notifications_enabled, animations_enabled, theme, accent_color, app_background, language, date_format, privacy_policy_url, terms_url, last_active_route
-       FROM user_settings
-       WHERE id = 1;`
-    );
+    await settingsWrites;
+    return settingsReads.read('settings', async () => {
+      const database = await getDatabaseAsync();
+      const row = await database.getFirstAsync<UserSettingsRow>(
+        `SELECT notifications_enabled, animations_enabled, theme, accent_color, app_background, language, date_format, privacy_policy_url, terms_url, last_active_route
+         FROM user_settings
+         WHERE id = 1;`
+      );
 
-    if (row) {
-      return mapUserSettingsRow(row);
-    }
+      if (row) {
+        return mapUserSettingsRow(row);
+      }
 
-    return this.update(defaultSettings);
+      return this.update(defaultSettings);
+    });
   },
 
-  async update(input: UpdateUserSettingsInput): Promise<UserSettings> {
-    const database = await getDatabaseAsync();
-    const existingRow = await database.getFirstAsync<UserSettingsRow>(
-      `SELECT notifications_enabled, animations_enabled, theme, accent_color, app_background, language, date_format, privacy_policy_url, terms_url, last_active_route
-       FROM user_settings
-       WHERE id = 1;`
-    );
-    const existing = existingRow ? mapUserSettingsRow(existingRow) : defaultSettings;
-    const next: UserSettings = {
-      ...existing,
-      ...input,
-    };
-    const now = new Date().toISOString();
-
-    await database.runAsync(
-      `INSERT INTO user_settings (
-        id,
-        notifications_enabled,
-        animations_enabled,
-        theme,
-        accent_color,
-        app_background,
-        language,
-        date_format,
-        plan,
-        privacy_policy_url,
-        terms_url,
-        last_active_route,
-        created_at,
-        updated_at
-      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        notifications_enabled = excluded.notifications_enabled,
-        animations_enabled = excluded.animations_enabled,
-        theme = excluded.theme,
-        accent_color = excluded.accent_color,
-        app_background = excluded.app_background,
-        language = excluded.language,
-        date_format = excluded.date_format,
-        plan = excluded.plan,
-        privacy_policy_url = excluded.privacy_policy_url,
-        terms_url = excluded.terms_url,
-        last_active_route = excluded.last_active_route,
-        updated_at = excluded.updated_at;`,
-      toSQLiteBoolean(next.notificationsEnabled),
-      toSQLiteBoolean(next.animationsEnabled),
-      next.theme,
-      next.accentColor,
-      next.appBackground,
-      next.language,
-      next.dateFormat,
-      FreePlan,
-      nullableString(next.privacyPolicyUrl),
-      nullableString(next.termsUrl),
-      next.lastActiveRoute,
-      now,
-      now
-    );
-
-    settingsListeners.forEach((listener) => listener(next));
-
-    return next;
+  update(input: UpdateUserSettingsInput): Promise<UserSettings> {
+    const operation = settingsWrites.then(async () => {
+      settingsReads.invalidate();
+      try { return await updateSettings(input); }
+      finally { settingsReads.invalidate(); }
+    });
+    settingsWrites = operation.then(() => undefined, () => undefined);
+    return operation;
   },
 
   async reset(): Promise<UserSettings> {

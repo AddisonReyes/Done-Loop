@@ -27,7 +27,7 @@ export function NoteChecklistItem({ item, index, count, autoFocus, disabled, onF
   const theme = useTheme();
   const { t } = useTranslation();
   const itemLabel = { index: index + 1 };
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
 
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus();

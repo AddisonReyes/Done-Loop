@@ -16,6 +16,7 @@ import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useThemePreference } from '@/hooks/use-theme-preference';
 import { AppBackground, type AppBackgroundSnapshot } from '@/shared/components/app-background';
+import { ScreenActivityContext } from '@/shared/hooks/use-decorative-animations';
 
 type VirtualizedScreenScaffoldProps<ItemT> = {
   contentContainerStyle?: StyleProp<ViewStyle>;
@@ -30,6 +31,7 @@ type VirtualizedScreenScaffoldProps<ItemT> = {
   onScrollToIndexFailed?: FlatListProps<ItemT>['onScrollToIndexFailed'];
   renderItem: ListRenderItem<ItemT>;
   title: string;
+  isFocused?: boolean;
 };
 
 export function VirtualizedScreenScaffold<ItemT>({
@@ -45,6 +47,7 @@ export function VirtualizedScreenScaffold<ItemT>({
   onScrollToIndexFailed,
   renderItem,
   title,
+  isFocused = true,
 }: VirtualizedScreenScaffoldProps<ItemT>) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -83,40 +86,42 @@ export function VirtualizedScreenScaffold<ItemT>({
   );
 
   return (
-    <View style={[styles.root, { backgroundColor: theme.background }]}>
-      <AppBackground {...currentBackground} />
-      <FlatList
-        ref={listRef}
-        onScrollToIndexFailed={onScrollToIndexFailed}
-        data={data}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        style={styles.list}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: insets.top + Spacing.four,
-            paddingBottom: insets.bottom + BottomTabInset + Spacing.four,
-            paddingLeft: Math.max(insets.left, Spacing.three),
-            paddingRight: Math.max(insets.right, Spacing.three),
-          },
-          contentContainerStyle,
-        ]}
-        ListHeaderComponent={header}
-        ListHeaderComponentStyle={styles.headerComponent}
-        ListEmptyComponent={emptyMessage ? (
-          <View style={styles.emptyContent}>
-            <ThemedText type="small" themeColor="textSecondary" style={styles.emptyMessage}>
-              {emptyMessage}
-            </ThemedText>
-          </View>
-        ) : undefined}
-        ListFooterComponent={listFooter ? <View style={styles.footer}>{listFooter}</View> : undefined}
-        ItemSeparatorComponent={ListGap}
-        CellRendererComponent={ConstrainedCell}
-        keyboardShouldPersistTaps="handled"
-      />
-    </View>
+    <ScreenActivityContext value={isFocused}>
+      <View style={[styles.root, { backgroundColor: theme.background }]}>
+        <AppBackground {...currentBackground} />
+        <FlatList
+          ref={listRef}
+          onScrollToIndexFailed={onScrollToIndexFailed}
+          data={data}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          style={styles.list}
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: insets.top + Spacing.four,
+              paddingBottom: insets.bottom + BottomTabInset + Spacing.four,
+              paddingLeft: Math.max(insets.left, Spacing.three),
+              paddingRight: Math.max(insets.right, Spacing.three),
+            },
+            contentContainerStyle,
+          ]}
+          ListHeaderComponent={header}
+          ListHeaderComponentStyle={styles.headerComponent}
+          ListEmptyComponent={emptyMessage ? (
+            <View style={styles.emptyContent}>
+              <ThemedText type="small" themeColor="textSecondary" style={styles.emptyMessage}>
+                {emptyMessage}
+              </ThemedText>
+            </View>
+          ) : undefined}
+          ListFooterComponent={listFooter ? <View style={styles.footer}>{listFooter}</View> : undefined}
+          ItemSeparatorComponent={ListGap}
+          CellRendererComponent={ConstrainedCell}
+          keyboardShouldPersistTaps="handled"
+        />
+      </View>
+    </ScreenActivityContext>
   );
 }
 

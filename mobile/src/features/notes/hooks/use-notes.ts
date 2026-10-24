@@ -1,13 +1,18 @@
-import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { NotesRepository } from '@/features/notes/repositories/notes-repository';
 import { filterNotes } from '@/features/notes/services/note-search';
 import type { Note } from '@/features/notes/types';
 import { useTranslation } from '@/i18n';
-import { createAppEventSource, emitAppEvent, subscribeToAppEvent } from '@/shared/events/app-events';
+import { createAppEventSource, emitAppEvent } from '@/shared/events/app-events';
+import { useDomainRefresh } from '@/shared/hooks/use-domain-refresh';
 
-export function useNotes() {
+function sortNotes(notes: Note[]): Note[] {
+  return notes.sort((a, b) => Number(b.isPinned) - Number(a.isPinned) ||
+    (a.updatedAt === b.updatedAt ? (a.id < b.id ? -1 : a.id > b.id ? 1 : 0) : a.updatedAt > b.updatedAt ? -1 : 1));
+}
+
+export function useNotes({ isFocused = true }: { isFocused?: boolean } = {}) {
   const { t } = useTranslation();
   const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
@@ -18,6 +23,7 @@ export function useNotes() {
   const [eventSource] = useState(() => createAppEventSource('notes-list'));
   const requestRef = useRef(0);
   const mountedRef = useRef(true);
+  const activeReads = useRef(0);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -29,6 +35,7 @@ export function useNotes() {
 
   const reload = useCallback(async () => {
     const request = ++requestRef.current;
+    activeReads.current += 1;
     try {
       const loadedNotes = await NotesRepository.list();
       if (mountedRef.current && request === requestRef.current) {
@@ -38,17 +45,31 @@ export function useNotes() {
     } catch {
       if (mountedRef.current && request === requestRef.current) setFailure('load');
     } finally {
+      activeReads.current -= 1;
       if (mountedRef.current && request === requestRef.current) setIsLoading(false);
     }
   }, []);
 
-  useFocusEffect(useCallback(() => {
-    void reload();
-  }, [reload]));
-
-  useEffect(() => subscribeToAppEvent('notesChanged', (payload) => {
-    if (payload.source !== eventSource) void reload();
-  }), [eventSource, reload]);
+  const refresh = useCallback(async (ids: ReadonlySet<string> | null) => {
+    if (!ids || ids.size > 8) return reload();
+    const request = ++requestRef.current;
+    activeReads.current += 1;
+    try {
+      const notes = await Promise.all([...ids].map((id) => NotesRepository.findById(id)));
+      if (!mountedRef.current || request !== requestRef.current) return;
+      setAllNotes((current) => sortNotes([
+        ...current.filter((note) => !ids.has(note.id)),
+        ...notes.filter((note): note is Note => note !== null),
+      ]));
+      setFailure(null);
+    } catch {
+      // An uncertain item update must recover through the authoritative full list.
+      await reload();
+    } finally {
+      activeReads.current -= 1;
+    }
+  }, [reload]);
+  useDomainRefresh('notesChanged', eventSource, isFocused, refresh);
 
   const setPinned = useCallback(async (note: Note) => {
     if (pendingPinIdsRef.current.has(note.id)) return false;
@@ -56,9 +77,10 @@ export function useNotes() {
     setPendingPinIds(new Set(pendingPinIdsRef.current));
     try {
       const saved = await NotesRepository.setPinned(note.id, !note.isPinned);
-      if (mountedRef.current) setAllNotes((current) => current.map((item) => item.id === saved.id ? saved : item));
-      await reload();
-      emitAppEvent('notesChanged', { source: eventSource });
+      if (mountedRef.current) setAllNotes((current) => sortNotes(current.map((item) => item.id === saved.id ? saved : item)));
+      // A read that began before pinning could still contain the previous pin value.
+      if (activeReads.current > 0) await reload();
+      emitAppEvent('notesChanged', { source: eventSource, id: saved.id });
       return true;
     } catch {
       if (mountedRef.current) setFailure('save');

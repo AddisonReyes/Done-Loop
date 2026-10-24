@@ -179,6 +179,21 @@ describe('useHabits', () => {
     return rendered;
   }
 
+  it('shares concurrent reads between Habits and Calendar and groups invalidation bursts', async () => {
+    activeHabits = [dailyHabit];
+    const rendered = renderHook(() => [useHabits(), useHabits()]);
+    await waitFor(() => expect(rendered.result.current.every((value) => !value.isLoading)).toBe(true));
+    expect(HabitRepository.listVisibleForHistory).toHaveBeenCalledTimes(1);
+    expect(HabitCompletionRepository.listByDateRange).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      emitAppEvent('habitsChanged');
+      emitAppEvent('habitsChanged');
+      emitAppEvent('habitsChanged');
+    });
+    expect(HabitRepository.listVisibleForHistory).toHaveBeenCalledTimes(2);
+    expect(HabitCompletionRepository.listByDateRange).toHaveBeenCalledTimes(4);
+  });
+
   it('loads active habits and computes pending count for today', async () => {
     activeHabits = [dailyHabit];
 

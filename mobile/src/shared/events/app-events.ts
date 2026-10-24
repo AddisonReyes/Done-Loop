@@ -1,6 +1,7 @@
-type AppEventName = 'habitsChanged' | 'todosChanged' | 'notesChanged';
+export type AppEventName = 'habitsChanged' | 'todosChanged' | 'notesChanged';
 type AppEventPayload = {
   source?: string;
+  id?: string;
 };
 type AppEventListener = (payload: AppEventPayload) => void;
 

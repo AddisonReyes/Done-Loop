@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
@@ -19,9 +19,10 @@ import { formatDateKey, toDateKey } from '@/shared/utils/date';
 import { NoteListItem } from './note-list-item';
 
 export function NotesScreen() {
+  const isFocused = useIsFocused();
   const theme = useTheme();
   const { locale, t } = useTranslation();
-  const notes = useNotes();
+  const notes = useNotes({ isFocused });
   const [showCreateOptions, setShowCreateOptions] = useState(false);
   const dateFormat = useDateFormatPreference();
 
@@ -41,6 +42,7 @@ export function NotesScreen() {
   return (
     <View style={styles.screen}>
       <VirtualizedScreenScaffold
+        isFocused={isFocused}
         title={t('notes.title')}
         data={notes.notes}
         keyExtractor={(note) => note.id}

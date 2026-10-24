@@ -1,3 +1,4 @@
+import { useIsFocused } from 'expo-router';
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 
@@ -21,6 +22,7 @@ import { formatDateKey } from "@/shared/utils/date";
 const animatedListItemLimit = 24;
 
 export default function HabitsScreen() {
+  const isFocused = useIsFocused();
   const theme = useTheme();
   const { locale, t } = useTranslation();
   const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>();
@@ -45,7 +47,7 @@ export default function HabitsScreen() {
     visibleHabits,
     updateHabitFromDraft,
     habits,
-  } = useHabits();
+  } = useHabits({ isFocused });
   const hasSelectedDateFilter = !!selectedDateKey;
   const listedDateKey = selectedDateKey ?? todayKey;
   const listedHabitsDue = useMemo(
@@ -328,6 +330,7 @@ export default function HabitsScreen() {
   return (
     <View style={styles.screen}>
       <VirtualizedScreenScaffold
+        isFocused={isFocused}
         title={t("habits.title")}
         data={listedHabits}
         keyExtractor={(habit) => habit.id}

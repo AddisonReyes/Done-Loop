@@ -40,4 +40,27 @@ describe('note search', () => {
     expect(filterNotes(notes, 'a')).toEqual([notes[0], notes[1], notes[2], notes[3]]);
     expect(filterNotes(notes, 'missing')).toEqual([]);
   });
+
+  it('reuses normalized text and invalidates it when a note or item changes', () => {
+    const item = { ...notes[2].items[0] };
+    const source = note('prepared', { title: 'First', items: [item] });
+    const normalize = jest.spyOn(String.prototype, 'normalize');
+    filterNotes([source], 'missing');
+    const firstCalls = normalize.mock.calls.length;
+    filterNotes([source], 'second');
+    expect(normalize.mock.calls.length - firstCalls).toBe(1);
+    source.title = 'Second';
+    expect(filterNotes([source], 'second')).toEqual([source]);
+    item.content = 'Changed item';
+    expect(filterNotes([source], 'changed')).toEqual([source]);
+    normalize.mockRestore();
+  });
+
+  it('does not normalize a long body if the title already matches', () => {
+    const source = note('large', { title: 'Find me', content: 'Long body\n'.repeat(10000) });
+    const normalize = jest.spyOn(String.prototype, 'normalize');
+    expect(filterNotes([source], 'find me')).toEqual([source]);
+    expect(normalize).toHaveBeenCalledTimes(2);
+    normalize.mockRestore();
+  });
 });

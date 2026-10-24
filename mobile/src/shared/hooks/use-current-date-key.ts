@@ -15,7 +15,7 @@ export function CurrentDateProvider({ children }: PropsWithChildren) {
   const [dateKey, setDateKey] = useState(() => toDateKey(new Date()));
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
 
     const refreshDateKey = () => {
       setDateKey(toDateKey(new Date()));
@@ -28,11 +28,13 @@ export function CurrentDateProvider({ children }: PropsWithChildren) {
       }, getNextLocalMidnightDelay());
     };
 
-    scheduleNextRefresh();
+    if (AppState.currentState !== 'background' && AppState.currentState !== 'inactive') scheduleNextRefresh();
 
     const subscription = AppState.addEventListener('change', (state) => {
+      clearTimeout(timeout);
       if (state === 'active') {
         refreshDateKey();
+        scheduleNextRefresh();
       }
     });
 

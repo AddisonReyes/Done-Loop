@@ -1,11 +1,12 @@
+import { useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useThemePreference } from '@/hooks/use-theme-preference';
+import { useDecorativeAnimations } from '@/shared/hooks/use-decorative-animations';
 import { useTranslation } from '@/i18n';
 
 const bottomBarHeight = 52;
@@ -18,20 +19,21 @@ type FloatingCreateButtonProps = {
 export function FloatingCreateButton({ accessibilityLabel, onPress }: FloatingCreateButtonProps) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const { animationsEnabled } = useThemePreference();
+  const animationsEnabled = useDecorativeAnimations();
   const { t } = useTranslation();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
+  useEffect(() => () => cancelAnimation(scale), [animationsEnabled, scale]);
   const setPressed = (pressed: boolean) => {
     if (!animationsEnabled) {
-      scale.value = 1;
+      scale.set(1);
       return;
     }
 
-    scale.value = withTiming(pressed ? 0.96 : 1, { duration: 110 });
+    scale.set(withTiming(pressed ? 0.96 : 1, { duration: 110 }));
   };
 
   return (

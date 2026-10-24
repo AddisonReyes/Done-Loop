@@ -1,0 +1,30 @@
+{
+  "node": "v25.7.0",
+  "platform": "win32",
+  "baseline": true,
+  "baselineCommit": "7cf229406330f1b7ed58d14702386aac4a40a2b6",
+  "settings": {
+    "reads": 100,
+    "writes": 100
+  },
+  "scenarios": [
+    {
+      "size": 50,
+      "fiveSearchesMedianMs": 0.168,
+      "twoCalendarPassesMedianMs": 7.823,
+      "coldCalendarMedianMs": 8.515,
+      "retainedHeapDeltaBytes": -256944,
+      "checksum": 47400
+    },
+    {
+      "size": 2000,
+      "fiveSearchesMedianMs": 6.487,
+      "twoCalendarPassesMedianMs": 334.084,
+      "coldCalendarMedianMs": 394.473,
+      "retainedHeapDeltaBytes": 1871136,
+      "checksum": 1860000
+    }
+  ],
+  "heapUsedBytes": 19811040,
+  "limitations": "Node CPU/SQLite only; not Android startup, frames, native memory or battery."
+}
