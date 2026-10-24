@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 import type { HabitDayActivity, HabitDayIntensity } from '@/features/habits/components/habit-month-history';
 import { HabitCompletionRepository, HabitRepository } from '@/features/habits/repositories';
@@ -162,6 +163,19 @@ export function useHabits() {
       void loadHabits({ silent: true });
       void loadMonthHistory();
     });
+  }, [loadHabits, loadMonthHistory]);
+
+  useEffect(() => {
+    let previousState = AppState.currentState;
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && previousState !== 'active') {
+        // Headless notification actions run in another JS execution and cannot emit UI events.
+        void loadHabits({ silent: true });
+        void loadMonthHistory().catch(() => undefined);
+      }
+      previousState = state;
+    });
+    return () => subscription.remove();
   }, [loadHabits, loadMonthHistory]);
 
   const visibleHabits = useMemo(() => {

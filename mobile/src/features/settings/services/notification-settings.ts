@@ -54,7 +54,7 @@ export async function reconcileExistingRemindersAsync(language: UserLanguagePref
           return;
         }
 
-        await NotificationService.cancelHabitRemindersAsync(habit.id, habit.notificationId);
+        // Replenish missing dates without cancelling a snooze created by a background action.
         const notificationId = await NotificationService.scheduleHabitReminderAsync({
           habit,
           language,

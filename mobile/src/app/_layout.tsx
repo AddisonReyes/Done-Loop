@@ -5,6 +5,7 @@ import {
 } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect, useRef } from "react";
+import { AppState } from "react-native";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import AppTabs from "@/components/app-tabs";
@@ -46,7 +47,9 @@ function ThemedNavigation() {
 
   useEffect(() => {
     void NotificationService.configureForegroundHandlingAsync();
-    void NotificationService.configureResponseHandlingAsync();
+    void SettingsRepository.get().then((settings) =>
+      NotificationService.refreshHabitNotificationActionsAsync(settings.language),
+    ).catch((error: unknown) => console.error('Could not renew notification actions.', error));
     NotificationService.configureAppStateSync(() => {
       const currentDateKey = toDateKey(new Date());
 
@@ -65,6 +68,15 @@ function ThemedNavigation() {
       });
     });
   }, []);
+
+  useEffect(() => {
+    if (!(fontsLoaded || fontError) || isLoadingTheme) return;
+    void NotificationService.configureResponseHandlingAsync();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void NotificationService.configureResponseHandlingAsync();
+    });
+    return () => subscription.remove();
+  }, [fontError, fontsLoaded, isLoadingTheme]);
 
   return (
     <ThemeProvider value={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}>

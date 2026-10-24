@@ -161,7 +161,7 @@ function hexToRgba(hex: string, alpha: number) {
 
 const styles = StyleSheet.create({
   backgroundLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   gridVerticalLine: {
     position: 'absolute',

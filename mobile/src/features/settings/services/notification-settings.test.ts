@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { HabitRepository } from '@/features/habits/repositories';
 import { NotificationService } from '@/features/notifications/services/notification-service';
 import { TodoRepository } from '@/features/todos/repositories';
@@ -227,8 +228,7 @@ describe('reconcileExistingRemindersAsync', () => {
     await expect(reconcileExistingRemindersAsync('en')).resolves.toBeUndefined();
 
     expect(NotificationService.cancelAllAsync).not.toHaveBeenCalled();
-    expect(NotificationService.cancelHabitRemindersAsync).toHaveBeenCalledTimes(1);
-    expect(NotificationService.cancelHabitRemindersAsync).toHaveBeenCalledWith('habit_stale', 'stale-id');
+    expect(NotificationService.cancelHabitRemindersAsync).not.toHaveBeenCalled();
     expect(NotificationService.scheduleHabitReminderAsync).toHaveBeenCalledWith(
       expect.objectContaining({ habit: expect.objectContaining({ id: 'habit_stale' }), language: 'en' })
     );
@@ -296,7 +296,7 @@ describe('reconcileExistingRemindersAsync', () => {
 
     await expect(reconcileExistingRemindersAsync('es')).resolves.toBeUndefined();
 
-    expect(NotificationService.cancelHabitRemindersAsync).toHaveBeenCalledWith('habit_short', 'existing-id');
+    expect(NotificationService.cancelHabitRemindersAsync).not.toHaveBeenCalled();
     expect(NotificationService.scheduleHabitReminderAsync).toHaveBeenCalledWith(
       expect.objectContaining({ habit: expect.objectContaining({ id: 'habit_short' }), language: 'es' })
     );
