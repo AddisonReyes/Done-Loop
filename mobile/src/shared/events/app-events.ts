@@ -1,4 +1,4 @@
-type AppEventName = 'habitsChanged' | 'todosChanged';
+type AppEventName = 'habitsChanged' | 'todosChanged' | 'notesChanged';
 type AppEventPayload = {
   source?: string;
 };

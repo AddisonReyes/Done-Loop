@@ -53,7 +53,7 @@ const accentColorPreferences = new Set<UserAccentColorPreference>(['purple', 'bl
 const appBackgroundPreferences = new Set<UserAppBackgroundPreference>(['none', 'gradient', 'grid', 'solar']);
 const languagePreferences = new Set<UserLanguagePreference>(['en', 'es']);
 const dateFormatPreferences = new Set<UserDateFormatPreference>(['iso', 'mdy', 'dmy', 'long']);
-const lastActiveRoutes = new Set<UserLastActiveRoute>(['/habits', '/todos', '/calendar', '/settings']);
+const lastActiveRoutes = new Set<UserLastActiveRoute>(['/habits', '/todos', '/notes', '/calendar', '/settings']);
 
 function mapUserSettingsRow(row: UserSettingsRow): UserSettings {
   return {

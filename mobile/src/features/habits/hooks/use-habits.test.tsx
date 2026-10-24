@@ -88,6 +88,7 @@ describe('useHabits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 5, 3, 12, 0, 0, 0));
     activeHabits = [];
     completions = [];
     jest.mocked(HabitRepository.listVisibleForHistory).mockImplementation(async () => activeHabits);

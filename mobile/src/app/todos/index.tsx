@@ -9,7 +9,6 @@ import { useTodos } from "@/features/todos/hooks/use-todos";
 import type { Todo } from "@/features/todos/types";
 import { useTranslation } from "@/i18n";
 import { AnimatedListItem } from "@/shared/components/animated-list-item";
-import { EmptyState } from "@/shared/components/empty-state";
 import { FloatingCreateButton } from "@/shared/components/floating-create-button";
 import { SectionCard } from "@/shared/components/section-card";
 import { SegmentedControl } from "@/shared/components/segmented-control";
@@ -116,15 +115,6 @@ export default function TodosScreen() {
     </>
   );
 
-  const listFooter =
-    !todos.isLoading && todos.sortedTodos.length === 0 ? (
-      <EmptyState
-        message={t("todos.empty")}
-        actionLabel={t("todos.form.create")}
-        onAction={() => setIsCreateModalVisible(true)}
-      />
-    ) : null;
-
   const renderRow = useCallback(
     ({ item }: { item: TodoRow }) => {
       if (item.type === "calendarHeading") {
@@ -171,7 +161,7 @@ export default function TodosScreen() {
             : `todo-${item.todo.id}`
         }
         listHeader={listHeader}
-        listFooter={listFooter}
+        emptyMessage={!todos.isLoading && !todos.errorMessage ? t("todos.empty") : undefined}
         renderItem={renderRow}
       />
       <TodoEditorModal

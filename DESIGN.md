@@ -173,10 +173,11 @@ Use when a list has no content or a filter returns no results. The message shoul
 
 ## Navigation
 
-The main navigation is a bottom bar with four tabs:
+The main navigation is a bottom bar with five tabs:
 
 - Habits: `checkbox-marked-circle-outline`
 - Tasks: `format-list-checks`
+- Notes: `notebook-outline`
 - Calendar: `calendar`
 - Settings: `cog-outline`
 

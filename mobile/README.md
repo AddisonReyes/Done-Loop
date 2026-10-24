@@ -8,6 +8,7 @@ The app has no ads, memberships, subscriptions, in-app purchases, analytics, acc
 
 - Tracks habits with daily completion, recurring schedules, reminders, and monthly history.
 - Manages tasks with priorities, due dates, completion, reopening, editing, and deletion.
+- Keeps text notes and independent checklists with autosave, search, and pinning.
 - Shows a calendar view for habit activity and dated tasks.
 - Stores app data locally with SQLite.
 - Supports English and Spanish.
@@ -71,6 +72,7 @@ npm run test
 - `src/app/` - Expo Router screens and layout.
 - `src/features/habits/` - habit domain types, hooks, repositories, and components.
 - `src/features/todos/` - task domain types, hooks, repositories, and components.
+- `src/features/notes/` - note and checklist persistence, autosave, hooks, and components.
 - `src/features/settings/` - persisted user settings.
 - `src/features/notifications/` - notification scheduling and permission handling.
 - `src/storage/` - SQLite client and migrations.
@@ -88,6 +90,7 @@ The database currently stores:
 - Habits
 - Habit completions
 - Tasks
+- Notes and note checklist items
 - User settings
 
 When changing persisted data, add a migration in `src/storage/migrations` and keep existing user data compatible.

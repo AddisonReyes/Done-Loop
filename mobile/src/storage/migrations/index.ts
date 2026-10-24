@@ -12,6 +12,7 @@ import { migration009AddSolarAppBackground } from '@/storage/migrations/migratio
 import { migration010AddHabitRecurrenceDays } from '@/storage/migrations/migration-010-add-habit-recurrence-days';
 import { migration011AddLocalDateKeys } from '@/storage/migrations/migration-011-add-local-date-keys';
 import { migration012AddLastActiveRouteSetting } from '@/storage/migrations/migration-012-add-last-active-route-setting';
+import { migration013AddNotes } from '@/storage/migrations/migration-013-add-notes';
 
 type Migration = {
   id: number;
@@ -32,6 +33,7 @@ const migrations: Migration[] = [
   migration010AddHabitRecurrenceDays,
   migration011AddLocalDateKeys,
   migration012AddLastActiveRouteSetting,
+  migration013AddNotes,
 ];
 
 export async function runMigrationsAsync(database: SQLiteDatabase): Promise<void> {

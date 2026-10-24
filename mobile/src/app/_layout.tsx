@@ -2,7 +2,7 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from "@react-navigation/native";
+} from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect, useRef } from "react";
 

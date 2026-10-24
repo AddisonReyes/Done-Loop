@@ -8,6 +8,7 @@ describe("app events", () => {
     emitAppEvent("habitsChanged", { source: "test-source" });
     unsubscribe();
     emitAppEvent("habitsChanged");
+    emitAppEvent("notesChanged");
 
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenCalledWith({ source: "test-source" });

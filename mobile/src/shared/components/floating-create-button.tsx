@@ -11,10 +11,11 @@ import { useTranslation } from '@/i18n';
 const bottomBarHeight = 52;
 
 type FloatingCreateButtonProps = {
+  accessibilityLabel?: string;
   onPress: () => void;
 };
 
-export function FloatingCreateButton({ onPress }: FloatingCreateButtonProps) {
+export function FloatingCreateButton({ accessibilityLabel, onPress }: FloatingCreateButtonProps) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { animationsEnabled } = useThemePreference();
@@ -35,7 +36,7 @@ export function FloatingCreateButton({ onPress }: FloatingCreateButtonProps) {
 
   return (
     <Pressable
-      accessibilityLabel={t('common.create')}
+      accessibilityLabel={accessibilityLabel ?? t('common.create')}
       accessibilityRole="button"
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}

@@ -2,7 +2,7 @@ import { openDatabaseAsync } from 'expo-sqlite';
 
 import { runMigrationsAsync } from '@/storage/migrations';
 
-import { getDatabaseAsync, resetDatabaseConnectionForTestsAsync } from './client';
+import { getDatabaseAsync, openIndependentDatabaseAsync, resetDatabaseConnectionForTestsAsync } from './client';
 
 jest.mock('expo-sqlite', () => ({
   openDatabaseAsync: jest.fn(),
@@ -23,6 +23,12 @@ function createDatabase() {
 }
 
 describe('getDatabaseAsync', () => {
+  beforeEach(() => {
+    mockedOpenDatabaseAsync.mockReset();
+    mockedRunMigrationsAsync.mockReset();
+    mockedRunMigrationsAsync.mockResolvedValue(undefined);
+  });
+
   afterEach(async () => {
     jest.clearAllMocks();
     await resetDatabaseConnectionForTestsAsync();
@@ -43,6 +49,46 @@ describe('getDatabaseAsync', () => {
     await expect(getDatabaseAsync()).resolves.toBe(recoveredDatabase);
 
     expect(mockedOpenDatabaseAsync).toHaveBeenCalledTimes(2);
+    expect(failedDatabase.closeAsync).toHaveBeenCalledTimes(1);
     expect(recoveredDatabase.execAsync).toHaveBeenCalledWith('PRAGMA foreign_keys = ON;');
+    expect(recoveredDatabase.execAsync).toHaveBeenCalledWith('PRAGMA busy_timeout = 5000;');
+  });
+
+  it('opens an independent connection only after the primary database is migrated', async () => {
+    const primary = createDatabase();
+    const independent = createDatabase();
+    const order: string[] = [];
+    mockedOpenDatabaseAsync
+      .mockResolvedValueOnce(primary as never)
+      .mockImplementationOnce(async () => {
+        order.push('independent');
+        return independent as never;
+      });
+    mockedRunMigrationsAsync.mockImplementationOnce(async () => {
+      order.push('migrations');
+    });
+
+    await expect(openIndependentDatabaseAsync()).resolves.toBe(independent);
+
+    expect(order).toEqual(['migrations', 'independent']);
+    expect(mockedOpenDatabaseAsync).toHaveBeenLastCalledWith('done-loop.db', { useNewConnection: true });
+    expect(independent.execAsync.mock.calls).toEqual([
+      ['PRAGMA foreign_keys = ON;'],
+      ['PRAGMA busy_timeout = 5000;'],
+    ]);
+    expect(mockedRunMigrationsAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes an independent connection if its configuration fails', async () => {
+    const primary = createDatabase();
+    const independent = createDatabase();
+    independent.execAsync.mockRejectedValueOnce(new Error('configuration failed'));
+    mockedOpenDatabaseAsync
+      .mockResolvedValueOnce(primary as never)
+      .mockResolvedValueOnce(independent as never);
+
+    await expect(openIndependentDatabaseAsync()).rejects.toThrow('configuration failed');
+    expect(independent.closeAsync).toHaveBeenCalledTimes(1);
+    await expect(getDatabaseAsync()).resolves.toBe(primary);
   });
 });

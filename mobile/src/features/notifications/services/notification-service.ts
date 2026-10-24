@@ -1,4 +1,4 @@
-import Constants, { AppOwnership } from 'expo-constants';
+import { isRunningInExpoGo } from 'expo';
 import { router } from 'expo-router';
 import { AppState, Platform } from 'react-native';
 
@@ -47,25 +47,29 @@ type NotificationResponse = Parameters<NotificationsModule['addNotificationRespo
   : never;
 
 async function getNotificationsModuleAsync(): Promise<NotificationsModule | null> {
-  // Android Expo Go imports expo-notifications push-token side effects and logs a SDK 53+ unsupported warning.
-  // Development/preview/production builds still load the module normally.
-  if (Platform.OS === 'android' && isExpoGo()) {
+  // The Android entry point loads native modules that are unavailable in Expo Go.
+  if (Platform.OS === 'android' && isRunningInExpoGo()) {
     return null;
   }
 
   if (!notificationsModulePromise) {
-    notificationsModulePromise = notificationsModuleLoader().catch(() => null);
+    notificationsModulePromise = Promise.resolve()
+      .then(notificationsModuleLoader)
+      .then((notifications) => {
+        if (!notifications || typeof notifications.setNotificationHandler !== 'function' ||
+          typeof notifications.addNotificationResponseReceivedListener !== 'function') {
+          return null;
+        }
+        return notifications;
+      })
+      .catch(() => null);
   }
 
   return notificationsModulePromise;
 }
 
-function isExpoGo(): boolean {
-  return Constants.appOwnership === AppOwnership.Expo;
-}
-
 async function configureAndroidReminderChannelAsync(notifications: NotificationsModule): Promise<void> {
-  if (Platform.OS !== 'android' || isExpoGo() || !('setNotificationChannelAsync' in notifications)) {
+  if (Platform.OS !== 'android' || isRunningInExpoGo() || !('setNotificationChannelAsync' in notifications)) {
     return;
   }
 
@@ -382,42 +386,50 @@ export const NotificationService = {
   },
 
   async configureForegroundHandlingAsync(): Promise<boolean> {
-    const notifications = await getNotificationsModuleAsync();
-    if (!notifications) {
+    try {
+      const notifications = await getNotificationsModuleAsync();
+      if (!notifications) {
+        return false;
+      }
+
+      notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        }),
+      });
+      await configureAndroidReminderChannelAsync(notifications);
+      await configureHabitReminderCategoryAsync(notifications, 'en');
+
+      return true;
+    } catch {
       return false;
     }
-
-    notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
-    await configureAndroidReminderChannelAsync(notifications);
-    await configureHabitReminderCategoryAsync(notifications, 'en');
-
-    return true;
   },
 
   async configureResponseHandlingAsync(): Promise<boolean> {
-    const notifications = await getNotificationsModuleAsync();
-    if (!notifications || notificationResponseSubscription) {
-      return !!notifications;
+    try {
+      const notifications = await getNotificationsModuleAsync();
+      if (!notifications || notificationResponseSubscription) {
+        return !!notifications;
+      }
+
+      notificationResponseSubscription = notifications.addNotificationResponseReceivedListener((response) => {
+        void handleNotificationResponseAsync(notifications, response).catch(() => undefined);
+      });
+
+      const initialResponse = await getLastNotificationResponseAsync(notifications).catch(() => null);
+      if (initialResponse) {
+        await handleNotificationResponseAsync(notifications, initialResponse).catch(() => undefined);
+        await clearLastNotificationResponseAsync(notifications);
+      }
+
+      return true;
+    } catch {
+      return false;
     }
-
-    notificationResponseSubscription = notifications.addNotificationResponseReceivedListener((response) => {
-      void handleNotificationResponseAsync(notifications, response).catch(() => undefined);
-    });
-
-    const initialResponse = await getLastNotificationResponseAsync(notifications).catch(() => null);
-    if (initialResponse) {
-      await handleNotificationResponseAsync(notifications, initialResponse).catch(() => undefined);
-      await clearLastNotificationResponseAsync(notifications);
-    }
-
-    return true;
   },
 
   configureAppStateSync(syncReminders: () => void): void {

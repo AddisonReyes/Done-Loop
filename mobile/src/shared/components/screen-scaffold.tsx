@@ -1,5 +1,5 @@
 import { PropsWithChildren, useMemo } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -12,9 +12,10 @@ type ScreenScaffoldProps = PropsWithChildren<{
   title: string;
   eyebrow?: string;
   description?: string;
+  keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
 }>;
 
-export function ScreenScaffold({ title, eyebrow, description, children }: ScreenScaffoldProps) {
+export function ScreenScaffold({ title, eyebrow, description, children, keyboardShouldPersistTaps }: ScreenScaffoldProps) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { appBackground, resolvedTheme } = useThemePreference();
@@ -33,6 +34,7 @@ export function ScreenScaffold({ title, eyebrow, description, children }: Screen
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <AppBackground {...currentBackground} />
       <ScrollView
+        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         style={styles.scrollView}
         contentContainerStyle={[
           styles.content,

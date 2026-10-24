@@ -1,4 +1,4 @@
-import Constants, { AppOwnership } from 'expo-constants';
+import { isRunningInExpoGo } from 'expo';
 import { Platform } from 'react-native';
 
 import {
@@ -17,6 +17,12 @@ type TestNotificationsModule = NotificationsModule & {
   getLastNotificationResponseAsync: jest.Mock;
   setNotificationChannelAsync: jest.Mock;
 };
+
+jest.mock('expo', () => ({ isRunningInExpoGo: jest.fn(() => false) }));
+jest.mock('react-native', () => ({
+  Platform: { OS: 'android' },
+  AppState: { addEventListener: jest.fn(() => ({ remove: jest.fn() })) },
+}));
 
 jest.mock('@/features/habits/repositories', () => ({
   HabitCompletionRepository: {
@@ -103,6 +109,7 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isRunningInExpoGo).mockReturnValue(false);
     const { HabitCompletionRepository, HabitRepository } = jest.requireMock('@/features/habits/repositories') as {
       HabitCompletionRepository: { findByHabitAndDate: jest.Mock; listCompletedDateKeysByHabitId: jest.Mock };
       HabitRepository: { findById: jest.Mock; update: jest.Mock };
@@ -147,18 +154,64 @@ describe('NotificationService', () => {
 
   it('does not import expo-notifications in Android Expo Go', async () => {
     const loader = jest.fn(async () => notifications);
-    const originalAppOwnership = Constants.appOwnership;
     const originalPlatformOS = Platform.OS;
-    Object.defineProperty(Constants, 'appOwnership', { configurable: true, value: AppOwnership.Expo });
+    jest.mocked(isRunningInExpoGo).mockReturnValue(true);
     Object.defineProperty(Platform, 'OS', { configurable: true, value: 'android' });
     setNotificationModuleLoaderForTests(loader);
 
-    await expect(NotificationService.requestPermissionsAsync()).resolves.toBe(false);
+    try {
+      await expect(NotificationService.configureForegroundHandlingAsync()).resolves.toBe(false);
+      await expect(NotificationService.configureResponseHandlingAsync()).resolves.toBe(false);
+      await expect(NotificationService.requestPermissionsAsync()).resolves.toBe(false);
+      await expect(NotificationService.scheduleHabitReminderAsync({ habit })).resolves.toBeUndefined();
+      await expect(NotificationService.cancelAllAsync()).resolves.toBeUndefined();
+      expect(loader).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(Platform, 'OS', { configurable: true, value: originalPlatformOS });
+    }
+  });
 
-    expect(loader).not.toHaveBeenCalled();
+  it('shares a single module load between concurrent startup handlers in a native build', async () => {
+    const loader = jest.fn(async () => notifications);
+    setNotificationModuleLoaderForTests(loader);
 
-    Object.defineProperty(Constants, 'appOwnership', { configurable: true, value: originalAppOwnership });
-    Object.defineProperty(Platform, 'OS', { configurable: true, value: originalPlatformOS });
+    await expect(Promise.all([
+      NotificationService.configureForegroundHandlingAsync(),
+      NotificationService.configureResponseHandlingAsync(),
+    ])).resolves.toEqual([true, true]);
+    expect(loader).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['throw', 'reject'] as const)('handles a module loader that fails by %s', async (failure) => {
+    setNotificationModuleLoaderForTests(() => {
+      if (failure === 'throw') throw new Error('Missing native module');
+      return Promise.reject(new Error('Missing native module'));
+    });
+
+    await expect(NotificationService.configureForegroundHandlingAsync()).resolves.toBe(false);
+    await expect(NotificationService.configureResponseHandlingAsync()).resolves.toBe(false);
+  });
+
+  it.each(['setNotificationHandler', 'addNotificationResponseReceivedListener'] as const)(
+    'rejects a partially loaded module missing %s',
+    async (method) => {
+      const incomplete = { ...notifications };
+      Reflect.deleteProperty(incomplete, method);
+      setNotificationModuleLoaderForTests(async () => incomplete);
+
+      await expect(NotificationService.configureForegroundHandlingAsync()).resolves.toBe(false);
+      await expect(NotificationService.configureResponseHandlingAsync()).resolves.toBe(false);
+      expect(notifications.setNotificationHandler).not.toHaveBeenCalled();
+      expect(notifications.addNotificationResponseReceivedListener).not.toHaveBeenCalled();
+    },
+  );
+
+  it('returns unavailable when a native startup API throws', async () => {
+    jest.mocked(notifications.setNotificationHandler).mockImplementation(() => { throw new Error('Native handler unavailable'); });
+    jest.mocked(notifications.addNotificationResponseReceivedListener).mockImplementation(() => { throw new Error('Native listener unavailable'); });
+
+    await expect(NotificationService.configureForegroundHandlingAsync()).resolves.toBe(false);
+    await expect(NotificationService.configureResponseHandlingAsync()).resolves.toBe(false);
   });
 
   it('does not schedule todo reminders for past dates', async () => {

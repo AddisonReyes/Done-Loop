@@ -9,6 +9,7 @@ import TodosScreen from '@/app/todos';
 type UseTodosResult = ReturnType<typeof useTodos>;
 
 const mockUseTodos = jest.fn<UseTodosResult, []>();
+let mockLanguage: 'en' | 'es' = 'en';
 
 jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
@@ -32,9 +33,9 @@ jest.mock('@/hooks/use-theme-preference', () => ({
 
 jest.mock('@/i18n', () => ({
   useTranslation: () => ({
-    language: 'en',
-    locale: 'en',
-    t: mockCreateTestTranslator('en'),
+    language: mockLanguage,
+    locale: mockLanguage,
+    t: mockCreateTestTranslator(mockLanguage),
   }),
 }));
 
@@ -72,6 +73,7 @@ function createUseTodosResult(input: Partial<UseTodosResult> = {}): UseTodosResu
 describe('TodosScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLanguage = 'en';
   });
 
   it('renders list mode and completes a pending task', () => {
@@ -107,11 +109,33 @@ describe('TodosScreen', () => {
     expect(screen.getByText('No date')).toBeTruthy();
   });
 
-  it('shows loading, error, and empty states', () => {
+  it.each([
+    { language: 'en' as const, viewMode: 'list' as const },
+    { language: 'es' as const, viewMode: 'list' as const },
+    { language: 'en' as const, viewMode: 'calendar' as const },
+    { language: 'es' as const, viewMode: 'calendar' as const },
+  ])('creates from the sole floating action when $viewMode is empty in $language', ({ language, viewMode }) => {
+    mockLanguage = language;
+    const t = mockCreateTestTranslator(language);
+    mockUseTodos.mockReturnValue(createUseTodosResult({ calendarGroups: [], sortedTodos: [], viewMode }));
+
+    render(<TodosScreen />);
+
+    expect(screen.getAllByText(t('todos.empty'))).toHaveLength(1);
+    expect(screen.queryByText(t('todos.form.create'))).toBeNull();
+    expect(screen.getAllByRole('button', { name: t('common.create') })).toHaveLength(1);
+    fireEvent.press(screen.getByRole('button', { name: t('common.create') }));
+    expect(screen.getByText(t('todos.form.createTitle'))).toBeTruthy();
+  });
+
+  it.each([
+    { isLoading: true, errorMessage: null, feedback: 'Loading tasks...' },
+    { isLoading: false, errorMessage: 'Could not save task changes.', feedback: 'Could not save task changes.' },
+  ])('shows $feedback without an empty message', ({ isLoading, errorMessage, feedback }) => {
     mockUseTodos.mockReturnValue(
       createUseTodosResult({
-        errorMessage: 'Could not save task changes.',
-        isLoading: false,
+        errorMessage,
+        isLoading,
         calendarGroups: [],
         sortedTodos: [],
       })
@@ -119,9 +143,10 @@ describe('TodosScreen', () => {
 
     render(<TodosScreen />);
 
-    expect(screen.getByText('Could not save task changes.')).toBeTruthy();
-    expect(screen.getByText('No tasks yet.')).toBeTruthy();
-    expect(screen.getByText('Create task')).toBeTruthy();
+    expect(screen.getByText(feedback)).toBeTruthy();
+    expect(screen.queryByText('No tasks yet.')).toBeNull();
+    expect(screen.queryByText('Create task')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Create' })).toHaveLength(1);
   });
 
   it('confirms deletes before calling the hook delete action', () => {

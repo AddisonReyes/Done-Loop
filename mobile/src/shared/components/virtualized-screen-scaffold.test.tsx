@@ -1,6 +1,6 @@
 import { ComponentType, ReactNode } from 'react';
 import { FlatList, Text } from 'react-native';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 
 import { VirtualizedScreenScaffold } from './virtualized-screen-scaffold';
 
@@ -26,6 +26,34 @@ type Row = {
 };
 
 describe('VirtualizedScreenScaffold', () => {
+  it('shows a message without actions only while the list is empty', () => {
+    const { rerender } = render(
+      <VirtualizedScreenScaffold<Row>
+        title="Tasks"
+        data={[]}
+        emptyMessage="No tasks yet."
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <Text>{item.label}</Text>}
+      />
+    );
+
+    expect(screen.getAllByText('No tasks yet.')).toHaveLength(1);
+    expect(screen.queryByRole('button')).toBeNull();
+
+    rerender(
+      <VirtualizedScreenScaffold
+        title="Tasks"
+        data={[{ id: 'row_1', label: 'First row' }]}
+        emptyMessage="No tasks yet."
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <Text>{item.label}</Text>}
+      />
+    );
+
+    expect(screen.queryByText('No tasks yet.')).toBeNull();
+    expect(screen.getByText('First row')).toBeTruthy();
+  });
+
   it('constrains header, footer, and FlatList cells to the screen content width', () => {
     const { UNSAFE_getByType } = render(
       <VirtualizedScreenScaffold

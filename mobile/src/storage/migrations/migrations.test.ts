@@ -52,7 +52,7 @@ describe("migrations", () => {
 
     await runMigrationsAsync(database as unknown as SQLiteDatabase);
 
-    expect(database.withTransactionAsync).toHaveBeenCalledTimes(12);
+    expect(database.withTransactionAsync).toHaveBeenCalledTimes(13);
     expect(database.runAsync).toHaveBeenCalledWith(
       "INSERT INTO schema_migrations (id, name, applied_at) VALUES (?, ?, ?);",
       1,
@@ -62,7 +62,7 @@ describe("migrations", () => {
   });
 
   it("skips migrations that are already applied", async () => {
-    const database = createMigrationDatabase([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    const database = createMigrationDatabase([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
 
     await runMigrationsAsync(database as unknown as SQLiteDatabase);
 

@@ -13,7 +13,7 @@ export function useDateFormatPreference(): UserDateFormatPreference {
       if (mounted) {
         setDateFormat(settings.dateFormat);
       }
-    });
+    }).catch(() => undefined);
 
     const unsubscribe = SettingsRepository.subscribe((settings) => {
       setDateFormat(settings.dateFormat);

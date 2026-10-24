@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode, useMemo } from 'react';
+import { ReactElement, ReactNode, useMemo, type Ref } from 'react';
 import {
   FlatList,
   StyleProp,
@@ -7,6 +7,7 @@ import {
   ViewProps,
   ViewStyle,
   type ListRenderItem,
+  type FlatListProps,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,10 +21,13 @@ type VirtualizedScreenScaffoldProps<ItemT> = {
   contentContainerStyle?: StyleProp<ViewStyle>;
   data: readonly ItemT[];
   description?: string;
+  emptyMessage?: string;
   eyebrow?: string;
   keyExtractor: (item: ItemT, index: number) => string;
   listFooter?: ReactElement | null;
   listHeader?: ReactElement | null;
+  listRef?: Ref<FlatList<ItemT>>;
+  onScrollToIndexFailed?: FlatListProps<ItemT>['onScrollToIndexFailed'];
   renderItem: ListRenderItem<ItemT>;
   title: string;
 };
@@ -32,10 +36,13 @@ export function VirtualizedScreenScaffold<ItemT>({
   contentContainerStyle,
   data,
   description,
+  emptyMessage,
   eyebrow,
   keyExtractor,
   listFooter,
   listHeader,
+  listRef,
+  onScrollToIndexFailed,
   renderItem,
   title,
 }: VirtualizedScreenScaffoldProps<ItemT>) {
@@ -79,6 +86,8 @@ export function VirtualizedScreenScaffold<ItemT>({
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <AppBackground {...currentBackground} />
       <FlatList
+        ref={listRef}
+        onScrollToIndexFailed={onScrollToIndexFailed}
         data={data}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -95,7 +104,14 @@ export function VirtualizedScreenScaffold<ItemT>({
         ]}
         ListHeaderComponent={header}
         ListHeaderComponentStyle={styles.headerComponent}
-        ListFooterComponent={listFooter ? <View style={styles.footer}>{listFooter}</View> : null}
+        ListEmptyComponent={emptyMessage ? (
+          <View style={styles.emptyContent}>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.emptyMessage}>
+              {emptyMessage}
+            </ThemedText>
+          </View>
+        ) : undefined}
+        ListFooterComponent={listFooter ? <View style={styles.footer}>{listFooter}</View> : undefined}
         ItemSeparatorComponent={ListGap}
         CellRendererComponent={ConstrainedCell}
         keyboardShouldPersistTaps="handled"
@@ -174,6 +190,18 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     minWidth: 0,
     width: '100%',
+  },
+  emptyContent: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    maxWidth: 720,
+    paddingVertical: Spacing.four,
+    width: '100%',
+  },
+  emptyMessage: {
+    textAlign: 'center',
   },
   itemGap: {
     height: Spacing.two,
